@@ -1,0 +1,373 @@
+i just want to build an e-commerce website and this ecommerce site named as "Tele Sul".
+
+UX & PAGE DESIGN (Phone-based Auth, PWA)
+
+## 🧱 CORE PAGES OVERVIEW
+
+```
+1. Home (Home + Search + Filter)
+2. Item Detail
+3. Cart
+4. Payment Result
+   ├─ Success
+   └─ Fail
+5. Profile
+6. About Us
+7. Auth (Login / Signup – conditional)
+```
+
+---
+
+## 1️⃣ HOME PAGE (Home + Search + Filter COMBINED)
+
+### 🎯 Purpose
+
+> Discover → Filter → Select → Move forward
+
+### 📐 Home Page Structure (Top → Bottom)
+
+```
+[ Company Logo ]
+
+[ Header Text ]
+[ Sub Header Text ]
+
+[ Search Bar + Filter Icon ]
+
+[ Advert Banner / Slider ]
+
+[ Horizontal Category List ]
+
+[ Vertical Items List (Infinite Scroll) ]
+
+[ Bottom Navigation Bar ]
+```
+
+---
+
+### 🔍 SEARCH + FILTER UX
+
+**Search Bar**
+
+* Filters items by:
+
+  * Item name
+  * Category
+* Works in real-time
+
+**Filter Icon (Popup Box)**
+
+* Appears as modal or bottom sheet
+* Contains:
+
+  * Min price
+  * Max price
+  * Apply / Reset buttons
+
+No page change. Smooth UX.
+
+---
+
+### 🗂 CATEGORY UX
+
+```
+[ Chocolates ] [ Cosmetics ] [ Supplements ] ...
+```
+
+* Horizontal scroll
+* Click = filters product list
+* Active category highlighted
+* Can reset to “All”
+
+---
+
+### 🧾 ITEM CARD (Home Page)
+
+Each item shows:
+
+```
+[ Image ]
+Item Name
+Price
+```
+
+Tap → **Item Detail Page**
+
+---
+
+### 🧭 NAV BAR (PWA ICON MODE)
+
+```
+🏠 Home | 🔍 Search | 🛒 Cart | 👤 Profile | ℹ️ About
+```
+
+Always visible. Thumb-first design.
+
+---
+
+## 2️⃣ ITEM DETAIL PAGE
+
+### 🎯 Purpose
+
+> Decision → Add to cart
+
+### 📐 Layout
+
+```
+[ Wide Product Image ]
+[ ← Back Arrow ]
+
+Product Name
+Price (discount badge if exists)
+Description
+
+[ - 1 + ]  → Auto price calculation
+
+[ Add to Cart ]   [ Related Items → ]
+```
+
+---
+
+### 🧠 UX RULES
+
+* Back arrow returns to Home (state preserved)
+* Quantity updates price live
+* Related items = same card style as Home
+
+---
+
+## 3️⃣ CART PAGE
+
+### 🎯 Purpose
+
+> Review → Commit → Pay
+
+### 📐 Layout
+
+```
+[ 🛒 Cart ]
+
+Item List:
+- Image
+- Name
+- Quantity (+ / -)
+- Price
+- Cancel (X)
+
+[ Delivery Time Animation ]
+
+[ Total Price ]
+
+[ Pay Button ]
+```
+
+---
+
+### 🚚 DELIVERY UX
+
+* Animated truck or progress line
+* Shows estimated time
+* Emotion: reassurance
+
+---
+
+## 4️⃣ PAYMENT FLOW (EXTERNAL)
+
+### 🔁 Flow Logic
+
+```
+Pay Button
+ ↓
+Redirect to:
+- Chapa
+- ArifPay
+- OR USSD popup
+```
+
+After payment:
+
+---
+
+## 5️⃣ PAYMENT RESULT PAGES
+
+### ✅ SUCCESS PAGE
+
+```
+🎉 (Animated blowing emoji)
+
+"Your orders:
+- Item 1
+- Item 2
+will be delivered ASAP."
+
+Transaction ID (light italic)
+
+[ Go to Profile ]
+```
+
+Redirects to Profile page.
+
+---
+
+### ❌ FAIL PAGE
+
+```
+⚠️ Payment Failed
+
+[ Try Again ]
+```
+
+* Redirects back to Cart
+* Cart items preserved
+
+---
+
+## 6️⃣ PROFILE PAGE
+
+### 🎯 Purpose
+
+> Trust + Retention
+
+### 📐 Layout
+
+```
+[ 👤 Your Profile ]
+
+Hello, (Username)
+Phone: +251...
+
+Transaction History:
+- Item Name
+- Status (Pending / Delivered)
+- Date
+- Amount
+
+Member since: (Join Date)
+
+[ Send Feedback → Telegram ]
+```
+
+---
+
+### 🧾 TRANSACTION STATUS
+
+* 🟡 Pending
+* 🟢 Delivered
+
+Clear. Visual. Honest.
+
+---
+
+## 7️⃣ ABOUT US PAGE
+
+### 📐 Layout
+
+```
+[ ℹ️ About Us ]
+
+Our Services:
+- Fast Delivery
+- Quality Products
+- Secure Payment
+
+About Us Text
+
+User Testimonials (Slider)
+
+Contact:
+📞 Phone
+📷 Instagram
+✈ Telegram
+```
+
+Accessible from nav bar.
+
+---
+
+## 8️⃣ AUTHENTICATION RULES (VERY IMPORTANT)
+
+### 🔐 LOGIN PAGE
+
+**When shown:**
+
+* User token expired
+* User tries to:
+
+  * Pay
+  * Access Profile
+
+**Fields:**
+
+```
+Phone Number
+Password
+[ Login ]
+```
+
+---
+
+### 🆕 SIGNUP PAGE
+
+**Triggered when:**
+
+* Add to Cart clicked
+* Pay button clicked
+* Profile clicked
+* AND user has no account
+
+**Fields:**
+
+```
+Username
+Phone Number
+Password
+Confirm Password
+[ Sign Up ]
+```
+
+---
+
+### 🔁 AUTH REDIRECTION LOGIC
+
+```
+User Action → Needs Auth?
+ ├─ Yes → Login / Signup
+ │          ↓
+ │     Return to action
+ └─ No → Continue
+```
+
+Cart **never resets**.
+
+---
+
+## 🧠 FINAL SYSTEM SUMMARY
+
+| Feature          | Status   |
+| ---------------- | -------- |
+| Home + Search    | Combined |
+| Filters          | Popup    |
+| Infinite Scroll  | Yes      |
+| Phone Auth       | Yes      |
+| Guest Mode       | Yes      |
+| Cart Persistence | Yes      |
+| External Payment | Yes      |
+| PWA Nav Bar      | Yes      |
+
+---
+
+## 🧠 JARVIS FINAL NOTE
+
+This is **clean UX**, **real-world ready**, and **Ethiopia-payment aware**.
+Nothing here is overdesigned. Nothing is missing.
+
+
+
+i shared you the ui design in three images and make it exactly like thise images so build the project based on the design and also it needs to be perfect
+
+
+instructions
+- use React , MongoDB, pure css, Express, Node.js , Gsap, skeleten animation
+- make this site load fastly and optimize it but no need of SEO
+- for the payment use chapa
+- build only frontend then when i ask you you will build the backend and database connections but frist build the frontend but make it work independently from the backend okay

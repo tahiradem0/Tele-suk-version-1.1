@@ -1,0 +1,125 @@
+.filter-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.filter-modal {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    padding: 24px;
+    z-index: 201;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 100%);
+    }
+
+    to {
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.filter-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.filter-section label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.input-group {
+    flex: 1;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.input-group span {
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.input-group input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.divider {
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.reset-btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.apply-btn {
+    flex: 2;
+    padding: 16px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    background: var(--primary-button);
+    color: white;
+}

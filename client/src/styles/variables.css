@@ -1,0 +1,34 @@
+:root {
+  /* Colors */
+  --bg-primary: #f8f9fc;
+  --bg-card: #ffffff;
+  --text-primary: #1a1b1e;
+  --text-secondary: #868e96;
+  --accent-color: #d4a373; /* Premium Gold/Bronze from images */
+  --primary-button: #1a1b1e;
+  --primary-button-text: #ffffff;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  
+  /* Dimensions */
+  --nav-height: 70px;
+  --header-height: 60px;
+  
+  /* Radius */
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
+  --radius-full: 9999px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Optional: Dark mode foundation if requested later, keeping light for now based on images */
+}

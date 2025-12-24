@@ -1,0 +1,124 @@
+.home-page {
+    padding: 0 var(--spacing-md);
+    padding-top: var(--header-height);
+}
+
+.home-header {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    /* Center fixed header relative to transform in global if needed, but easier to just absolute */
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 600px;
+    height: var(--header-height);
+    padding: 0 var(--spacing-md);
+    display: flex;
+    align-items: center;
+    background: var(--bg-primary);
+    z-index: 90;
+}
+
+.brand-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.menu-btn {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--text-primary);
+}
+
+.categories-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin: 16px 0;
+}
+
+.category-chip {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    background: white;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    font-size: 14px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.category-chip.active {
+    background: var(--text-primary);
+    color: white;
+}
+
+.hero-banner {
+    background: #e9ecef;
+    /* Placeholder color */
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* This is a visual approximation of the banner */
+}
+
+/* Simulate the chocolate bar image with a gradient or placeholer */
+.hero-banner::after {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 150px;
+    height: 150px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    opacity: 0.2;
+}
+
+.banner-text h2 {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.banner-text p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.banner-btn {
+    background: var(--text-primary);
+    color: white;
+    padding: 12px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 14px;
+    width: 100%;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}

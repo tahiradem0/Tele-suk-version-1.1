@@ -1,0 +1,84 @@
+.about-page {
+    padding: 24px;
+}
+
+.about-header {
+    margin-top: 20px;
+    margin-bottom: 24px;
+}
+
+.about-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.about-hero {
+    background: var(--text-primary);
+    color: white;
+    padding: 32px;
+    border-radius: var(--radius-md);
+    margin-bottom: 32px;
+}
+
+.about-hero h2 {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.4;
+}
+
+.features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.feature-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+}
+
+.feature-text h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.feature-text p {
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.contact-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.contact-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.contact-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 500;
+}

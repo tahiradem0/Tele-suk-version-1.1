@@ -1,0 +1,183 @@
+.profile-page {
+    padding: 24px;
+}
+
+.profile-page.guest {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.guest-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.guest-icon {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.login-btn {
+    padding: 12px 24px;
+    background: var(--primary-button);
+    color: white;
+    border-radius: var(--radius-full);
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    margin-top: 20px;
+}
+
+.profile-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.logout-btn {
+    color: #ff6b6b;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.profile-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 32px;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    background: var(--text-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.info h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.info p {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+.join-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 8px;
+    background: #f8f9fc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.history-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.history-item {
+    background: white;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+.txn-icon {
+    width: 40px;
+    height: 40px;
+    background: #f1f3f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.txn-details {
+    flex: 1;
+}
+
+.txn-details h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.txn-details p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.txn-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.status-pending {
+    background: #fff9db;
+    color: #f08c00;
+}
+
+.status-delivered {
+    background: #d3f9d8;
+    color: #2b8a3e;
+}
+
+.txn-amount {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.feedback-btn {
+    width: 100%;
+    margin-top: 32px;
+    padding: 16px;
+    background: #229ED9;
+    /* Telegram Blue */
+    color: white;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+}
