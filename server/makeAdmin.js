@@ -9,15 +9,18 @@ const makeAdmin = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('MongoDB Connected');
 
-        const phone = '978787960'; // The user we found
+        // Get phone number from command line argument or use default
+        const phone = process.argv[2] || '978787960';
+
         const user = await User.findOne({ phone });
 
         if (user) {
             user.isAdmin = true;
             await user.save();
-            console.log(`SUCCESS: User ${user.name} (${user.phone}) is now an ADMIN.`);
+            console.log(`\n✅ SUCCESS: User ${user.name} (${user.phone}) is now an ADMIN.\n`);
         } else {
-            console.log('User not found.');
+            console.log(`\n❌ ERROR: No user found with phone number: ${phone}`);
+            console.log('Please register this user first, then run this script again.\n');
         }
 
         process.exit();
