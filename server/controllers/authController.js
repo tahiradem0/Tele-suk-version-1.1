@@ -55,24 +55,48 @@ const registerUser = asyncHandler(async (req, res) => {
 // @desc    Authenticate a user
 // @route   POST /api/auth/login
 // @access  Public
-const loginUser = asyncHandler(async (req, res) => {
+const login = asyncHandler(async (req, res) => {
     const { phone, password } = req.body;
 
-    // Check for user email
+    console.log('🔐 Login attempt for phone:', phone);
+
+    // Find user
     const user = await User.findOne({ phone });
 
-    if (user && (await user.matchPassword(password))) {
-        res.json({
-            _id: user.id,
-            name: user.name,
-            phone: user.phone,
-            isAdmin: user.isAdmin,
-            token: generateToken(user._id),
-        });
-    } else {
-        res.status(400);
-        throw new Error('Invalid credentials');
+    if (!user) {
+        console.log('❌ User not found:', phone);
+        res.status(401);
+        throw new Error('Invalid phone number or password');
     }
+
+    console.log('👤 User found:', { name: user.name, isAdmin: user.isAdmin });
+
+    // Check password
+    const isPasswordValid = await user.matchPassword(password);
+    console.log('🔑 Password valid:', isPasswordValid);
+
+    if (!isPasswordValid) {
+        console.log('❌ Invalid password for user:', phone);
+        res.status(401);
+        throw new Error('Invalid phone number or password');
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    console.log('✅ Login successful:', {
+        name: user.name,
+        phone: user.phone,
+        isAdmin: user.isAdmin
+    });
+
+    res.json({
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        isAdmin: user.isAdmin,
+        token,
+    });
 });
 
 // @desc    Get user data

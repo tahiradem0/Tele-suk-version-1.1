@@ -17,113 +17,136 @@ const AdminLogin = () => {
         setError('');
         setLoading(true);
 
-        const result = await login(phone, password);
+        console.log('🔐 Admin Login Attempt:', { phone, passwordLength: password.length });
 
-        if (result.success) {
-            // Check if user is actually admin
-            // The login function in context updates the user state
-            // We can check the localstorage or the returned data
-            const storedUser = JSON.parse(localStorage.getItem('user'));
-            if (storedUser && storedUser.isAdmin) {
-                navigate('/admin/dashboard');
+        try {
+            const result = await login(phone, password);
+            console.log('📡 Login API Response:', result);
+
+            if (result.success) {
+                const storedUser = JSON.parse(localStorage.getItem('user'));
+                console.log('👤 Stored User:', storedUser);
+
+                if (storedUser && storedUser.isAdmin) {
+                    console.log('✅ Admin verified, redirecting to dashboard...');
+                    navigate('/admin/dashboard');
+                } else {
+                    console.error('❌ User is not an admin:', storedUser);
+                    setError(`Access Denied: You do not have admin permissions. isAdmin: ${storedUser?.isAdmin}`);
+                    localStorage.removeItem('user');
+                }
             } else {
-                setError('Access Denied: You do not have admin permissions.');
-                // Optional: logout if they are not admin
+                console.error('❌ Login failed:', result.error);
+                setError(result.error || 'Login failed. Please check your credentials.');
             }
-        } else {
-            setError(result.error || 'Login failed');
+        } catch (error) {
+            console.error('💥 Login Exception:', error);
+            if (error.message === 'Network Error') {
+                setError('Network Error: Cannot connect to server. Please check if the backend is running.');
+            } else {
+                setError(`Error: ${error.message || 'An unexpected error occurred'}`);
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
         <div style={{
-            height: '100vh',
-            width: '100vw',
+            minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#f8f9fc'
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '1rem'
         }}>
             <div style={{
                 background: 'white',
-                padding: '2rem',
-                borderRadius: '24px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                padding: '2.5rem',
+                borderRadius: '20px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                 width: '100%',
-                maxWidth: '400px',
-                textAlign: 'center'
+                maxWidth: '400px'
             }}>
-                <div style={{
-                    width: '64px',
-                    height: '64px',
-                    background: '#1a1b1e',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 1.5rem auto'
-                }}>
-                    <Lock color="white" size={32} />
-                </div>
+                <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.5rem', textAlign: 'center' }}>
+                    Admin Login
+                </h1>
+                <p style={{ color: '#868e96', textAlign: 'center', marginBottom: '2rem' }}>
+                    Enter your credentials to access the admin panel
+                </p>
 
-                <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>Admin Access</h1>
-                <p style={{ color: '#868e96', marginBottom: '2rem' }}>Login with your admin credentials</p>
+                {error && (
+                    <div style={{
+                        background: '#fee',
+                        border: '1px solid #fcc',
+                        color: '#c33',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        marginBottom: '1.5rem',
+                        fontSize: '0.9rem',
+                        wordBreak: 'break-word'
+                    }}>
+                        <strong>Error:</strong> {error}
+                    </div>
+                )}
 
-                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <input
-                        type="tel"
-                        placeholder="Phone Number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        style={{
-                            padding: '1rem',
-                            borderRadius: '12px',
-                            border: '1px solid #eee',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            background: '#f8f9fc',
-                            transition: 'border 0.2s',
-                        }}
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={{
-                            padding: '1rem',
-                            borderRadius: '12px',
-                            border: '1px solid #eee',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            background: '#f8f9fc',
-                            transition: 'border 0.2s',
-                        }}
-                    />
+                <form onSubmit={handleLogin}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#495057' }}>
+                            Phone Number
+                        </label>
+                        <input
+                            type="text"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Enter phone number"
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '8px',
+                                border: '1px solid #ddd',
+                                fontSize: '1rem'
+                            }}
+                        />
+                    </div>
 
-                    {error && <p style={{ color: '#ff4444', fontSize: '0.9rem', textAlign: 'left' }}>{error}</p>}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#495057' }}>
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter password"
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '8px',
+                                border: '1px solid #ddd',
+                                fontSize: '1rem'
+                            }}
+                        />
+                    </div>
 
                     <button
                         type="submit"
                         disabled={loading}
                         style={{
-                            background: '#1a1b1e',
-                            color: 'white',
+                            width: '100%',
                             padding: '1rem',
-                            borderRadius: '12px',
+                            background: loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
                             fontSize: '1rem',
                             fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            marginTop: '0.5rem',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            opacity: loading ? 0.7 : 1
+                            cursor: loading ? 'not-allowed' : 'pointer'
                         }}
                     >
-                        {loading ? 'Verifying...' : 'Access Dashboard'} <ArrowRight size={18} />
+                        {loading ? 'Logging in...' : 'Access Dashboard'}
                     </button>
                 </form>
             </div>
