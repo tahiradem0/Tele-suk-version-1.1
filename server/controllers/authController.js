@@ -13,7 +13,7 @@ const generateToken = (id) => {
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
-const registerUser = asyncHandler(async (req, res) => {
+const register = asyncHandler(async (req, res) => {
     const { name, phone, password } = req.body;
 
     if (!name || !phone || !password) {
@@ -107,7 +107,7 @@ const getMe = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    registerUser,
-    loginUser,
+    register,
+    login,
     getMe,
 };
