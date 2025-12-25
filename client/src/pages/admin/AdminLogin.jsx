@@ -23,13 +23,15 @@ const AdminLogin = () => {
             const result = await login(phone, password);
             console.log('📡 Login API Response:', result);
 
+
             if (result.success) {
                 const storedUser = JSON.parse(localStorage.getItem('user'));
                 console.log('👤 Stored User:', storedUser);
 
                 if (storedUser && storedUser.isAdmin) {
                     console.log('✅ Admin verified, redirecting to dashboard...');
-                    navigate('/admin/dashboard');
+                    // Use window.location for more reliable redirect in production
+                    window.location.href = '/admin/dashboard';
                 } else {
                     console.error('❌ User is not an admin:', storedUser);
                     setError(`Access Denied: You do not have admin permissions. isAdmin: ${storedUser?.isAdmin}`);
