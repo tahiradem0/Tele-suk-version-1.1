@@ -44,8 +44,9 @@ const Home = () => {
             />
 
             <header className="home-header">
-                <div className="brand">
-                    <h1 className="brand-title">Future Store</h1>
+                <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <img src="/logo.svg" alt="TeleSuk Logo" style={{ width: '30px', height: '30px' }} />
+                    <h1 className="brand-title">TeleSuk</h1>
                     <button className="menu-btn">
                         <span className="dot"></span>
                         <span className="dot"></span>
@@ -91,7 +92,7 @@ const Home = () => {
                                     <h2>{banner.title}</h2>
                                     <p>{banner.subtitle}</p>
                                 </div>
-                                <a href={banner.buttonLink || '/'} className="banner-btn" style={{ position: 'relative', zIndex: 1, textDecoration: 'none', display: 'inline-block' }}>
+                                <a href={banner.buttonLink || '/search'} className="banner-btn" style={{ position: 'relative', zIndex: 1, textDecoration: 'none', display: 'inline-block' }}>
                                     {banner.buttonText || 'Explore'}
                                 </a>
                             </div>
@@ -102,7 +103,7 @@ const Home = () => {
                                 <h2>Welcome to Tele-Suk</h2>
                                 <p>Your one stop shop.</p>
                             </div>
-                            <button className="banner-btn">Shop Now</button>
+                            <button className="banner-btn" onClick={() => window.location.href = '/search'}>Shop Now</button>
                             <div className="banner-img-placeholder"></div>
                         </div>
                     )}

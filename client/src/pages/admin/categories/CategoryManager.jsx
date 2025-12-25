@@ -7,6 +7,7 @@ const CategoryManager = () => {
     const [editingId, setEditingId] = useState(null);
     const [editName, setEditName] = useState('');
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [error, setError] = useState('');
 
     useEffect(() => {
         loadCategories();
@@ -18,43 +19,51 @@ const CategoryManager = () => {
             setCategories(data);
         } catch (error) {
             console.error("Failed to load categories", error);
+            setError("Failed to load categories. Please try again.");
         }
     };
 
     const handleAdd = async () => {
         if (newCategoryName.trim()) {
+            setError(''); // Clear previous errors
             try {
                 const { data } = await categoryService.create({ name: newCategoryName });
                 setCategories([...categories, data]);
                 setNewCategoryName('');
             } catch (error) {
                 console.error("Failed to add category", error);
+                setError(error.response?.data?.message || error.message || "Failed to add category.");
             }
         }
     };
 
     const startEdit = (cat) => {
+        setError('');
         setEditingId(cat._id);
         setEditName(cat.name);
     };
 
     const saveEdit = async (id) => {
+        setError('');
         try {
             const { data } = await categoryService.update(id, { name: editName });
             setCategories(categories.map(cat => cat._id === id ? data : cat));
             setEditingId(null);
         } catch (error) {
             console.error("Failed to update category", error);
+            setError(error.response?.data?.message || error.message || "Failed to update category.");
         }
     };
 
     const handleDelete = async (id) => {
         if (window.confirm('Delete this category?')) {
+            setError('');
             try {
                 await categoryService.delete(id);
                 setCategories(categories.filter(cat => cat._id !== id));
             } catch (error) {
                 console.error("Failed to delete", error);
+                setError(error.response?.data?.message || error.message || "Failed to delete category.");
             }
         }
     };
@@ -65,6 +74,27 @@ const CategoryManager = () => {
                 <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>Categories</h1>
                 <p style={{ color: '#868e96' }}>Manage product categories</p>
             </header>
+
+            {error && (
+                <div style={{
+                    background: '#fee',
+                    border: '1px solid #fcc',
+                    color: '#c33',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    marginBottom: '1.5rem',
+                    fontSize: '0.9rem',
+                    wordBreak: 'break-word',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <span><strong>Error:</strong> {error}</span>
+                    <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c33' }}>
+                        <X size={16} />
+                    </button>
+                </div>
+            )}
 
             {/* Add New */}
             <div style={{
@@ -81,6 +111,7 @@ const CategoryManager = () => {
                     placeholder="New Category Name"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAdd()}
                     style={{
                         flex: 1,
                         padding: '0.8rem',
@@ -100,7 +131,8 @@ const CategoryManager = () => {
                         fontWeight: '600',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem'
+                        gap: '0.5rem',
+                        cursor: 'pointer'
                     }}
                 >
                     <Plus size={20} />

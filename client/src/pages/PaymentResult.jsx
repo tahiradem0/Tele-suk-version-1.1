@@ -27,12 +27,27 @@ const PaymentResult = () => {
         }
     }, [txRef]);
 
+    useEffect(() => {
+        // Request Notification Permission on component mount
+        if ('Notification' in window) {
+            Notification.requestPermission();
+        }
+    }, []);
+
     const verifyTransaction = async (ref) => {
         try {
             const { data } = await paymentService.verify(ref);
             if (data.status === 'success') {
                 setVerificationStatus('success');
                 clearCart();
+
+                // Trigger Notification
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Tele-Suk Payment Successful! 🎉', {
+                        body: 'Your order has been placed successfully. Thank you for shopping with us!',
+                        icon: '/logo.svg'
+                    });
+                }
             } else {
                 setVerificationStatus('failed');
             }

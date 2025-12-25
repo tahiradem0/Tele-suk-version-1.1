@@ -1,0 +1,8 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="90" fill="black" />
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="white">
+    <tspan x="50%" dy="-10">Tele</tspan>
+    <tspan x="50%" dy="30">Suk</tspan>
+  </text>
+  <path d="M60 140 Q 100 170 140 140" stroke="white" stroke-width="5" fill="none" />
+</svg>

@@ -21,7 +21,8 @@ const initializePayment = asyncHandler(async (req, res) => {
     // Mock Chapa Initialization (Replace with actual API call)
     // For local dev, we might just return a success payload or redirect URL
     const CHAPA_URL = 'https://api.chapa.co/v1/transaction/initialize';
-    const CALLBACK_URL = `http://localhost:5173/payment-result?tx_ref=${tx_ref}`;
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const CALLBACK_URL = `${clientUrl}/payment-result?tx_ref=${tx_ref}`;
 
     const data = {
         amount: order.totalPrice,
