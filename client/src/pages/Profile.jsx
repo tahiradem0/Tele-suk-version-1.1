@@ -78,7 +78,7 @@ const Profile = () => {
                 </div>
             </div>
 
-            <button className="feedback-btn">
+            <a href="https://google.com" className="feedback-btn">
                 <Send size={18} />
                 <span>Send Feedback (Telegram)</span>
             </button>
