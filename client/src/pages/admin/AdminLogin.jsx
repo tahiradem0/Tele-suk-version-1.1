@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ArrowRight } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
-import '../../styles/global.css';
+import '../Auth.css';
 
 const AdminLogin = () => {
     const [phone, setPhone] = useState('');
@@ -34,7 +33,7 @@ const AdminLogin = () => {
                     window.location.href = '/admin/dashboard';
                 } else {
                     console.error('❌ User is not an admin:', storedUser);
-                    setError(`Access Denied: You do not have admin permissions. isAdmin: ${storedUser?.isAdmin}`);
+                    setError(`Access Denied: You do not have admin permissions.`);
                     localStorage.removeItem('user');
                 }
             } else {
@@ -54,28 +53,12 @@ const AdminLogin = () => {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            padding: '1rem'
-        }}>
-            <div style={{
-                background: 'white',
-                padding: '2.5rem',
-                borderRadius: '20px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                width: '100%',
-                maxWidth: '400px'
-            }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.5rem', textAlign: 'center' }}>
-                    Admin Login
-                </h1>
-                <p style={{ color: '#868e96', textAlign: 'center', marginBottom: '2rem' }}>
-                    Enter your credentials to access the admin panel
-                </p>
+        <div className="page auth-page">
+            <div className="auth-container">
+                <div className="auth-header">
+                    <h1>Admin Login</h1>
+                    <p>Enter your credentials to access the admin panel</p>
+                </div>
 
                 {error && (
                     <div style={{
@@ -92,61 +75,39 @@ const AdminLogin = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleLogin}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#495057' }}>
-                            Phone Number
-                        </label>
-                        <input
-                            type="text"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="Enter phone number"
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '0.8rem',
-                                borderRadius: '8px',
-                                border: '1px solid #ddd',
-                                fontSize: '1rem'
-                            }}
-                        />
+                <form className="auth-form" onSubmit={handleLogin}>
+                    <div className="form-group">
+                        <label>Phone Number</label>
+                        <div className="phone-input">
+                            {/* Assuming country code is fixed as per Auth.jsx, or we can make it part of input if needed. 
+                                 Auth.jsx hardcodes +251. Sticking to consistency. */}
+                            <span className="country-code">+251</span>
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="912 345 678"
+                                required
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#495057' }}>
-                            Password
-                        </label>
+                    <div className="form-group">
+                        <label>Password</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter password"
+                            placeholder="••••••••"
                             required
-                            style={{
-                                width: '100%',
-                                padding: '0.8rem',
-                                borderRadius: '8px',
-                                border: '1px solid #ddd',
-                                fontSize: '1rem'
-                            }}
                         />
                     </div>
 
                     <button
                         type="submit"
+                        className="auth-btn"
                         disabled={loading}
-                        style={{
-                            width: '100%',
-                            padding: '1rem',
-                            background: loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            cursor: loading ? 'not-allowed' : 'pointer'
-                        }}
+                        style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
                     >
                         {loading ? 'Logging in...' : 'Access Dashboard'}
                     </button>
