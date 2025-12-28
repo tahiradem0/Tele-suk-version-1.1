@@ -1,6 +1,6 @@
 {
   "name": "tele-sul-pwa",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,6 +17,7 @@
     "react-dom": "^19.2.3",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.11.0",
-    "vite": "^7.3.0"
+    "vite": "^7.3.0",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }
