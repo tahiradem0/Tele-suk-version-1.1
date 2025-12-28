@@ -41,7 +41,7 @@ const AboutUs = () => {
                 <h3>Contact Us</h3>
                 <div className="contact-row">
                     <Phone size={20} />
-                    <span>+251 911 234 567</span>
+                    <span>251 978 7879 60</span>
                 </div>
                 {/* Social Icons would go here */}
             </div>

@@ -1,22 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { User, History, Send } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { useNavigate } from 'react-router-dom';
-import { orderService } from '../services/api';
 import './Profile.css';
 
 const Profile = () => {
     const { user, logout } = useShop();
     const navigate = useNavigate();
-    const [orders, setOrders] = useState([]);
-
-    useEffect(() => {
-        if (user) {
-            orderService.getMyOrders()
-                .then(res => setOrders(res.data))
-                .catch(err => console.error("Failed to fetch orders", err));
-        }
-    }, [user]);
 
     if (!user) {
         return (
@@ -52,21 +42,21 @@ const Profile = () => {
             <div className="history-section">
                 <h3>Transaction History</h3>
                 <div className="history-list">
-                    {orders.length > 0 ? (
-                        orders.map(order => (
-                            <div key={order._id} className="history-item">
+                    {user.history && user.history.length > 0 ? (
+                        user.history.map(txn => (
+                            <div key={txn.id} className="history-item">
                                 <div className="txn-icon">
                                     <History size={20} />
                                 </div>
                                 <div className="txn-details">
-                                    <h4>{order.orderItems.map(i => i.name).join(', ')}</h4>
-                                    <p>{new Date(order.createdAt).toLocaleDateString()}</p>
+                                    <h4>{txn.items.map(i => i.name).join(', ')}</h4>
+                                    <p>{txn.date}</p>
                                 </div>
-                                <div className={`txn-status status-${order.status.toLowerCase()}`}>
-                                    {order.status}
+                                <div className="txn-status status-pending">
+                                    {txn.status || 'Pending'}
                                 </div>
                                 <div className="txn-amount">
-                                    ETB {order.totalPrice.toFixed(2)}
+                                    ${txn.total.toFixed(2)}
                                 </div>
                             </div>
                         ))
@@ -78,7 +68,7 @@ const Profile = () => {
                 </div>
             </div>
 
-            <button className="feedback-btn">
+            <button className="feedback-btn" onclick={() => window.open('https://t.me/soldier_of_99', '_blank')}>
                 <Send size={18} />
                 <span>Send Feedback (Telegram)</span>
             </button>
