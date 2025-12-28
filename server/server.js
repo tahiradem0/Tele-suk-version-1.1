@@ -12,9 +12,26 @@ const app = express();
 
 // Middleware
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL || 'https://your-app.vercel.app'
-        : 'http://localhost:5173',
+    origin: (origin, callback) => {
+        const allowedOrigin = process.env.NODE_ENV === 'production'
+            ? process.env.FRONTEND_URL || 'https://your-app.vercel.app'
+            : 'http://localhost:5173';
+
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        // Normalize origins by removing trailing slashes
+        const normalize = (url) => url ? url.replace(/\/$/, '') : '';
+        const normalizedOrigin = normalize(origin);
+        const normalizedAllowed = normalize(allowedOrigin);
+
+        if (normalizedOrigin === normalizedAllowed) {
+            callback(null, true);
+        } else {
+            console.log("Blocked by CORS:", origin); // Debug log
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 };
 app.use(cors(corsOptions));

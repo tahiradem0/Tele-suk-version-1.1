@@ -79,7 +79,7 @@ CHAPA_SECRET_KEY=<your Chapa secret key>
 CLOUDINARY_CLOUD_NAME=<your Cloudinary cloud name>
 CLOUDINARY_API_KEY=<your Cloudinary API key>
 CLOUDINARY_API_SECRET=<your Cloudinary API secret>
-FRONTEND_URL=<will add after Vercel deployment>
+FRONTEND_URL=https://tele-suk.vercel.app/
 ```
 
 **Generate JWT Secret:**
@@ -114,9 +114,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 3. Import your GitHub repository
 4. Configure project:
    - **Framework Preset**: Vite
-   - **Root Directory**: `client`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+   - **Root Directory**: Click "Edit" next to Root Directory and select `client`
+   - **Build Command**: `npm run build` (This should be auto-detected after setting Root Directory)
+   - **Output Directory**: `dist` (This should be auto-detected)
 
 ### Set Environment Variables
 Add environment variable:
