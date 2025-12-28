@@ -25,50 +25,54 @@ import Auth from './pages/Auth'
 import PaymentResult from './pages/PaymentResult'
 import AboutUs from './pages/AboutUs'
 
+import { ToastProvider } from './context/ToastContext'
+
 function App() {
     return (
         <ShopProvider>
-            <Router>
-                <Routes>
-                    {/* User Application Routes */}
-                    <Route element={<UserLayout />}>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/search" element={<SearchPage />} />
-                        <Route path="/item/:id" element={<ItemDetail />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/payment-result" element={<PaymentResult />} />
-                        <Route path="/about" element={<AboutUs />} />
-                    </Route>
+            <ToastProvider>
+                <Router>
+                    <Routes>
+                        {/* User Application Routes */}
+                        <Route element={<UserLayout />}>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/search" element={<SearchPage />} />
+                            <Route path="/item/:id" element={<ItemDetail />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/auth" element={<Auth />} />
+                            <Route path="/payment-result" element={<PaymentResult />} />
+                            <Route path="/about" element={<AboutUs />} />
+                        </Route>
 
-                    {/* Admin Application Routes */}
-                    <Route path="/admin/login" element={<AdminLogin />} />
+                        {/* Admin Application Routes */}
+                        <Route path="/admin/login" element={<AdminLogin />} />
 
-                    <Route path="/admin" element={
-                        <ProtectedAdminRoute>
-                            <AdminLayout />
-                        </ProtectedAdminRoute>
-                    }>
-                        <Route index element={<Navigate to="dashboard" replace />} />
-                        <Route path="dashboard" element={<AdminDashboard />} />
+                        <Route path="/admin" element={
+                            <ProtectedAdminRoute>
+                                <AdminLayout />
+                            </ProtectedAdminRoute>
+                        }>
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<AdminDashboard />} />
 
-                        {/* Placeholder routes for other admin modules */}
-                        <Route path="products" element={<ProductList />} />
-                        <Route path="products/new" element={<ProductForm />} />
-                        <Route path="products/edit/:id" element={<ProductForm />} />
-                        <Route path="categories" element={<CategoryManager />} />
-                        <Route path="orders" element={<OrderList />} />
-                        <Route path="payments" element={<PaymentViewer />} />
-                        <Route path="users" element={<UserManager />} />
-                        <Route path="delivery" element={<DeliveryManager />} />
-                        <Route path="banners" element={<BannerManager />} />
-                        <Route path="feedback" element={<div style={{ padding: '2rem' }}><h1>Feedback</h1><p>Coming soon...</p></div>} />
-                        <Route path="content" element={<div style={{ padding: '2rem' }}><h1>Content Manager</h1><p>Coming soon...</p></div>} />
-                        <Route path="settings" element={<div style={{ padding: '2rem' }}><h1>Settings</h1><p>Coming soon...</p></div>} />
-                    </Route>
-                </Routes>
-            </Router>
+                            {/* Placeholder routes for other admin modules */}
+                            <Route path="products" element={<ProductList />} />
+                            <Route path="products/new" element={<ProductForm />} />
+                            <Route path="products/edit/:id" element={<ProductForm />} />
+                            <Route path="categories" element={<CategoryManager />} />
+                            <Route path="orders" element={<OrderList />} />
+                            <Route path="payments" element={<PaymentViewer />} />
+                            <Route path="users" element={<UserManager />} />
+                            <Route path="delivery" element={<DeliveryManager />} />
+                            <Route path="banners" element={<BannerManager />} />
+                            <Route path="feedback" element={<div style={{ padding: '2rem' }}><h1>Feedback</h1><p>Coming soon...</p></div>} />
+                            <Route path="content" element={<div style={{ padding: '2rem' }}><h1>Content Manager</h1><p>Coming soon...</p></div>} />
+                            <Route path="settings" element={<div style={{ padding: '2rem' }}><h1>Settings</h1><p>Coming soon...</p></div>} />
+                        </Route>
+                    </Routes>
+                </Router>
+            </ToastProvider>
         </ShopProvider>
     )
 }

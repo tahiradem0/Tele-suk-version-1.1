@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Minus, Plus, X, Truck, CreditCard } from 'lucide-react'; // Using icons for UI
 import { useNavigate } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
+import { useToast } from '../context/ToastContext';
 import { orderService, paymentService } from '../services/api';
 import './Cart.css';
 
@@ -16,6 +17,8 @@ const Cart = () => {
 
     const [address, setAddress] = useState('');
 
+    const { showToast } = useToast();
+
     const handleCheckout = async () => {
         if (cart.length === 0) return;
 
@@ -25,7 +28,7 @@ const Cart = () => {
         }
 
         if (!address.trim()) {
-            alert('Please enter a delivery address');
+            showToast('Please enter a delivery address', 'warning');
             return;
         }
 
@@ -61,13 +64,13 @@ const Cart = () => {
                 window.location.href = paymentResponse.checkout_url;
             } else {
                 console.error("No checkout URL in response", paymentResponse);
-                alert("Payment initialization failed");
+                showToast("Payment initialization failed", "error");
                 setIsProcessing(false);
             }
 
         } catch (error) {
             console.error("Checkout failed", error);
-            alert("Checkout failed. Please try again.");
+            showToast("Checkout failed. Please try again.", "error");
             setIsProcessing(false);
         }
     };

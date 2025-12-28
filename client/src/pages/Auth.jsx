@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
+import { useToast } from '../context/ToastContext';
 import './Auth.css';
 
 const Auth = () => {
@@ -16,6 +17,8 @@ const Auth = () => {
         confirmPassword: ''
     });
 
+    const { showToast } = useToast();
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -28,7 +31,7 @@ const Auth = () => {
 
         if (!isLogin) {
             if (formData.password !== formData.confirmPassword) {
-                alert("Passwords do not match");
+                showToast("Passwords do not match", "error");
                 return;
             }
         }
@@ -45,13 +48,14 @@ const Auth = () => {
         }
 
         if (result.success) {
+            showToast(isLogin ? "Welcome back!" : "Account created successfully!", "success");
             if (location.search.includes('redirect=cart')) {
                 navigate('/cart');
             } else {
                 navigate('/profile');
             }
         } else {
-            alert(result.error);
+            showToast(result.error || "Authentication failed", "error");
         }
     };
 
