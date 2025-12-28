@@ -17,6 +17,7 @@ const PaymentResult = () => {
 
     const txRef = searchParams.get('tx_ref');
 
+    const [verificationStatus, setVerificationStatus] = useState('verifying'); // verifying, success, failed
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
@@ -54,8 +55,43 @@ const PaymentResult = () => {
         }
     };
 
-    // ... existing 'verifying' return ...
-    // ... existing 'success' return ...
+    // ... existing mounting useEffect ...
+
+    if (verificationStatus === 'verifying') {
+        return (
+            <div className="page result-page">
+                <div className="result-content">
+                    <h1>Verifying Payment...</h1>
+                    <p>Please wait while we confirm your transaction.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (verificationStatus === 'success') {
+        return (
+            <div className="page result-page success">
+                <div className="result-content">
+                    <div className="icon-circle success-icon">
+                        <span className="emoji-anim">🎉</span>
+                    </div>
+                    <h1>Payment Successful!</h1>
+                    <p className="sub-text">Your order has been placed and confirmed.</p>
+
+                    {txRef && <p className="tx-id">Transaction ID: {txRef}</p>}
+
+                    <div className="order-preview">
+                        <p>Your items are being prepared.</p>
+                    </div>
+
+                    <button className="profile-btn" onClick={() => navigate('/profile')}>
+                        <User size={18} />
+                        Go to Profile
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="page result-page fail">
