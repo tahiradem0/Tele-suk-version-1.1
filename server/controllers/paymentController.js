@@ -27,7 +27,7 @@ const initializePayment = asyncHandler(async (req, res) => {
     const data = {
         amount: order.totalPrice,
         currency: 'ETB',
-        email: 'ademt0614@gmail.com', // Updated email
+        email: order.user.email,
         first_name: order.user.name.split(' ')[0], // Try to split name
         last_name: order.user.name.split(' ')[1] || 'User',
         phone_number: order.user.phone,
@@ -91,7 +91,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
                     id: tx_ref,
                     status: 'success',
                     update_time: Date.now(),
-                    email_address: 'ademt0614@gmail.com',
+                    email_address: order.user ? order.user.email : 'customer@example.com',
                 };
                 order.status = 'Preparing'; // Auto move to preparation
 
