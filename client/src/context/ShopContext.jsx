@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService, productService, categoryService, orderService, bannerService } from '../services/api';
+import { authService, productService, categoryService, orderService, bannerService, settingsService } from '../services/api';
 
 const ShopContext = createContext();
 
@@ -12,6 +12,10 @@ export const ShopProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [banners, setBanners] = useState([]);
+    const [deliveryFee, setDeliveryFee] = useState(5.00);
+
+    // Global Language
+    const [language, setLanguage] = useState('en');
 
     // UI State
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -30,16 +34,18 @@ export const ShopProvider = ({ children }) => {
                     setUser(parsedUser);
                 }
 
-                // Fetch Products, Categories & Banners
-                const [prodRes, catRes, banRes] = await Promise.all([
+                // Fetch Products, Categories, Banners & Settings
+                const [prodRes, catRes, banRes, setRes] = await Promise.all([
                     productService.getAll(),
                     categoryService.getAll(),
-                    bannerService.getActive()
+                    bannerService.getActive(),
+                    settingsService.getSettings()
                 ]);
 
                 if (prodRes.data) setProducts(prodRes.data);
                 if (catRes.data) setCategories(catRes.data);
                 if (banRes.data) setBanners(banRes.data);
+                if (setRes.data && setRes.data.deliveryFee !== undefined) setDeliveryFee(setRes.data.deliveryFee);
 
                 // Load Cart
                 const savedCart = localStorage.getItem('cart');
@@ -156,7 +162,11 @@ export const ShopProvider = ({ children }) => {
                 products,
                 categories,
                 banners,
-                isLoading
+                isLoading,
+                language,
+                setLanguage,
+                deliveryFee,
+                setDeliveryFee
             }}
         >
             {children}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { TrendingUp, Users, ShoppingBag, DollarSign } from 'lucide-react';
+import { TrendingUp, Users, ShoppingBag, DollarSign, Settings as SettingsIcon } from 'lucide-react';
+import { settingsService } from '../../services/api';
 
 const StatCard = ({ title, value, change, icon: Icon, color }) => (
     <div style={{
@@ -37,10 +38,35 @@ const AdminDashboard = () => {
         usersCount: 0,
         productsCount: 0
     });
+    const [deliveryFee, setDeliveryFee] = React.useState('');
+    const [isSaving, setIsSaving] = React.useState(false);
 
     React.useEffect(() => {
         loadStats();
+        loadSettings();
     }, []);
+
+    const loadSettings = async () => {
+        try {
+            const { data } = await settingsService.getSettings();
+            if (data) setDeliveryFee(data.deliveryFee.toString());
+        } catch (error) {
+            console.error("Failed to load settings", error);
+        }
+    };
+
+    const handleSaveSettings = async () => {
+        try {
+            setIsSaving(true);
+            await settingsService.updateSettings({ deliveryFee: Number(deliveryFee) });
+            alert('Settings saved successfully!');
+        } catch (error) {
+            console.error('Failed to save settings', error);
+            alert('Error saving settings');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const loadStats = async () => {
         try {
@@ -93,6 +119,57 @@ const AdminDashboard = () => {
                     icon={TrendingUp}
                     color="#f59e0b"
                 />
+            </div>
+
+            {/* Store Settings Section */}
+            <div style={{
+                background: 'white',
+                padding: '1.5rem',
+                borderRadius: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                marginBottom: '3rem'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    <SettingsIcon size={24} color="#3b82f6" />
+                    <h2 style={{ fontSize: '1.3rem', fontWeight: '700' }}>Store Settings</h2>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '400px' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.9rem', color: '#495057', marginBottom: '0.5rem', fontWeight: '500' }}>
+                            Standard Delivery Fee (ETB)
+                        </label>
+                        <input 
+                            type="number" 
+                            value={deliveryFee}
+                            onChange={(e) => setDeliveryFee(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px 14px',
+                                border: '1px solid #ced4da',
+                                borderRadius: '8px',
+                                outline: 'none',
+                                fontSize: '1rem'
+                            }}
+                        />
+                    </div>
+                    <button 
+                        onClick={handleSaveSettings}
+                        disabled={isSaving}
+                        style={{
+                            background: '#212529',
+                            color: 'white',
+                            padding: '12px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: isSaving ? 'not-allowed' : 'pointer',
+                            opacity: isSaving ? 0.7 : 1
+                        }}
+                    >
+                        {isSaving ? 'Saving...' : 'Save Settings'}
+                    </button>
+                </div>
             </div>
         </div>
     );

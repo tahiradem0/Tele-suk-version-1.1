@@ -6,10 +6,9 @@ import { useShop } from '../context/ShopContext';
 import './Home.css';
 
 const Home = () => {
-    const { isFilterOpen, setIsFilterOpen, activeCategory, setActiveCategory, products, categories, banners, isLoading } = useShop();
+    const { isFilterOpen, setIsFilterOpen, activeCategory, setActiveCategory, products, categories, banners, isLoading, language, setLanguage } = useShop();
     const [searchTerm, setSearchTerm] = useState("");
     const [priceRange, setPriceRange] = useState(null);
-    const [language, setLanguage] = useState('en');
 
     // Loading State
     if (isLoading) {

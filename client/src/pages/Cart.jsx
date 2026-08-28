@@ -7,12 +7,12 @@ import { orderService, paymentService } from '../services/api';
 import './Cart.css';
 
 const Cart = () => {
-    const { cart, updateQuantity, removeFromCart, user } = useShop();
+    const { cart, updateQuantity, removeFromCart, user, language, deliveryFee: globalDeliveryFee } = useShop();
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
 
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const deliveryFee = subtotal > 0 ? 5.00 : 0; // Flat fee
+    const deliveryFee = subtotal > 0 ? globalDeliveryFee : 0;
     const total = subtotal + deliveryFee;
 
     const [address, setAddress] = useState('');
@@ -79,9 +79,11 @@ const Cart = () => {
         return (
             <div className="page cart-page empty-state">
                 <div className="empty-content">
-                    <h2>Your Cart is Empty</h2>
-                    <p>Looks like you haven't added anything yet.</p>
-                    <button className="browse-btn" onClick={() => navigate('/')}>Start Shopping</button>
+                    <h2>{language === 'en' ? 'Your Cart is Empty' : 'የእርስዎ ጋሪ ባዶ ነው'}</h2>
+                    <p>{language === 'en' ? "Looks like you haven't added anything yet." : "እስካሁን ምንም ያከሉ አይመስልም።"}</p>
+                    <button className="browse-btn" onClick={() => navigate('/')}>
+                        {language === 'en' ? 'Start Shopping' : 'ግብይት ይጀምሩ'}
+                    </button>
                 </div>
             </div>
         );
@@ -90,8 +92,8 @@ const Cart = () => {
     return (
         <div className="page cart-page">
             <header className="cart-header">
-                <h1>Your Cart</h1>
-                <span className="item-count">{cart.length} items</span>
+                <h1>{language === 'en' ? 'Your Cart' : 'የእርስዎ ጋሪ'}</h1>
+                <span className="item-count">{cart.length} {language === 'en' ? 'items' : 'ዕቃዎች'}</span>
             </header>
 
             <div className="cart-items">
@@ -125,8 +127,8 @@ const Cart = () => {
                     <Truck size={24} />
                 </div>
                 <div className="delivery-info">
-                    <p className="delivery-title">Estimated Delivery</p>
-                    <p className="delivery-time">30 - 45 mins</p>
+                    <p className="delivery-title">{language === 'en' ? 'Estimated Delivery' : 'የሚገመተው መላኪያ'}</p>
+                    <p className="delivery-time">30 - 45 {language === 'en' ? 'mins' : 'ደቂቃዎች'}</p>
                     <div className="progress-bar">
                         <div className="progress-fill"></div>
                     </div>
@@ -135,15 +137,15 @@ const Cart = () => {
 
             <div className="cart-summary">
                 <div className="summary-row">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{language === 'en' ? 'Subtotal' : 'ንዑስ ድምር'}</span>
+                    <span>ETB {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="summary-row">
-                    <span>Delivery</span>
-                    <span>${deliveryFee.toFixed(2)}</span>
+                    <span>{language === 'en' ? 'Delivery' : 'መላኪያ'}</span>
+                    <span>ETB {deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="summary-total">
-                    <span>Total</span>
+                    <span>{language === 'en' ? 'Total' : 'ድምር'}</span>
                     <span>ETB {total.toFixed(2)}</span>
                 </div>
 

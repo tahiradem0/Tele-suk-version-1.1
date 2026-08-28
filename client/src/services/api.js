@@ -82,15 +82,17 @@ export const paymentService = {
 };
 
 export const bannerService = {
-    getActive: () => api.get('/banners'),
-    getAll: () => api.get('/banners/all'),
-    create: (formData) => api.post('/banners', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-    update: (id, formData) => api.put(`/banners/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-    delete: (id) => api.delete(`/banners/${id}`),
+    getActive: () => api.get('/banners/active'),
+    getAll: () => api.get('/banners'),
+    create: (data) => api.post('/banners', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    update: (id, data) => api.put(`/banners/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    delete: (id) => api.delete(`/banners/${id}`)
+};
+
+// Settings
+export const settingsService = {
+    getSettings: () => api.get('/settings'),
+    updateSettings: (data) => api.put('/settings', data)
 };
 
 export const userService = {

@@ -50,6 +50,7 @@ app.use('/api/banners', require('./routes/bannerRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {
