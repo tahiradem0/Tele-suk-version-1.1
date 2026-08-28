@@ -10,8 +10,8 @@ const ItemCard = ({ item }) => {
 
     const handleAdd = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         addToCart(item, 1);
-        alert(`${item.name} added to cart`);
     };
 
     return (

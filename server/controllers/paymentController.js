@@ -27,7 +27,7 @@ const initializePayment = asyncHandler(async (req, res) => {
     const data = {
         amount: order.totalPrice,
         currency: 'ETB',
-        email: order.user.email || 'customer@gondarsuk.com',
+        email: order.user.email || `gondarsuk${Date.now()}@gmail.com`,
         first_name: (order.user.name || 'Customer').split(' ')[0],
         last_name: (order.user.name || 'Customer').split(' ')[1] || 'User',
         phone_number: order.user.phone,
