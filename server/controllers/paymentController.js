@@ -27,7 +27,7 @@ const initializePayment = asyncHandler(async (req, res) => {
     const data = {
         amount: order.totalPrice,
         currency: 'ETB',
-        email: order.user.email || `customer${order.user.phone}@gondarsuk.com`,
+        email: order.user.email || 'customer@gondarsuk.com',
         first_name: (order.user.name || 'Customer').split(' ')[0],
         last_name: (order.user.name || 'Customer').split(' ')[1] || 'User',
         phone_number: order.user.phone,
@@ -35,7 +35,7 @@ const initializePayment = asyncHandler(async (req, res) => {
         callback_url: CALLBACK_URL,
         return_url: CALLBACK_URL,
         customization: {
-            title: 'Gondar ሱቅ Payment',
+            title: 'Gondar Store',
             description: 'Payment for order',
         },
     };
