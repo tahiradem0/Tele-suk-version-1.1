@@ -1,10 +1,18 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useShop } from '../../context/ShopContext';
 import './ItemCard.css';
 
 const ItemCard = ({ item }) => {
     const navigate = useNavigate();
+    const { addToCart } = useShop();
+
+    const handleAdd = (e) => {
+        e.stopPropagation();
+        addToCart(item, 1);
+        alert(`${item.name} added to cart`);
+    };
 
     return (
         <div className="item-card" onClick={() => navigate(`/item/${item._id}`)}>
@@ -16,7 +24,7 @@ const ItemCard = ({ item }) => {
                 <p className="item-category">{item.category}</p>
                 <div className="price-row">
                     <span className="price">${item.price.toFixed(2)}</span>
-                    <button className="add-btn">
+                    <button className="add-btn" onClick={handleAdd}>
                         <Plus size={16} color="white" />
                     </button>
                 </div>
