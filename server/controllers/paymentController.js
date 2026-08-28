@@ -24,10 +24,12 @@ const initializePayment = asyncHandler(async (req, res) => {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const CALLBACK_URL = `${clientUrl}/payment-result?tx_ref=${tx_ref}`;
 
+    const userEmail = (order.user && order.user.email) ? order.user.email : 'customer@example.com';
+    
     const data = {
         amount: order.totalPrice,
         currency: 'ETB',
-        email: order.user.email || `gondarsuk${Date.now()}@gmail.com`,
+        email: userEmail,
         first_name: (order.user.name || 'Customer').split(' ')[0],
         last_name: (order.user.name || 'Customer').split(' ')[1] || 'User',
         phone_number: order.user.phone,
@@ -39,6 +41,8 @@ const initializePayment = asyncHandler(async (req, res) => {
             description: 'Payment for order',
         },
     };
+
+    console.log('Chapa payload:', JSON.stringify(data, null, 2));
 
     try {
         const response = await axios.post(CHAPA_URL, data, {
