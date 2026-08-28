@@ -1,7 +1,7 @@
 {
-    "name": "tele-suk-server",
+    "name": "gondar-suk-server",
     "version": "1.0.0",
-    "description": "Backend for Tele-suk E-commerce",
+    "description": "Backend for Gondar ሱቅ E-commerce",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",

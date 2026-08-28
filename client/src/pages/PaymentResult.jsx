@@ -39,7 +39,7 @@ const PaymentResult = () => {
                 clearCart();
                 // ... notification logic ...
                 if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Tele-Suk Payment Successful! 🎉', {
+                    new Notification('Gondar ሱቅ Payment Successful! 🎉', {
                         body: 'Your order has been placed successfully. Thank you for shopping with us!',
                         icon: '/logo.svg'
                     });

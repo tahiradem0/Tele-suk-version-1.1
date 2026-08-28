@@ -1,4 +1,4 @@
-# Tele-Suk E-Commerce Platform
+# Gondar ሱቅ E-Commerce Platform
 
 A modern, full-stack e-commerce platform built with React, Node.js, Express, and MongoDB.
 
@@ -67,7 +67,7 @@ Create `server/.env` file:
 ```env
 NODE_ENV=development
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/tele-suk
+MONGO_URI=mongodb://localhost:27017/Gondar ሱቅ
 JWT_SECRET=your_jwt_secret_key
 CHAPA_SECRET_KEY=your_chapa_key
 CLOUDINARY_CLOUD_NAME=your_cloud_name

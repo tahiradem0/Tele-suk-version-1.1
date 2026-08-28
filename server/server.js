@@ -53,7 +53,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {
-    res.send('Tele-suk API is running...');
+    res.send('Gondar ሱቅ API is running...');
 });
 
 // Error Handling Middleware
@@ -67,6 +67,20 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// Render Keep-Alive Ping (every 14 minutes)
+if (process.env.NODE_ENV === 'production') {
+    const PING_URL = process.env.RENDER_EXTERNAL_URL || 'https://tele-suk-api.onrender.com';
+    const PING_INTERVAL = 14 * 60 * 1000; 
+    setInterval(() => {
+        const https = require('https');
+        https.get(PING_URL, (res) => {
+            console.log(`Keep-alive ping successful: ${res.statusCode}`);
+        }).on('error', (e) => {
+            console.error(`Keep-alive ping error: ${e.message}`);
+        });
+    }, PING_INTERVAL);
+}
 
 app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);

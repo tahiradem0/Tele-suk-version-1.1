@@ -13,7 +13,7 @@
 
 ### Create Cluster
 1. Login to MongoDB Atlas
-2. Create a new project: "Tele-Suk"
+2. Create a new project: "Gondar ሱቅ"
 3. Build a cluster (Free M0 tier)
 4. Choose your region (closest to your users)
 5. Click "Create Cluster"
@@ -21,7 +21,7 @@
 ### Configure Database Access
 1. Go to "Database Access"
 2. Add new database user
-   - Username: `telesuk-admin`
+   - Username: `gondar-suk-admin`
    - Password: Generate secure password (save it!)
    - Database User Privileges: "Atlas admin"
 3. Click "Add User"
@@ -37,12 +37,12 @@
 2. Choose "Connect your application"
 3. Copy the connection string:
    ```
-   mongodb+srv://telesuk-admin:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   mongodb+srv://gondar-suk-admin:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
    ```
 4. Replace `<password>` with your actual password
-5. Add database name: `/tele-suk` before the `?`
+5. Add database name: `/Gondar ሱቅ` before the `?`
    ```
-   mongodb+srv://telesuk-admin:yourpassword@cluster0.xxxxx.mongodb.net/tele-suk?retryWrites=true&w=majority
+   mongodb+srv://gondar-suk-admin:yourpassword@cluster0.xxxxx.mongodb.net/Gondar ሱቅ?retryWrites=true&w=majority
    ```
 
 ---
@@ -58,7 +58,7 @@
 2. Click "New +" → "Web Service"
 3. Connect your GitHub repository
 4. Configure service:
-   - **Name**: `tele-suk-api`
+   - **Name**: `Gondar ሱቅ-api`
    - **Region**: Choose closest to your users
    - **Branch**: `main`
    - **Root Directory**: `server`
@@ -79,7 +79,7 @@ CHAPA_SECRET_KEY=<your Chapa secret key>
 CLOUDINARY_CLOUD_NAME=<your Cloudinary cloud name>
 CLOUDINARY_API_KEY=<your Cloudinary API key>
 CLOUDINARY_API_SECRET=<your Cloudinary API secret>
-FRONTEND_URL=https://tele-suk.vercel.app/
+FRONTEND_URL=https://Gondar ሱቅ.vercel.app/
 ```
 
 **Generate JWT Secret:**
@@ -90,7 +90,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### Deploy
 1. Click "Create Web Service"
 2. Wait for deployment (5-10 minutes)
-3. Copy your backend URL: `https://tele-suk-api.onrender.com`
+3. Copy your backend URL: `https://Gondar ሱቅ-api.onrender.com`
 
 ---
 
@@ -121,13 +121,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### Set Environment Variables
 Add environment variable:
 ```
-VITE_API_URL=https://tele-suk-api.onrender.com/api
+VITE_API_URL=https://Gondar ሱቅ-api.onrender.com/api
 ```
 
 ### Deploy
 1. Click "Deploy"
 2. Wait for deployment (2-3 minutes)
-3. Copy your frontend URL: `https://tele-suk.vercel.app`
+3. Copy your frontend URL: `https://Gondar ሱቅ.vercel.app`
 
 ---
 
@@ -138,7 +138,7 @@ VITE_API_URL=https://tele-suk-api.onrender.com/api
 3. Go to "Environment"
 4. Update `FRONTEND_URL` variable:
    ```
-   FRONTEND_URL=https://tele-suk.vercel.app
+   FRONTEND_URL=https://Gondar ሱቅ.vercel.app
    ```
 5. Save changes (service will auto-redeploy)
 
@@ -157,7 +157,7 @@ VITE_API_URL=https://tele-suk-api.onrender.com/api
 ### Option 2: Using MongoDB Atlas UI
 1. Go to MongoDB Atlas
 2. Click "Browse Collections"
-3. Navigate to `tele-suk` → `users`
+3. Navigate to `Gondar ሱቅ` → `users`
 4. Find your user
 5. Click "Edit Document"
 6. Change `isAdmin` from `false` to `true`
@@ -176,7 +176,7 @@ VITE_API_URL=https://tele-suk-api.onrender.com/api
      }
    });
    ```
-2. Visit: `https://tele-suk-api.onrender.com/make-admin/YOUR_PHONE`
+2. Visit: `https://Gondar ሱቅ-api.onrender.com/make-admin/YOUR_PHONE`
 3. **DELETE THIS ROUTE IMMEDIATELY AFTER USE**
 
 ---

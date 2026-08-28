@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo.svg'],
       manifest: {
-        name: 'Tele-Suk',
-        short_name: 'TeleSuk',
+        name: 'Gondar ሱቅ',
+        short_name: 'Gondar ሱቅ',
         description: 'The Future of Shopping in Ethiopia',
         theme_color: '#ffffff',
         background_color: '#ffffff',

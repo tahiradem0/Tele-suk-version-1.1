@@ -9,6 +9,7 @@ const Home = () => {
     const { isFilterOpen, setIsFilterOpen, activeCategory, setActiveCategory, products, categories, banners, isLoading } = useShop();
     const [searchTerm, setSearchTerm] = useState("");
     const [priceRange, setPriceRange] = useState(null);
+    const [language, setLanguage] = useState('en');
 
     // Loading State
     if (isLoading) {
@@ -44,9 +45,18 @@ const Home = () => {
             />
 
             <header className="home-header">
-                <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <img src="/logo.svg" alt="TeleSuk Logo" style={{ width: '30px', height: '30px' }} />
-                    <h1 className="brand-title">TeleSuk</h1>
+                <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                    <img src="/logo.svg" alt="Gondar ሱቅ Logo" style={{ width: '30px', height: '30px' }} />
+                    <h1 className="brand-title">Gondar ሱቅ</h1>
+                </div>
+                <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="language-toggle" onClick={() => setLanguage(lang => lang === 'en' ? 'am' : 'en')}>
+                        <span className={language === 'en' ? 'active' : ''}>En</span>
+                        <div className={`toggle-switch ${language}`}>
+                            <div className="toggle-knob"></div>
+                        </div>
+                        <span className={language === 'am' ? 'active' : ''}>አማ</span>
+                    </div>
                     <button className="menu-btn">
                         <span className="dot"></span>
                         <span className="dot"></span>
@@ -56,7 +66,7 @@ const Home = () => {
 
             <div className="content-container">
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', marginTop: '1rem' }}>
-                    Find anything you want today
+                    {language === 'en' ? 'Find anything you want today' : 'ዛሬ የሚፈልጉትን ማንኛውንም ነገር ያግኙ'}
                 </h2>
 
                 <SearchBar onSearch={setSearchTerm} onFilterClick={() => setIsFilterOpen(!isFilterOpen)} />
@@ -100,17 +110,21 @@ const Home = () => {
                     ) : (
                         <div className="hero-banner">
                             <div className="banner-text">
-                                <h2>Welcome to Tele-Suk</h2>
-                                <p>Your one stop shop.</p>
+                                <h2>{language === 'en' ? 'Welcome to Gondar ሱቅ' : 'እንኳን ወደ Gondar ሱቅ በደህና መጡ'}</h2>
+                                <p>{language === 'en' ? 'Your one stop shop.' : 'የእርስዎ አንድ ማቆሚያ ሱቅ።'}</p>
                             </div>
-                            <button className="banner-btn" onClick={() => window.location.href = '/search'}>Shop Now</button>
+                            <button className="banner-btn" onClick={() => window.location.href = '/search'}>
+                                {language === 'en' ? 'Shop Now' : 'አሁን ይግዙ'}
+                            </button>
                             <div className="banner-img-placeholder"></div>
                         </div>
                     )}
                 </div>
 
                 {/* Product Grid */}
-                <h3 className="section-title">New Arrivals</h3>
+                <h3 className="section-title">
+                    {language === 'en' ? 'New Arrivals' : 'አዲስ የገቡ እቃዎች'}
+                </h3>
                 <div className="product-grid">
                     {filteredProducts.length > 0 ? (
                         filteredProducts.map(product => (

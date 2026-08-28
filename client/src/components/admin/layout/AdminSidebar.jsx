@@ -63,7 +63,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
 
             <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>TELE-SUK<span style={{ color: '#d4a373' }}>.</span></h2>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>GONDAR ሱቅ<span style={{ color: '#d4a373' }}>.</span></h2>
                     <button onClick={onClose} className="mobile-close-btn" style={{ display: 'none' }}>
                         <X size={24} />
                     </button>

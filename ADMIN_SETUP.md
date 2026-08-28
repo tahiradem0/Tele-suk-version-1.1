@@ -105,7 +105,7 @@ node createAdmin.js
 
 1. **Download MongoDB Compass**: https://www.mongodb.com/products/compass
 2. **Connect** to your database: `mongodb://localhost:27017`
-3. **Navigate** to `tele-suk` database → `users` collection
+3. **Navigate** to `Gondar ሱቅ` database → `users` collection
 4. **Find your user** by phone number
 5. **Edit the document** and change `isAdmin` from `false` to `true`
 6. **Save** the changes
@@ -120,7 +120,7 @@ node createAdmin.js
 mongosh
 
 # Switch to your database
-use tele-suk
+use Gondar ሱቅ
 
 # Find and update your user
 db.users.updateOne(

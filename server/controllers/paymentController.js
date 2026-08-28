@@ -35,7 +35,7 @@ const initializePayment = asyncHandler(async (req, res) => {
         callback_url: CALLBACK_URL,
         return_url: CALLBACK_URL,
         customization: {
-            title: 'Tele-Suk Payment',
+            title: 'Gondar ሱቅ Payment',
             description: 'Payment for order',
         },
     };
