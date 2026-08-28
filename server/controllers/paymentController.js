@@ -56,12 +56,14 @@ const initializePayment = asyncHandler(async (req, res) => {
 
     } catch (error) {
         console.error("Chapa Error:", error.response?.data || error.message);
-        // Fallback for DEV mode if API fails or no Key
-        if (process.env.NODE_ENV === 'development') {
-            return res.status(500).json({ message: "Chapa Payment Error", details: error.message });
-        }
-        res.status(500);
-        throw new Error('Payment initialization failed');
+        const errorMsg = error.response?.data?.message || error.message;
+        const errorDetails = error.response?.data || {};
+        
+        res.status(500).json({ 
+            message: "Payment initialization failed", 
+            chapaMessage: errorMsg,
+            details: errorDetails
+        });
     }
 });
 
