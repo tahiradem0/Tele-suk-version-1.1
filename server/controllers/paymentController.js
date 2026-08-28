@@ -27,9 +27,9 @@ const initializePayment = asyncHandler(async (req, res) => {
     const data = {
         amount: order.totalPrice,
         currency: 'ETB',
-        email: order.user.email,
-        first_name: order.user.name.split(' ')[0], // Try to split name
-        last_name: order.user.name.split(' ')[1] || 'User',
+        email: order.user.email || `customer${order.user.phone}@gondarsuk.com`,
+        first_name: (order.user.name || 'Customer').split(' ')[0],
+        last_name: (order.user.name || 'Customer').split(' ')[1] || 'User',
         phone_number: order.user.phone,
         tx_ref: tx_ref,
         callback_url: CALLBACK_URL,
