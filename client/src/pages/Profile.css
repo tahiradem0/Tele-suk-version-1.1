@@ -93,10 +93,41 @@
     width: fit-content;
 }
 
-.history-section h3 {
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.history-header h3 {
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 16px;
+}
+
+.refresh-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f1f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: #e9ecef;
+    color: var(--text-primary);
+}
+
+.refresh-btn.spinning svg {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .history-list {
@@ -157,10 +188,26 @@
     color: #f08c00;
 }
 
+.status-preparing {
+    background: #e7f5ff;
+    color: #1971c2;
+}
+
+.status-on-the-way {
+    background: #fff4e6;
+    color: #e8590c;
+}
+
 .status-delivered {
     background: #d3f9d8;
     color: #2b8a3e;
 }
+
+.status-cancelled {
+    background: #ffe3e3;
+    color: #c92a2a;
+}
+
 
 .txn-amount {
     font-weight: 700;
