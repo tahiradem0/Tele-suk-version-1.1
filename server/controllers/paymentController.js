@@ -7,37 +7,51 @@ const Order = require('../models/Order');
 // @access  Private
 const initializePayment = asyncHandler(async (req, res) => {
     const { orderId } = req.body;
-    const order = await Order.findById(orderId).populate('user', 'name phone email');
+    const order = await Order.findById(orderId).populate('user', 'name phone');
 
     if (!order) {
         res.status(404);
         throw new Error('Order not found');
     }
 
+    if (!order.user) {
+        res.status(400);
+        throw new Error('User not found for this order');
+    }
+
     const tx_ref = `TX-${Date.now()}`;
     order.paymentResult = { id: tx_ref, status: 'pending' };
     await order.save();
 
-    // Mock Chapa Initialization (Replace with actual API call)
-    // For local dev, we might just return a success payload or redirect URL
     const CHAPA_URL = 'https://api.chapa.co/v1/transaction/initialize';
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    // Use FRONTEND_URL or CLIENT_URL for production, fallback to localhost for dev
+    const clientUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
     const CALLBACK_URL = `${clientUrl}/payment-result?tx_ref=${tx_ref}`;
 
-    // Chapa requires a valid-looking email and rate-limits identical emails. 
-    // We use a dynamic fallback to ensure payment succeeds even if the user lacks a valid email.
-    const fallbackEmail = `customer_${order._id}@gmail.com`;
-    let userEmail = (order.user && order.user.email && !order.user.email.includes('example.com')) 
-        ? order.user.email 
-        : fallbackEmail;
-    
+    // User model has no email field — generate a unique valid email per order
+    const userEmail = `customer_${order._id}@gmail.com`;
+
+    // Sanitize name: ensure first_name and last_name are never empty
+    const nameParts = (order.user.name || 'Customer User').split(' ');
+    const firstName = nameParts[0] || 'Customer';
+    const lastName = nameParts.slice(1).join(' ') || 'User';
+
+    // Sanitize phone: Chapa expects Ethiopian format like 0911223344 or 251911223344
+    let phone = (order.user.phone || '0911223344').replace(/[^0-9]/g, '');
+    if (phone.startsWith('251') && phone.length === 12) {
+        phone = '0' + phone.slice(3); // convert 251911... to 0911...
+    }
+    if (phone.length < 10) {
+        phone = '0911223344'; // safe fallback
+    }
+
     const data = {
         amount: order.totalPrice,
         currency: 'ETB',
         email: userEmail,
-        first_name: (order.user.name || 'Customer').split(' ')[0],
-        last_name: (order.user.name || 'Customer').split(' ')[1] || 'User',
-        phone_number: order.user.phone,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phone,
         tx_ref: tx_ref,
         callback_url: CALLBACK_URL,
         return_url: CALLBACK_URL,
@@ -59,8 +73,8 @@ const initializePayment = asyncHandler(async (req, res) => {
         if (response.data.status === 'success') {
             res.json({ checkout_url: response.data.data.checkout_url });
         } else {
-            res.status(400);
-            throw new Error('Chapa initialization failed');
+            console.error('Chapa non-success response:', response.data);
+            res.status(400).json({ message: 'Chapa initialization failed', details: response.data });
         }
 
     } catch (error) {
