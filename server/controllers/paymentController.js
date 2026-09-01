@@ -24,7 +24,12 @@ const initializePayment = asyncHandler(async (req, res) => {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const CALLBACK_URL = `${clientUrl}/payment-result?tx_ref=${tx_ref}`;
 
-    const userEmail = (order.user && order.user.email) ? order.user.email : 'customer@example.com';
+    // Chapa requires a valid-looking email and rate-limits identical emails. 
+    // We use a dynamic fallback to ensure payment succeeds even if the user lacks a valid email.
+    const fallbackEmail = `customer_${order._id}@gmail.com`;
+    let userEmail = (order.user && order.user.email && !order.user.email.includes('example.com')) 
+        ? order.user.email 
+        : fallbackEmail;
     
     const data = {
         amount: order.totalPrice,
