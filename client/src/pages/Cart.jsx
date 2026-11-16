@@ -7,7 +7,7 @@ import { orderService, paymentService } from '../services/api';
 import './Cart.css';
 
 const Cart = () => {
-    const { cart, updateQuantity, removeFromCart, user, language, deliveryFee: globalDeliveryFee } = useShop();
+    const { cart, updateQuantity, removeFromCart, user, language, deliveryFee: globalDeliveryFee, products } = useShop();
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -53,8 +53,8 @@ const Cart = () => {
 
             const { data: order } = await orderService.create(orderData);
 
-            // 2. Initialize Payment
-            const { data: paymentResponse } = await paymentService.initialize(order._id);
+            // 2. Initialize Payment with current client origin so Chapa redirects back to the active environment
+            const { data: paymentResponse } = await paymentService.initialize(order._id, window.location.origin);
 
             // Log for debugging
             console.log("Payment Init Response:", paymentResponse);
@@ -105,15 +105,40 @@ const Cart = () => {
                         <div className="item-details">
                             <h3>{item.name}</h3>
                             <p className="item-price">ETB {item.price.toFixed(2)}</p>
-                            <div className="qty-actions">
-                                <button onClick={() => updateQuantity(item._id, -1)} disabled={item.quantity <= 1}>
-                                    <Minus size={16} />
-                                </button>
-                                <span>{item.quantity}</span>
-                                <button onClick={() => updateQuantity(item._id, 1)}>
-                                    <Plus size={16} />
-                                </button>
-                            </div>
+                            {(() => {
+                                const prodRef = products.find(p => p._id === item._id);
+                                const availableStock = prodRef ? Number(prodRef.stockQuantity !== undefined ? prodRef.stockQuantity : (prodRef.countInStock || 999)) : 999;
+                                const isAtMax = item.quantity >= availableStock;
+                                return (
+                                    <>
+                                        <div className="qty-actions">
+                                            <button onClick={() => updateQuantity(item._id, -1)} disabled={item.quantity <= 1}>
+                                                <Minus size={16} />
+                                            </button>
+                                            <span>{item.quantity}</span>
+                                            <button 
+                                                onClick={() => {
+                                                    if (isAtMax) {
+                                                        showToast(`Only ${availableStock} in stock`, 'info');
+                                                    } else {
+                                                        updateQuantity(item._id, 1);
+                                                    }
+                                                }}
+                                                disabled={isAtMax}
+                                                style={{ opacity: isAtMax ? 0.4 : 1, cursor: isAtMax ? 'not-allowed' : 'pointer' }}
+                                                title={isAtMax ? `Max stock available: ${availableStock}` : 'Increase quantity'}
+                                            >
+                                                <Plus size={16} />
+                                            </button>
+                                        </div>
+                                        {availableStock <= 3 && availableStock > 0 && (
+                                            <span style={{ fontSize: '0.72rem', color: '#e11d48', marginTop: '3px', display: 'block', fontWeight: 600 }}>
+                                                {language === 'en' ? `Only ${availableStock} left in stock!` : `${availableStock} ብቻ ቀርቷል!`}
+                                            </span>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </div>
                         <button className="remove-btn" onClick={() => removeFromCart(item._id)}>
                             <X size={20} />

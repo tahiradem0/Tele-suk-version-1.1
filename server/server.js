@@ -13,13 +13,14 @@ const app = express();
 // Middleware
 const corsOptions = {
     origin: (origin, callback) => {
-        const allowedOrigins = process.env.NODE_ENV === 'production'
-            ? [
-                process.env.FRONTEND_URL, 
-                'https://tele-suk.vercel.app', 
-                'https://your-app.vercel.app'
-              ].filter(Boolean) // Remove undefined
-            : ['http://localhost:5173'];
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:3000',
+            process.env.FRONTEND_URL,
+            process.env.CLIENT_URL,
+            'https://tele-suk.vercel.app',
+            'https://your-app.vercel.app'
+        ].filter(Boolean);
 
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
@@ -58,6 +59,9 @@ app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/capital', require('./routes/capitalRoutes'));
+app.use('/api/debts', require('./routes/debtRoutes'));
+app.use('/api/store', require('./routes/storeRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {

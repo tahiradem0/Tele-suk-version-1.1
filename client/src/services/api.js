@@ -77,7 +77,7 @@ export const orderService = {
 };
 
 export const paymentService = {
-    initialize: (orderId) => api.post('/payment/initialize', { orderId }),
+    initialize: (orderId, returnUrl) => api.post('/payment/initialize', { orderId, returnUrl }),
     verify: (tx_ref) => api.get(`/payment/verify/${tx_ref}`),
 };
 
@@ -102,6 +102,28 @@ export const userService = {
 
 export const adminService = {
     getStats: () => api.get('/admin/stats'),
+};
+
+export const capitalService = {
+    getOverview: () => api.get('/capital/overview'),
+    getTransactions: (params) => api.get('/capital/transactions', { params }),
+    createTransaction: (data) => api.post('/capital/transactions', data),
+    deleteTransaction: (id) => api.delete(`/capital/transactions/${id}`),
+};
+
+export const debtService = {
+    getDebts: (params) => api.get('/debts', { params }),
+    create: (data) => api.post('/debts', data),
+    recordPayment: (id, data) => api.post(`/debts/${id}/pay`, data),
+    update: (id, data) => api.put(`/debts/${id}`, data),
+    delete: (id) => api.delete(`/debts/${id}`),
+};
+
+export const storeService = {
+    getOverview: () => api.get('/store/overview'),
+    restock: (data) => api.post('/store/restock', data),
+    adjustStock: (data) => api.post('/store/adjust', data),
+    getMovements: (params) => api.get('/store/movements', { params }),
 };
 
 export default api;

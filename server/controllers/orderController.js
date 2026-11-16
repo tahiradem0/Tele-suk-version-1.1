@@ -1,5 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
+const StockMovement = require('../models/StockMovement');
+const CapitalTransaction = require('../models/CapitalTransaction');
+const { deductOrderStock, restoreOrderStock } = require('../utils/stockHelper');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -17,23 +21,48 @@ const addOrderItems = asyncHandler(async (req, res) => {
     if (orderItems && orderItems.length === 0) {
         res.status(400);
         throw new Error('No order items');
-        return;
-    } else {
-        const order = new Order({
-            orderItems,
-            user: req.user._id,
-            shippingAddress,
-            paymentMethod,
-            itemsPrice,
-            shippingPrice,
-            totalPrice,
-            status: 'Pending',
-        });
-
-        const createdOrder = await order.save();
-
-        res.status(201).json(createdOrder);
     }
+
+    // Validate available stock before creating order
+    for (const item of orderItems) {
+        if (item.product) {
+            const prod = await Product.findById(item.product);
+            if (!prod) {
+                res.status(404);
+                throw new Error(`Product not found: ${item.name}`);
+            }
+            const availableStock = Number(prod.stockQuantity !== undefined ? prod.stockQuantity : 0);
+            if (availableStock <= 0) {
+                res.status(400);
+                throw new Error(`Sorry, "${prod.name}" is currently out of stock.`);
+            }
+            if (availableStock < (item.qty || 1)) {
+                res.status(400);
+                throw new Error(`Only ${availableStock} in stock for "${prod.name}" (requested ${item.qty || 1}).`);
+            }
+        }
+    }
+
+    const order = new Order({
+        orderItems,
+        user: req.user._id,
+        shippingAddress,
+        paymentMethod: paymentMethod || 'Chapa',
+        itemsPrice,
+        shippingPrice,
+        totalPrice,
+        status: 'Pending',
+        stockDeducted: false,
+    });
+
+    const createdOrder = await order.save();
+
+    // If order paymentMethod is Cash / COD (non-Chapa), deduct stock immediately upon order placement
+    if (paymentMethod === 'Cash' || paymentMethod === 'COD') {
+        await deductOrderStock(createdOrder, req.user._id, 'Cash Order');
+    }
+
+    res.status(201).json(createdOrder);
 });
 
 // @desc    Get order by ID
@@ -82,11 +111,41 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (order) {
+        const previousStatus = order.status;
         order.status = status;
+
         if (status === 'Delivered') {
             order.isDelivered = true;
             order.deliveredAt = Date.now();
         }
+
+        // When order is marked Delivered, reflect sale in Capital and deduct inventory stock
+        if (status === 'Delivered' && previousStatus !== 'Delivered') {
+            // Check if already logged to capital
+            const existingCapital = await CapitalTransaction.findOne({ relatedOrder: order._id });
+            if (!existingCapital) {
+                await CapitalTransaction.create({
+                    type: 'inflow',
+                    category: 'sale',
+                    amount: order.totalPrice,
+                    description: `Order #${order._id.toString().slice(-6).toUpperCase()} Completed/Delivered`,
+                    paymentMethod: order.paymentMethod || 'Cash',
+                    relatedOrder: order._id,
+                    recordedBy: req.user?._id,
+                });
+            }
+
+            // Deduct stock for items (if not already deducted during Chapa verification or order creation)
+            if (!order.stockDeducted) {
+                await deductOrderStock(order, req.user?._id, 'Delivered Order');
+            }
+        }
+
+        // If order was cancelled and stock was already deducted, restore stock
+        if (status === 'Cancelled' && previousStatus !== 'Cancelled' && order.stockDeducted) {
+            await restoreOrderStock(order, req.user?._id, 'Order Cancelled');
+        }
+
         const updatedOrder = await order.save();
         res.json(updatedOrder);
     } else {

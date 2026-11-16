@@ -6,10 +6,16 @@ import { useShop } from '../context/ShopContext';
 import './Home.css'; // Reusing Home styles for consistency
 
 const SearchPage = () => {
-    const { isFilterOpen, setIsFilterOpen, products, categories } = useShop();
+    const { isFilterOpen, setIsFilterOpen, products, categories, refreshProducts } = useShop();
     const [searchTerm, setSearchTerm] = useState("");
     const [priceRange, setPriceRange] = useState(null);
     const [activeCategory, setActiveCategory] = useState("All");
+
+    useEffect(() => {
+        if (refreshProducts) {
+            refreshProducts();
+        }
+    }, []);
 
     // Auto-focus logic can be added here if needed
 
@@ -27,6 +33,16 @@ const SearchPage = () => {
         }
 
         return matchesSearch && isCategoryMatch && matchesPrice;
+    }).sort((a, b) => {
+        // Prioritize in-stock products at the top of the search list
+        const stockA = Number(a.stockQuantity !== undefined ? a.stockQuantity : (a.countInStock || 0));
+        const stockB = Number(b.stockQuantity !== undefined ? b.stockQuantity : (b.countInStock || 0));
+        const isOutA = stockA <= 0;
+        const isOutB = stockB <= 0;
+
+        if (!isOutA && isOutB) return -1;
+        if (isOutA && !isOutB) return 1;
+        return stockB - stockA;
     });
 
     return (

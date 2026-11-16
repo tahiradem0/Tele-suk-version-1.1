@@ -72,6 +72,10 @@ const orderSchema = new mongoose.Schema({
         default: 'Pending',
         enum: ['Pending', 'Preparing', 'On the way', 'Delivered', 'Cancelled']
     },
+    stockDeducted: {
+        type: Boolean,
+        default: false,
+    },
     driver: {
         type: String,
         default: 'Unassigned',

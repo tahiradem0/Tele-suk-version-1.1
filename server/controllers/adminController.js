@@ -2,6 +2,8 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const CapitalTransaction = require('../models/CapitalTransaction');
+const Debt = require('../models/Debt');
 
 // @desc    Get dashboard stats
 // @route   GET /api/admin/stats
@@ -11,28 +13,71 @@ const getStats = asyncHandler(async (req, res) => {
     const usersCount = await User.countDocuments();
 
     // 2. Total Products
-    const productsCount = await Product.countDocuments();
+    const products = await Product.find({});
+    const productsCount = products.length;
 
-    // 3. Total Orders
-    const ordersCount = await Order.countDocuments();
+    // Inventory metrics
+    let totalStockUnits = 0;
+    let totalInventoryCost = 0;
+    let totalInventoryRetail = 0;
+    let lowStockCount = 0;
 
-    // 4. Total Revenue (Sum of totalPrice of paid orders)
-    // Assuming we only count 'paid' orders or all orders depending on preference.
-    // Let's count all non-cancelled? Or just simplify to all for MVP.
-    // Better to aggregate checks.
+    products.forEach(p => {
+        const qty = p.stockQuantity || 0;
+        const cost = p.costPrice || 0;
+        const price = p.price || 0;
+        const minLevel = p.minStockLevel || 5;
 
-    // Aggregation for Total Revenue
-    const orders = await Order.find({}); // Optimization: use aggregation for large dbs
+        totalStockUnits += qty;
+        totalInventoryCost += qty * cost;
+        totalInventoryRetail += qty * price;
+
+        if (qty <= minLevel) {
+            lowStockCount++;
+        }
+    });
+
+    // 3. Total Orders & Revenue
+    const orders = await Order.find({});
+    const ordersCount = orders.length;
     const totalRevenue = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
-    // 5. Recent Orders (Top 5) - Optional, handled in separate api or here
-    // let's just return counts for cards first
+    // 4. Capital Transactions
+    const capitalTransactions = await CapitalTransaction.find({});
+    let totalInflow = 0;
+    let totalOutflow = 0;
+    capitalTransactions.forEach(tx => {
+        if (tx.type === 'inflow') totalInflow += tx.amount;
+        if (tx.type === 'outflow') totalOutflow += tx.amount;
+    });
+    const netCapital = totalInflow - totalOutflow;
+
+    // 5. Debt & Credit stats
+    const debts = await Debt.find({});
+    let totalReceivables = 0; // Customer credit owed to store
+    let totalPayables = 0;    // Store owes to suppliers
+    debts.forEach(d => {
+        if (d.type === 'receivable') {
+            totalReceivables += d.balance || 0;
+        } else if (d.type === 'payable') {
+            totalPayables += d.balance || 0;
+        }
+    });
 
     res.json({
         usersCount,
         productsCount,
         ordersCount,
-        totalRevenue
+        totalRevenue,
+        netCapital,
+        totalInflow,
+        totalOutflow,
+        totalReceivables,
+        totalPayables,
+        totalStockUnits,
+        totalInventoryCost,
+        totalInventoryRetail,
+        lowStockCount,
     });
 });
 

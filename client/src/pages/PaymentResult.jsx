@@ -8,7 +8,7 @@ import './PaymentResult.css';
 const PaymentResult = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { clearCart } = useShop(); // Only need clearCart
+    const { clearCart, refreshProducts, storeName } = useShop();
     const statusParam = searchParams.get('status'); // 'success' or 'fail' from Chapa redirect? Chapa callback url is just /payment-result?tx_ref=...
     // Actually Chapa return_url puts parameters?
     // My code said: CALLBACK_URL = `http://localhost:5173/payment-result?tx_ref=${tx_ref}`;
@@ -37,9 +37,12 @@ const PaymentResult = () => {
             if (data.status === 'success') {
                 setVerificationStatus('success');
                 clearCart();
+                if (refreshProducts) {
+                    await refreshProducts();
+                }
                 // ... notification logic ...
                 if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Gondar ሱቅ Payment Successful! 🎉', {
+                    new Notification(`${storeName} Payment Successful! 🎉`, {
                         body: 'Your order has been placed successfully. Thank you for shopping with us!',
                         icon: '/logo.svg'
                     });

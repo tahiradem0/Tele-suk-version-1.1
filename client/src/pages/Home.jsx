@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchBar from '../components/ui/SearchBar';
 import ItemCard from '../components/ui/ItemCard';
 import FilterModal from '../components/ui/FilterModal';
@@ -6,9 +6,16 @@ import { useShop } from '../context/ShopContext';
 import './Home.css';
 
 const Home = () => {
-    const { isFilterOpen, setIsFilterOpen, activeCategory, setActiveCategory, products, categories, banners, isLoading, language, setLanguage } = useShop();
+    const { isFilterOpen, setIsFilterOpen, activeCategory, setActiveCategory, products, categories, banners, isLoading, language, setLanguage, refreshProducts, storeName } = useShop();
     const [searchTerm, setSearchTerm] = useState("");
     const [priceRange, setPriceRange] = useState(null);
+
+    // Refresh products on mount to ensure latest stock levels are displayed
+    useEffect(() => {
+        if (refreshProducts) {
+            refreshProducts();
+        }
+    }, []);
 
     // Loading State
     if (isLoading) {
@@ -33,6 +40,16 @@ const Home = () => {
         }
 
         return matchesSearch && isCategoryMatch && matchesPrice;
+    }).sort((a, b) => {
+        // Prioritize in-stock products at the top of the list
+        const stockA = Number(a.stockQuantity !== undefined ? a.stockQuantity : (a.countInStock || 0));
+        const stockB = Number(b.stockQuantity !== undefined ? b.stockQuantity : (b.countInStock || 0));
+        const isOutA = stockA <= 0;
+        const isOutB = stockB <= 0;
+
+        if (!isOutA && isOutB) return -1; // a is in stock, move up
+        if (isOutA && !isOutB) return 1;  // b is in stock, move up
+        return stockB - stockA;           // higher stock first if both in stock
     });
 
     return (
@@ -45,8 +62,8 @@ const Home = () => {
 
             <header className="home-header">
                 <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-                    <img src="/logo.svg" alt="Gondar ሱቅ Logo" style={{ width: '30px', height: '30px' }} />
-                    <h1 className="brand-title">Gondar ሱቅ</h1>
+                    <img src="/logo.svg" alt={`${storeName} Logo`} style={{ width: '30px', height: '30px' }} />
+                    <h1 className="brand-title">{storeName}</h1>
                 </div>
                 <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div className="language-toggle" onClick={() => setLanguage(lang => lang === 'en' ? 'am' : 'en')}>
@@ -109,7 +126,7 @@ const Home = () => {
                     ) : (
                         <div className="hero-banner">
                             <div className="banner-text">
-                                <h2>{language === 'en' ? 'Welcome to Gondar ሱቅ' : 'እንኳን ወደ Gondar ሱቅ በደህና መጡ'}</h2>
+                                <h2>{language === 'en' ? `Welcome to ${storeName}` : `እንኳን ወደ ${storeName} በደህና መጡ`}</h2>
                                 <p>{language === 'en' ? 'Your one stop shop.' : 'የእርስዎ አንድ ማቆሚያ ሱቅ።'}</p>
                             </div>
                             <button className="banner-btn" onClick={() => window.location.href = '/search'}>

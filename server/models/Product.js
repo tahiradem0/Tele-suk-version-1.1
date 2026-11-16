@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema({
         required: true,
     },
     category: {
-        type: String, // Storing category name or slug for simplicity in fetching, or could be ObjectId
+        type: String,
         required: true,
     },
     price: {
@@ -19,6 +19,26 @@ const productSchema = new mongoose.Schema({
     },
     originalPrice: {
         type: Number,
+    },
+    costPrice: {
+        type: Number,
+        default: 0,
+    },
+    stockQuantity: {
+        type: Number,
+        default: 0,
+    },
+    minStockLevel: {
+        type: Number,
+        default: 5,
+    },
+    sku: {
+        type: String,
+        default: '',
+    },
+    supplier: {
+        type: String,
+        default: '',
     },
     image: {
         type: String,

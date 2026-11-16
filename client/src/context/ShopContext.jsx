@@ -13,6 +13,13 @@ export const ShopProvider = ({ children }) => {
     const [categories, setCategories] = useState([]);
     const [banners, setBanners] = useState([]);
     const [deliveryFee, setDeliveryFee] = useState(5.00);
+    const [settings, setSettings] = useState({
+        storeName: 'Gondar ሱቅ',
+        storePhone: '0978787960',
+        storeEmail: 'admin@gondarsuk.com',
+        deliveryFee: 5.00
+    });
+    const storeName = settings?.storeName || 'Gondar ሱቅ';
 
     // Global Language
     const [language, setLanguage] = useState('en');
@@ -45,7 +52,13 @@ export const ShopProvider = ({ children }) => {
                 if (prodRes.data) setProducts(prodRes.data);
                 if (catRes.data) setCategories(catRes.data);
                 if (banRes.data) setBanners(banRes.data);
-                if (setRes.data && setRes.data.deliveryFee !== undefined) setDeliveryFee(setRes.data.deliveryFee);
+                if (setRes.data) {
+                    setSettings(setRes.data);
+                    if (setRes.data.deliveryFee !== undefined) setDeliveryFee(setRes.data.deliveryFee);
+                    if (setRes.data.storeName) {
+                        document.title = `${setRes.data.storeName} | Shop Online`;
+                    }
+                }
 
                 // Load Cart
                 const savedCart = localStorage.getItem('cart');
@@ -76,17 +89,73 @@ export const ShopProvider = ({ children }) => {
         }
     }, [cart, isCartLoaded]);
 
+    // Refresh products list from server
+    const refreshProducts = async () => {
+        try {
+            const prodRes = await productService.getAll();
+            if (prodRes && prodRes.data) {
+                setProducts(prodRes.data);
+                return prodRes.data;
+            }
+        } catch (e) {
+            console.error("Failed to refresh products:", e);
+        }
+    };
+
+    // Refresh store settings from server
+    const refreshSettings = async () => {
+        try {
+            const { data } = await settingsService.getSettings();
+            if (data) {
+                setSettings(data);
+                if (data.deliveryFee !== undefined) setDeliveryFee(data.deliveryFee);
+                if (data.storeName) {
+                    document.title = `${data.storeName} | Shop Online`;
+                }
+                return data;
+            }
+        } catch (e) {
+            console.error("Failed to refresh settings:", e);
+        }
+    };
+
     // --- Cart Actions ---
     const addToCart = (item, quantity = 1) => {
+        const freshProduct = products.find(p => p._id === item._id) || item;
+        const availableStock = Number(
+            freshProduct.stockQuantity !== undefined 
+                ? freshProduct.stockQuantity 
+                : (freshProduct.countInStock || 0)
+        );
+
+        if (availableStock <= 0) {
+            return { success: false, message: 'Item is out of stock' };
+        }
+
+        let reachedMax = false;
         setCart((prev) => {
-            const existing = prev.find((i) => i._id === item._id); // Use _id from MongoDB
+            const existing = prev.find((i) => i._id === item._id);
+            const currentQty = existing ? existing.quantity : 0;
+            const targetQty = currentQty + quantity;
+            const finalQty = Math.min(availableStock, targetQty);
+
+            if (finalQty < targetQty || currentQty >= availableStock) {
+                reachedMax = true;
+            }
+
             if (existing) {
                 return prev.map((i) =>
-                    i._id === item._id ? { ...i, quantity: i.quantity + quantity } : i
+                    i._id === item._id ? { ...i, quantity: finalQty } : i
                 );
             }
-            return [...prev, { ...item, quantity }];
+            return [...prev, { ...item, quantity: finalQty }];
         });
+
+        return { 
+            success: true, 
+            reachedMax,
+            availableStock 
+        };
     };
 
     const removeFromCart = (itemId) => {
@@ -94,10 +163,16 @@ export const ShopProvider = ({ children }) => {
     };
 
     const updateQuantity = (itemId, delta) => {
+        const freshProduct = products.find(p => p._id === itemId);
+        const availableStock = freshProduct 
+            ? Number(freshProduct.stockQuantity !== undefined ? freshProduct.stockQuantity : (freshProduct.countInStock || 999))
+            : 999;
+
         setCart((prev) =>
             prev.map((i) => {
                 if (i._id === itemId) {
-                    const newQty = Math.max(1, i.quantity + delta);
+                    const targetQty = i.quantity + delta;
+                    const newQty = Math.max(1, Math.min(availableStock, targetQty));
                     return { ...i, quantity: newQty };
                 }
                 return i;
@@ -166,7 +241,13 @@ export const ShopProvider = ({ children }) => {
                 language,
                 setLanguage,
                 deliveryFee,
-                setDeliveryFee
+                setDeliveryFee,
+                refreshProducts,
+                settings,
+                storeName,
+                storePhone: settings?.storePhone || '0978787960',
+                storeEmail: settings?.storeEmail || 'admin@gondarsuk.com',
+                refreshSettings
             }}
         >
             {children}

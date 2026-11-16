@@ -16,17 +16,29 @@ const ItemDetail = () => {
         return <div className="page center">Item not found</div>;
     }
 
+    const stock = Number(
+        product.stockQuantity !== undefined 
+            ? product.stockQuantity 
+            : (product.countInStock !== undefined ? product.countInStock : 0)
+    );
+    const isOutOfStock = stock <= 0;
+
     const handleDecrease = () => {
-        if (quantity > 1) setQuantity(q => q - 1);
+        if (!isOutOfStock && quantity > 1) setQuantity(q => q - 1);
     };
 
     const handleIncrease = () => {
-        setQuantity(q => q + 1);
+        if (!isOutOfStock && quantity < stock) {
+            setQuantity(q => q + 1);
+        }
     };
 
     const handleAddToCart = () => {
+        if (isOutOfStock) {
+            alert('Sorry, this product is currently out of stock!');
+            return;
+        }
         addToCart(product, quantity);
-        // Optional: show feedback or navigate to cart
         alert(`Added ${quantity} ${product.name} to cart`);
     };
 
@@ -43,16 +55,60 @@ const ItemDetail = () => {
                 <button className="favorite-btn">{/* Heart icon optionally */}</button>
             </header>
 
-            <div className="detail-image-container">
-                <img src={product.image} alt={product.name} />
+            <div className="detail-image-container" style={{ position: 'relative' }}>
+                <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    style={{ filter: isOutOfStock ? 'grayscale(70%) contrast(90%)' : 'none', transition: 'filter 0.3s' }}
+                />
+                {isOutOfStock && (
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'radial-gradient(circle, rgba(15,23,42,0.3) 0%, rgba(15,23,42,0.65) 100%)',
+                        backdropFilter: 'blur(3px)'
+                    }}>
+                        <div style={{
+                            background: 'rgba(225, 29, 72, 0.95)',
+                            color: '#ffffff',
+                            fontSize: '13px',
+                            fontWeight: '800',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
+                            padding: '8px 18px',
+                            borderRadius: '24px',
+                            boxShadow: '0 4px 18px rgba(225, 29, 72, 0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}>
+                            <span style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%' }}></span>
+                            Out of Stock
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="detail-content">
                 <div className="detail-info">
-                    <h1 className="detail-title">{product.name}</h1>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
+                        <h1 className="detail-title">{product.name}</h1>
+                        {isOutOfStock ? (
+                            <span style={{ background: '#ffe4e6', color: '#e11d48', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase' }}>
+                                ● Out of Stock
+                            </span>
+                        ) : (
+                            <span style={{ background: '#e6fcf5', color: '#0ca678', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' }}>
+                                ✓ In Stock ({stock} left)
+                            </span>
+                        )}
+                    </div>
                     <p className="detail-brand">{product.brand}</p>
 
-                    <div className="price-tag">
+                    <div className="price-tag" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
                         ${product.price.toFixed(2)}
                         {quantity > 1 && <span className="unit-price"> each</span>}
                     </div>
@@ -60,20 +116,30 @@ const ItemDetail = () => {
                     <p className="description">{product.description}</p>
                 </div>
 
-                <div className="action-area">
+                <div className="action-area" style={{ opacity: isOutOfStock ? 0.6 : 1 }}>
                     <div className="quantity-control">
-                        <button onClick={handleDecrease} className="qty-btn"><Minus size={20} /></button>
-                        <span className="qty-value">{quantity}</span>
-                        <button onClick={handleIncrease} className="qty-btn"><Plus size={20} /></button>
+                        <button onClick={handleDecrease} className="qty-btn" disabled={isOutOfStock}><Minus size={20} /></button>
+                        <span className="qty-value">{isOutOfStock ? 0 : quantity}</span>
+                        <button onClick={handleIncrease} className="qty-btn" disabled={isOutOfStock || quantity >= stock} title={quantity >= stock ? `Max available stock is ${stock}` : ''}><Plus size={20} /></button>
                     </div>
 
                     <div className="total-display">
-                        ${currentPrice}
+                        ${isOutOfStock ? '0.00' : currentPrice}
                     </div>
                 </div>
 
-                <button className="main-add-btn" onClick={handleAddToCart}>
-                    Add to Cart
+                <button 
+                    className="main-add-btn" 
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock}
+                    style={{
+                        background: isOutOfStock ? '#e2e8f0' : undefined,
+                        color: isOutOfStock ? '#94a3b8' : undefined,
+                        cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                        boxShadow: isOutOfStock ? 'none' : undefined
+                    }}
+                >
+                    {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </button>
 
                 {/* Related Items Section */}

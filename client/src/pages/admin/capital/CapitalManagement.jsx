@@ -1,0 +1,583 @@
+import React, { useState, useEffect } from 'react';
+import {
+    Coins, ArrowDownRight, ArrowUpRight, Plus, Minus, Search,
+    Filter, RefreshCw, Wallet, TrendingUp, Calendar, Trash2
+} from 'lucide-react';
+import { capitalService } from '../../../services/api';
+
+const categoryLabels = {
+    sale: 'Sales Revenue',
+    owner_investment: 'Owner Capital Deposit',
+    debt_collection: 'Customer Debt Collected',
+    other_income: 'Other Income',
+    stock_purchase: 'Stock / Inventory Purchase',
+    expense: 'General Expense',
+    owner_withdrawal: 'Owner Draw / Withdrawal',
+    debt_payment: 'Supplier Debt Repaid',
+    salary: 'Staff Salary',
+    rent_utilities: 'Rent & Utilities'
+};
+
+const CapitalManagement = () => {
+    const [overview, setOverview] = useState(null);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Filters
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal state
+    const [modalOpen, setModalOpen] = useState(false);
+    const [txType, setTxType] = useState('inflow'); // 'inflow' | 'outflow'
+    const [formData, setFormData] = useState({
+        category: 'owner_investment',
+        amount: '',
+        description: '',
+        paymentMethod: 'Cash',
+        date: new Date().toISOString().split('T')[0]
+    });
+
+    useEffect(() => {
+        loadData();
+    }, [typeFilter, categoryFilter]);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const [overviewRes, txRes] = await Promise.all([
+                capitalService.getOverview(),
+                capitalService.getTransactions({
+                    type: typeFilter !== 'all' ? typeFilter : undefined,
+                    category: categoryFilter !== 'all' ? categoryFilter : undefined,
+                    limit: 100
+                })
+            ]);
+            setOverview(overviewRes.data);
+            setTransactions(txRes.data.transactions || []);
+        } catch (error) {
+            console.error("Failed to load capital data", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOpenModal = (type) => {
+        setTxType(type);
+        setFormData({
+            category: type === 'inflow' ? 'owner_investment' : 'expense',
+            amount: '',
+            description: '',
+            paymentMethod: 'Cash',
+            date: new Date().toISOString().split('T')[0]
+        });
+        setModalOpen(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await capitalService.createTransaction({
+                type: txType,
+                category: formData.category,
+                amount: Number(formData.amount),
+                description: formData.description,
+                paymentMethod: formData.paymentMethod,
+                date: formData.date
+            });
+            alert('Transaction recorded successfully!');
+            setModalOpen(false);
+            loadData();
+        } catch (error) {
+            alert('Failed to save transaction: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this capital entry?')) {
+            try {
+                await capitalService.deleteTransaction(id);
+                loadData();
+            } catch (error) {
+                alert('Failed to delete transaction');
+            }
+        }
+    };
+
+    const filteredTransactions = transactions.filter(t =>
+        t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.paymentMethod.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const netCapital = overview?.netCapital || 0;
+    const totalInflow = overview?.totalInflow || 0;
+    const totalOutflow = overview?.totalOutflow || 0;
+
+    return (
+        <div style={{ padding: '1.5rem', maxWidth: '1280px', margin: '0 auto' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1a1b1e', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <Coins color="#fab005" size={28} />
+                        Capital & Treasury Management
+                    </h1>
+                    <p style={{ color: '#868e96', fontSize: '0.95rem' }}>
+                        Live balance, cash flow tracking, sales revenue, and business expense ledger
+                    </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                        onClick={() => handleOpenModal('inflow')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.2rem',
+                            borderRadius: '12px',
+                            background: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 10px rgba(16,185,129,0.2)'
+                        }}
+                    >
+                        <Plus size={18} />
+                        Add Capital / Inflow
+                    </button>
+                    <button
+                        onClick={() => handleOpenModal('outflow')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.2rem',
+                            borderRadius: '12px',
+                            background: '#fa5252',
+                            color: 'white',
+                            border: 'none',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 10px rgba(250,82,82,0.2)'
+                        }}
+                    >
+                        <Minus size={18} />
+                        Record Outflow / Expense
+                    </button>
+                </div>
+            </div>
+
+            {/* Treasury Metric Cards */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                gap: '1.2rem',
+                marginBottom: '2rem'
+            }}>
+                {/* Available Capital */}
+                <div style={{
+                    background: 'white',
+                    padding: '1.5rem',
+                    borderRadius: '18px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    borderLeft: `6px solid ${netCapital >= 0 ? '#10b981' : '#fa5252'}`
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                        <span>Current Available Capital</span>
+                        <Wallet size={20} color={netCapital >= 0 ? '#10b981' : '#fa5252'} />
+                    </div>
+                    <div style={{
+                        fontSize: '2.2rem',
+                        fontWeight: '800',
+                        color: netCapital >= 0 ? '#10b981' : '#fa5252',
+                        marginTop: '0.5rem'
+                    }}>
+                        ETB {netCapital.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
+                        Net liquid treasury after all inflows & expenses
+                    </div>
+                </div>
+
+                {/* Total Inflow */}
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                        <span>Total Inflow (Capital + Sales)</span>
+                        <ArrowDownRight size={20} color="#10b981" />
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1a1b1e', marginTop: '0.5rem' }}>
+                        +ETB {totalInflow.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.3rem' }}>
+                        Deposits, customer orders & debt collections
+                    </div>
+                </div>
+
+                {/* Total Outflow */}
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                        <span>Total Outflow (Expenses + Restocks)</span>
+                        <ArrowUpRight size={20} color="#fa5252" />
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1a1b1e', marginTop: '0.5rem' }}>
+                        -ETB {totalOutflow.toLocaleString()}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#fa5252', marginTop: '0.3rem' }}>
+                        Stock procurement, overhead & debt payments
+                    </div>
+                </div>
+            </div>
+
+            {/* Inflow vs Outflow Category Breakdown Pill Bar */}
+            {overview?.categoryTotals && Object.keys(overview.categoryTotals).length > 0 && (
+                <div style={{
+                    background: 'white',
+                    padding: '1.2rem',
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    marginBottom: '2rem'
+                }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#495057', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Capital Activity By Category
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                        {Object.entries(overview.categoryTotals).map(([cat, amount]) => (
+                            <div key={cat} style={{
+                                background: '#f8f9fa',
+                                border: '1px solid #e9ecef',
+                                padding: '6px 14px',
+                                borderRadius: '10px',
+                                fontSize: '0.85rem'
+                            }}>
+                                <span style={{ color: '#868e96' }}>{categoryLabels[cat] || cat}:</span>{' '}
+                                <strong style={{ color: '#1a1b1e' }}>ETB {amount.toLocaleString()}</strong>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Filter and Search Bar */}
+            <div style={{
+                display: 'flex',
+                gap: '1rem',
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+            }}>
+                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
+                    <input
+                        type="text"
+                        placeholder="Search transactions by note or payment method..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem 0.75rem 2.6rem',
+                            borderRadius: '12px',
+                            border: '1px solid #dee2e6',
+                            outline: 'none',
+                            fontSize: '0.95rem'
+                        }}
+                    />
+                </div>
+
+                <select
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: '12px',
+                        border: '1px solid #dee2e6',
+                        background: 'white',
+                        fontSize: '0.95rem'
+                    }}
+                >
+                    <option value="all">All Types (+ & -)</option>
+                    <option value="inflow">Inflows Only (+)</option>
+                    <option value="outflow">Outflows Only (-)</option>
+                </select>
+
+                <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: '12px',
+                        border: '1px solid #dee2e6',
+                        background: 'white',
+                        fontSize: '0.95rem'
+                    }}
+                >
+                    <option value="all">All Categories</option>
+                    <option value="sale">Sales Revenue</option>
+                    <option value="owner_investment">Owner Deposits</option>
+                    <option value="debt_collection">Customer Debt Collections</option>
+                    <option value="stock_purchase">Stock Purchases</option>
+                    <option value="expense">General Expenses</option>
+                    <option value="debt_payment">Debt Repayments</option>
+                    <option value="salary">Staff Salaries</option>
+                    <option value="rent_utilities">Rent & Utilities</option>
+                </select>
+            </div>
+
+            {/* Transactions Ledger Table */}
+            <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                overflow: 'hidden',
+                overflowX: 'auto'
+            }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
+                    <thead>
+                        <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
+                            <th style={{ padding: '1rem' }}>DATE</th>
+                            <th style={{ padding: '1rem' }}>TYPE</th>
+                            <th style={{ padding: '1rem' }}>CATEGORY</th>
+                            <th style={{ padding: '1rem' }}>DESCRIPTION</th>
+                            <th style={{ padding: '1rem' }}>PAYMENT METHOD</th>
+                            <th style={{ padding: '1rem', textAlign: 'right' }}>AMOUNT</th>
+                            <th style={{ padding: '1rem', textAlign: 'center' }}>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredTransactions.map(tx => (
+                            <tr key={tx._id} style={{ borderBottom: '1px solid #eee' }}>
+                                <td style={{ padding: '1rem', fontSize: '0.85rem', color: '#868e96' }}>
+                                    {new Date(tx.date || tx.createdAt).toLocaleDateString()}
+                                </td>
+                                <td style={{ padding: '1rem' }}>
+                                    <span style={{
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: '700',
+                                        background: tx.type === 'inflow' ? '#ebfbee' : '#fff5f5',
+                                        color: tx.type === 'inflow' ? '#2b8a3e' : '#c92a2a',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}>
+                                        {tx.type === 'inflow' ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />}
+                                        {tx.type.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td style={{ padding: '1rem' }}>
+                                    <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1b1e' }}>
+                                        {categoryLabels[tx.category] || tx.category}
+                                    </span>
+                                </td>
+                                <td style={{ padding: '1rem', color: '#495057', fontSize: '0.9rem' }}>
+                                    {tx.description}
+                                </td>
+                                <td style={{ padding: '1rem' }}>
+                                    <span style={{
+                                        background: '#f1f3f5',
+                                        padding: '3px 8px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: '500'
+                                    }}>
+                                        {tx.paymentMethod}
+                                    </span>
+                                </td>
+                                <td style={{
+                                    padding: '1rem',
+                                    textAlign: 'right',
+                                    fontWeight: '700',
+                                    fontSize: '1rem',
+                                    color: tx.type === 'inflow' ? '#10b981' : '#fa5252'
+                                }}>
+                                    {tx.type === 'inflow' ? '+' : '-'}ETB {tx.amount.toLocaleString()}
+                                </td>
+                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                    <button
+                                        onClick={() => handleDelete(tx._id)}
+                                        title="Delete entry"
+                                        style={{
+                                            border: 'none',
+                                            background: 'none',
+                                            color: '#ced4da',
+                                            cursor: 'pointer',
+                                            padding: '4px',
+                                            transition: 'color 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = '#fa5252'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = '#ced4da'}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {filteredTransactions.length === 0 && (
+                            <tr>
+                                <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#868e96' }}>
+                                    No capital transactions found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Add Transaction Modal */}
+            {modalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 200,
+                    padding: '1rem'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        padding: '2rem',
+                        borderRadius: '20px',
+                        maxWidth: '480px',
+                        width: '100%',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                    }}>
+                        <h2 style={{
+                            fontSize: '1.3rem',
+                            fontWeight: '700',
+                            marginBottom: '1.2rem',
+                            color: txType === 'inflow' ? '#10b981' : '#fa5252',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            {txType === 'inflow' ? <ArrowDownRight /> : <ArrowUpRight />}
+                            {txType === 'inflow' ? 'Add Capital / Inflow' : 'Record Outflow / Expense'}
+                        </h2>
+
+                        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    Category *
+                                </label>
+                                <select
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
+                                >
+                                    {txType === 'inflow' ? (
+                                        <>
+                                            <option value="owner_investment">Owner Capital Deposit / Injection</option>
+                                            <option value="sale">Cash / Manual Sales Revenue</option>
+                                            <option value="debt_collection">Customer Credit / Debt Collected</option>
+                                            <option value="other_income">Other Miscellaneous Income</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="expense">General Operational Expense</option>
+                                            <option value="stock_purchase">Stock / Wholesale Procurement</option>
+                                            <option value="rent_utilities">Rent, Power & Internet</option>
+                                            <option value="salary">Staff Salary & Wages</option>
+                                            <option value="debt_payment">Supplier Debt / Loan Payment</option>
+                                            <option value="owner_withdrawal">Owner Capital Withdrawal</option>
+                                        </>
+                                    )}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    Amount in ETB *
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="any"
+                                    required
+                                    placeholder="e.g. 5000"
+                                    value={formData.amount}
+                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    Description / Details *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Additional working capital injection"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                        Payment Method
+                                    </label>
+                                    <select
+                                        value={formData.paymentMethod}
+                                        onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
+                                    >
+                                        <option value="Cash">Cash on Hand</option>
+                                        <option value="Telebirr">Telebirr</option>
+                                        <option value="CBEBirr">CBEBirr</option>
+                                        <option value="Bank Transfer">Bank Transfer (CBE/Awash/etc.)</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                        Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.date}
+                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setModalOpen(false)}
+                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.8rem',
+                                        borderRadius: '10px',
+                                        border: 'none',
+                                        background: txType === 'inflow' ? '#10b981' : '#fa5252',
+                                        color: 'white',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Save Transaction
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CapitalManagement;
