@@ -2,9 +2,8 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, ShoppingBag, FolderTree, ShoppingCart,
-    CreditCard, Users, Truck, Image, MessageSquare,
-    FileText, Settings, LogOut, X, Warehouse, Coins, Receipt,
-    Sun, Moon, MapPin, Languages, BookOpen
+    CreditCard, Users, Truck, Image, Settings, LogOut, X,
+    Warehouse, Coins, Receipt, Sun, Moon, MapPin, Languages, BookOpen
 } from 'lucide-react';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
@@ -29,8 +28,6 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         { icon: Truck, label: t('delivery', 'Delivery'), path: '/admin/delivery' },
         { icon: MapPin, label: t('addresses', 'Addresses'), path: '/admin/addresses' },
         { icon: Image, label: t('banners', 'Banners'), path: '/admin/banners' },
-        { icon: MessageSquare, label: t('feedback', 'Feedback'), path: '/admin/feedback' },
-        { icon: FileText, label: t('content', 'Content'), path: '/admin/content' },
         { icon: Settings, label: t('settings', 'Settings'), path: '/admin/settings' },
     ];
 

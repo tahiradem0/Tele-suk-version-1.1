@@ -62,12 +62,6 @@ const AdminLogin = () => {
         }
     };
 
-    const handleQuickFill = (idVal, pwVal) => {
-        setIdentifier(idVal);
-        setPassword(pwVal);
-        setError('');
-    };
-
     return (
         <div className="page auth-page" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', background: '#f8f9fa', position: 'relative' }}>
             {/* Top Language Toggle */}
@@ -135,7 +129,7 @@ const AdminLogin = () => {
                                 type="text"
                                 value={identifier}
                                 onChange={(e) => setIdentifier(e.target.value)}
-                                placeholder={isAmharic ? '0978787960 ወይም admin@haiil.com' : '0978787960 or admin@haiil.com'}
+                                placeholder={isAmharic ? 'ስልክ ቁጥር ወይም ኢሜይል ያስገቡ' : 'Enter phone number or email'}
                                 required
                                 style={{
                                     width: '100%',
@@ -222,78 +216,6 @@ const AdminLogin = () => {
                         <ArrowRight size={18} />
                     </button>
                 </form>
-
-                {/* 1-Click Quick Autofill Admin Helper */}
-                <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #edf2f7' }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#868e96', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.8rem', textAlign: 'center' }}>
-                        {isAmharic ? 'በ1-ጠቅታ የአስተዳዳሪ መለያ ሙላ' : 'Quick Autofill Admin Credentials'}
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <button
-                            type="button"
-                            onClick={() => handleQuickFill('0978787960', 'Admin@123')}
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                border: '1px solid #e9ecef',
-                                background: '#f8f9fa',
-                                cursor: 'pointer',
-                                fontSize: '0.82rem',
-                                color: '#495057',
-                                transition: 'all 0.15s'
-                            }}
-                        >
-                            <span style={{ fontWeight: '600' }}>👤 Solomon Moges</span>
-                            <span style={{ color: '#868e96', fontFamily: 'monospace' }}>0978787960 / Admin@123</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleQuickFill('0918183644', 'Admin@123')}
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                border: '1px solid #e9ecef',
-                                background: '#f8f9fa',
-                                cursor: 'pointer',
-                                fontSize: '0.82rem',
-                                color: '#495057',
-                                transition: 'all 0.15s'
-                            }}
-                        >
-                            <span style={{ fontWeight: '600' }}>👤 Tahir Adem</span>
-                            <span style={{ color: '#868e96', fontFamily: 'monospace' }}>0918183644 / Admin@123</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleQuickFill('admin@haiil.com', 'superadminpassword')}
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                border: '1px solid #e9ecef',
-                                background: '#f8f9fa',
-                                cursor: 'pointer',
-                                fontSize: '0.82rem',
-                                color: '#495057',
-                                transition: 'all 0.15s'
-                            }}
-                        >
-                            <span style={{ fontWeight: '600' }}>🛡️ Superadmin</span>
-                            <span style={{ color: '#868e96', fontFamily: 'monospace' }}>admin@haiil.com / superadminpassword</span>
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     );

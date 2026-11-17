@@ -82,8 +82,6 @@ function App() {
                                 <Route path="delivery" element={<DeliveryManager />} />
                                 <Route path="addresses" element={<AddressManager />} />
                                 <Route path="banners" element={<BannerManager />} />
-                                <Route path="feedback" element={<div style={{ padding: '2rem' }}><h1>Feedback</h1><p>Coming soon...</p></div>} />
-                                <Route path="content" element={<div style={{ padding: '2rem' }}><h1>Content Manager</h1><p>Coming soon...</p></div>} />
                                 <Route path="settings" element={<AdminSettings />} />
                             </Route>
                         </Routes>
