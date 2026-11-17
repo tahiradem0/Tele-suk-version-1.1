@@ -46,12 +46,19 @@ const register = asyncHandler(async (req, res) => {
     });
 
     if (user) {
-        res.status(201).json({
-            _id: user.id,
+        const token = generateToken(user._id);
+        const userObj = {
+            _id: user._id,
             name: user.name,
+            username: user.name,
             phone: user.phone,
+            email: user.email || '',
             isAdmin: user.isAdmin,
-            token: generateToken(user._id),
+        };
+        res.status(201).json({
+            ...userObj,
+            token,
+            user: userObj,
         });
     } else {
         res.status(400);
@@ -161,13 +168,19 @@ const login = asyncHandler(async (req, res) => {
         isAdmin: user.isAdmin
     });
 
-    res.json({
+    const userObj = {
         _id: user._id,
         name: user.name,
+        username: user.name,
         phone: user.phone,
         email: user.email || '',
         isAdmin: user.isAdmin,
+    };
+
+    res.json({
+        ...userObj,
         token,
+        user: userObj,
     });
 });
 
