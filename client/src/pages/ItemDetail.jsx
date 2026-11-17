@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus } from 'lucide-react';
+import ItemCard from '../components/ui/ItemCard';
 import { useShop } from '../context/ShopContext';
 import './ItemDetail.css';
 
 const ItemDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart, products } = useShop();
+    const { addToCart, products, language } = useShop();
     const [quantity, setQuantity] = useState(1);
+
+    // Scroll to top and reset quantity whenever navigated to a new item
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        setQuantity(1);
+    }, [id]);
 
     const product = products.find(p => p._id === id);
 
@@ -144,30 +151,33 @@ const ItemDetail = () => {
 
                 {/* Related Items Section */}
                 <div className="related-items-section" style={{ marginTop: '40px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>You might also like</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>
+                        {language === 'am' ? 'ሊወዱት የሚችሉት' : 'You might also like'}
+                    </h3>
                     <div className="related-grid" style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(2, 1fr)',
                         gap: '16px'
                     }}>
-                        {products
-                            .filter(p => p.category === product.category && p._id !== product._id)
-                            .slice(0, 2)
-                            .map(related => (
-                                <div key={related._id} className="related-item-card" onClick={() => {
-                                    navigate(`/item/${related._id}`);
-                                    window.scrollTo(0, 0);
-                                }}>
-                                    <div style={{
-                                        borderRadius: '12px', overflow: 'hidden', marginBottom: '8px', aspectRatio: '1', background: '#f8f9fc'
-                                    }}>
-                                        <img src={related.image} alt={related.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    </div>
-                                    <h4 style={{ fontSize: '14px', fontWeight: '600', margin: '0' }}>{related.name}</h4>
-                                    <p style={{ fontSize: '14px', fontWeight: '700', marginTop: '4px' }}>${related.price.toFixed(2)}</p>
-                                </div>
-                            ))
-                        }
+                        {(() => {
+                            const otherProducts = products.filter(p => p._id !== product._id);
+                            const sameCat = otherProducts.filter(p => p.category === product.category);
+                            const recs = (sameCat.length > 0 ? sameCat : otherProducts)
+                                .sort((a, b) => {
+                                    const stockA = Number(a.stockQuantity !== undefined ? a.stockQuantity : (a.countInStock || 0));
+                                    const stockB = Number(b.stockQuantity !== undefined ? b.stockQuantity : (b.countInStock || 0));
+                                    const isOutA = stockA <= 0;
+                                    const isOutB = stockB <= 0;
+                                    if (!isOutA && isOutB) return -1;
+                                    if (isOutA && !isOutB) return 1;
+                                    return stockB - stockA;
+                                })
+                                .slice(0, 4);
+
+                            return recs.map(related => (
+                                <ItemCard key={related._id} item={related} />
+                            ));
+                        })()}
                     </div>
                 </div>
             </div>
