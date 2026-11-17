@@ -15,6 +15,7 @@ import OrderList from './pages/admin/orders/OrderList'
 import PaymentViewer from './pages/admin/payments/PaymentViewer'
 import UserManager from './pages/admin/users/UserManager'
 import DeliveryManager from './pages/admin/delivery/DeliveryManager'
+import AddressManager from './pages/admin/addresses/AddressManager'
 import BannerManager from './pages/admin/banners/BannerManager'
 import StoreManagement from './pages/admin/store/StoreManagement'
 import CapitalManagement from './pages/admin/capital/CapitalManagement'
@@ -75,6 +76,7 @@ function App() {
                                 <Route path="payments" element={<PaymentViewer />} />
                                 <Route path="users" element={<UserManager />} />
                                 <Route path="delivery" element={<DeliveryManager />} />
+                                <Route path="addresses" element={<AddressManager />} />
                                 <Route path="banners" element={<BannerManager />} />
                                 <Route path="feedback" element={<div style={{ padding: '2rem' }}><h1>Feedback</h1><p>Coming soon...</p></div>} />
                                 <Route path="content" element={<div style={{ padding: '2rem' }}><h1>Content Manager</h1><p>Coming soon...</p></div>} />

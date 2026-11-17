@@ -4,7 +4,7 @@ import {
     LayoutDashboard, ShoppingBag, FolderTree, ShoppingCart,
     CreditCard, Users, Truck, Image, MessageSquare,
     FileText, Settings, LogOut, X, Warehouse, Coins, Receipt,
-    Sun, Moon
+    Sun, Moon, MapPin
 } from 'lucide-react';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useShop } from '../../../context/ShopContext';
@@ -20,6 +20,7 @@ const menuItems = [
     { icon: CreditCard, label: 'Payments', path: '/admin/payments' },
     { icon: Users, label: 'Users', path: '/admin/users' },
     { icon: Truck, label: 'Delivery', path: '/admin/delivery' },
+    { icon: MapPin, label: 'Addresses', path: '/admin/addresses' },
     { icon: Image, label: 'Banners', path: '/admin/banners' },
     { icon: MessageSquare, label: 'Feedback', path: '/admin/feedback' },
     { icon: FileText, label: 'Content', path: '/admin/content' },

@@ -753,7 +753,7 @@ const AdminSettings = () => {
                                 </p>
                             </div>
                             <Link
-                                to="/admin/delivery"
+                                to="/admin/addresses"
                                 style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
