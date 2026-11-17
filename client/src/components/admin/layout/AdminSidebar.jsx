@@ -130,16 +130,17 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            {isDark ? <Moon size={18} color="#fab005" /> : <Sun size={18} color="#f59f00" />}
+                            {isDark ? <Moon size={18} color="#38bdf8" /> : <Sun size={18} color="#f59f00" />}
                             <span>{isDark ? t('darkMode', 'Dark Mode') : t('lightMode', 'Light Mode')}</span>
                         </div>
                         <span style={{
                             padding: '2px 8px',
                             borderRadius: '10px',
                             fontSize: '0.75rem',
-                            background: isDark ? '#fab005' : '#1a1b1e',
-                            color: isDark ? '#121417' : '#ffffff',
-                            fontWeight: '700'
+                            background: isDark ? 'linear-gradient(135deg, #0284c7, #06b6d4)' : '#1a1b1e',
+                            color: '#ffffff',
+                            fontWeight: '700',
+                            boxShadow: isDark ? '0 2px 8px rgba(6, 182, 212, 0.4)' : 'none'
                         }}>
                             {isDark ? 'DARK' : 'LIGHT'}
                         </span>

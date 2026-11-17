@@ -149,11 +149,11 @@ const DebtCreditManagement = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1a1b1e', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                        <Receipt color="#228be6" size={28} />
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--admin-text, #1a1b1e)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <Receipt color="#06b6d4" size={28} />
                         {isAmharic ? 'የብድር እና እዳ መዝገብ አስተዳደር' : 'Debt & Credit Ledger Management'}
                     </h1>
-                    <p style={{ color: '#868e96', fontSize: '0.95rem' }}>
+                    <p style={{ color: 'var(--admin-subtext, #868e96)', fontSize: '0.95rem' }}>
                         {isAmharic
                             ? 'የደንበኞች ብድር (ገንዘብ ያለባቸው ሰዎች) እና የአቅራቢዎች እዳ (የሱቁ ዕዳዎች)'
                             : 'Customer receivables (ገንዘብ ያለባቸው ሰዎች) and supplier payables (የሱቁ ዕዳዎች)'}
@@ -168,12 +168,12 @@ const DebtCreditManagement = () => {
                             gap: '0.5rem',
                             padding: '0.75rem 1.2rem',
                             borderRadius: '12px',
-                            background: '#1a1b1e',
+                            background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)',
                             color: 'white',
                             border: 'none',
                             fontWeight: '600',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                            boxShadow: '0 4px 14px rgba(6, 182, 212, 0.35)'
                         }}
                     >
                         <Plus size={18} />
@@ -187,9 +187,9 @@ const DebtCreditManagement = () => {
                             gap: '0.5rem',
                             padding: '0.75rem 1.2rem',
                             borderRadius: '12px',
-                            background: '#495057',
-                            color: 'white',
-                            border: 'none',
+                            background: 'var(--admin-card-bg, #495057)',
+                            color: 'var(--admin-text, white)',
+                            border: '1px solid var(--admin-border, #495057)',
                             fontWeight: '600',
                             cursor: 'pointer'
                         }}
@@ -209,20 +209,21 @@ const DebtCreditManagement = () => {
             }}>
                 {/* Receivables */}
                 <div style={{
-                    background: 'white',
+                    background: 'var(--admin-card-bg, white)',
                     padding: '1.5rem',
                     borderRadius: '18px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    border: '1px solid var(--admin-border, #eee)',
                     borderLeft: '6px solid #10b981'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem' }}>
                         <span>{isAmharic ? 'የደንበኞች ብድር (የሚሰበሰብ)' : 'Customer Credit (Receivables)'}</span>
                         <UserPlus size={20} color="#10b981" />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#10b981', marginTop: '0.5rem' }}>
                         ETB {(summary?.totalReceivableRemaining || 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.3rem' }}>
                         {isAmharic
                             ? `ደንበኞች ለሱቁ ያለባቸው (ጠቅላላ: ETB ${(summary?.totalReceivable || 0).toLocaleString()})`
                             : `Customers owe to our store (Total: ETB ${(summary?.totalReceivable || 0).toLocaleString()})`}
@@ -231,20 +232,21 @@ const DebtCreditManagement = () => {
 
                 {/* Payables */}
                 <div style={{
-                    background: 'white',
+                    background: 'var(--admin-card-bg, white)',
                     padding: '1.5rem',
                     borderRadius: '18px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    border: '1px solid var(--admin-border, #eee)',
                     borderLeft: '6px solid #fa5252'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem' }}>
                         <span>{isAmharic ? 'የሱቁ ዕዳዎች (የሚከፈል)' : 'Store Liabilities (Payables)'}</span>
                         <UserMinus size={20} color="#fa5252" />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#fa5252', marginTop: '0.5rem' }}>
                         ETB {(summary?.totalPayableRemaining || 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.3rem' }}>
                         {isAmharic
                             ? `ሱቁ ለአቅራቢዎች ያለበት (ጠቅላላ: ETB ${(summary?.totalPayable || 0).toLocaleString()})`
                             : `Store owes to suppliers & lenders (Total: ETB ${(summary?.totalPayable || 0).toLocaleString()})`}
@@ -253,14 +255,16 @@ const DebtCreditManagement = () => {
 
                 {/* Net Position */}
                 <div style={{
-                    background: 'white',
+                    background: 'var(--admin-card-bg, white)',
                     padding: '1.5rem',
                     borderRadius: '18px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    border: '1px solid var(--admin-border, #eee)',
+                    borderLeft: '6px solid #06b6d4'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem' }}>
                         <span>{isAmharic ? 'የተጣራ የብድር ሁኔታ' : 'Net Credit Position'}</span>
-                        <DollarSign size={20} color="#228be6" />
+                        <DollarSign size={20} color="#06b6d4" />
                     </div>
                     <div style={{
                         fontSize: '2rem',
@@ -270,7 +274,7 @@ const DebtCreditManagement = () => {
                     }}>
                         ETB {(summary?.netCreditPosition || 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.3rem' }}>
                         {(summary?.overdueCount || 0) > 0 ? (
                             <span style={{ color: '#e03131', fontWeight: '600' }}>
                                 ⚠️ {isAmharic ? `${summary.overdueCount} መዛግብት ቀነ-ገደባቸው አልፏል!` : `${summary.overdueCount} records overdue!`}
@@ -283,7 +287,7 @@ const DebtCreditManagement = () => {
             </div>
 
             {/* Navigation Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid #eee', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--admin-border, #eee)', marginBottom: '1.5rem' }}>
                 <button
                     onClick={() => setActiveTab('receivable')}
                     style={{
@@ -293,7 +297,7 @@ const DebtCreditManagement = () => {
                         border: 'none',
                         background: 'none',
                         cursor: 'pointer',
-                        color: activeTab === 'receivable' ? '#10b981' : '#868e96',
+                        color: activeTab === 'receivable' ? '#10b981' : 'var(--admin-subtext, #868e96)',
                         borderBottom: activeTab === 'receivable' ? '3px solid #10b981' : 'none',
                         marginBottom: '-2px'
                     }}
@@ -309,7 +313,7 @@ const DebtCreditManagement = () => {
                         border: 'none',
                         background: 'none',
                         cursor: 'pointer',
-                        color: activeTab === 'payable' ? '#fa5252' : '#868e96',
+                        color: activeTab === 'payable' ? '#fa5252' : 'var(--admin-subtext, #868e96)',
                         borderBottom: activeTab === 'payable' ? '3px solid #fa5252' : 'none',
                         marginBottom: '-2px'
                     }}
@@ -325,8 +329,8 @@ const DebtCreditManagement = () => {
                         border: 'none',
                         background: 'none',
                         cursor: 'pointer',
-                        color: activeTab === 'all' ? '#1a1b1e' : '#868e96',
-                        borderBottom: activeTab === 'all' ? '3px solid #1a1b1e' : 'none',
+                        color: activeTab === 'all' ? '#06b6d4' : 'var(--admin-subtext, #868e96)',
+                        borderBottom: activeTab === 'all' ? '3px solid #06b6d4' : 'none',
                         marginBottom: '-2px'
                     }}
                 >
@@ -343,7 +347,7 @@ const DebtCreditManagement = () => {
                 alignItems: 'center'
             }}>
                 <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
+                    <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-subtext, #868e96)' }} />
                     <input
                         type="text"
                         placeholder={isAmharic ? 'በስም፣ በስልክ ቁጥር ወይም በምክንያት ፈልግ...' : 'Search by name, phone number, or reason...'}
@@ -353,7 +357,9 @@ const DebtCreditManagement = () => {
                             width: '100%',
                             padding: '0.75rem 1rem 0.75rem 2.6rem',
                             borderRadius: '12px',
-                            border: '1px solid #dee2e6',
+                            border: '1px solid var(--admin-border, #dee2e6)',
+                            background: 'var(--admin-input-bg, #ffffff)',
+                            color: 'var(--admin-text, #1a1b1e)',
                             outline: 'none',
                             fontSize: '0.95rem'
                         }}
@@ -366,8 +372,9 @@ const DebtCreditManagement = () => {
                     style={{
                         padding: '0.75rem 1rem',
                         borderRadius: '12px',
-                        border: '1px solid #dee2e6',
-                        background: 'white',
+                        border: '1px solid var(--admin-border, #dee2e6)',
+                        background: 'var(--admin-input-bg, white)',
+                        color: 'var(--admin-text, #1a1b1e)',
                         fontSize: '0.95rem'
                     }}
                 >
@@ -380,15 +387,16 @@ const DebtCreditManagement = () => {
 
             {/* Debt Table */}
             <div style={{
-                background: 'white',
+                background: 'var(--admin-card-bg, white)',
                 borderRadius: '16px',
+                border: '1px solid var(--admin-border, #eee)',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 overflow: 'hidden',
                 overflowX: 'auto'
             }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
                     <thead>
-                        <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
+                        <tr style={{ background: 'var(--admin-inner-bg, #f8f9fc)', borderBottom: '1px solid var(--admin-border, #eee)', color: 'var(--admin-subtext, #495057)', fontSize: '0.85rem' }}>
                             <th style={{ padding: '1rem' }}>{isAmharic ? 'ሰው / አድራሻ' : 'PERSON / CONTACT'}</th>
                             <th style={{ padding: '1rem' }}>{isAmharic ? 'ዓይነት' : 'TYPE'}</th>
                             <th style={{ padding: '1rem' }}>{isAmharic ? 'ዝርዝር / ምክንያት' : 'DETAILS / REASON'}</th>
@@ -555,7 +563,8 @@ const DebtCreditManagement = () => {
                 <div style={{
                     position: 'fixed',
                     inset: 0,
-                    background: 'rgba(0,0,0,0.5)',
+                    background: 'rgba(3, 7, 18, 0.75)',
+                    backdropFilter: 'blur(8px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -563,14 +572,16 @@ const DebtCreditManagement = () => {
                     padding: '1rem'
                 }}>
                     <div style={{
-                        background: 'white',
+                        background: 'var(--admin-card-bg, white)',
+                        color: 'var(--admin-text, #1a1b1e)',
+                        border: '1px solid var(--admin-border, #eee)',
                         padding: '2rem',
                         borderRadius: '20px',
                         maxWidth: '500px',
                         width: '100%',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
                     }}>
-                        <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '1.2rem' }}>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '1.2rem', color: 'var(--admin-text, #1a1b1e)' }}>
                             {newDebtForm.type === 'receivable'
                                 ? (isAmharic ? '+ አዲስ የደንበኛ ብድር (የሚሰበሰብ)' : '+ New Customer Credit (Receivable)')
                                 : (isAmharic ? '+ አዲስ የሱቅ እዳ (የሚከፈል)' : '+ New Store Debt (Payable)')}
@@ -578,13 +589,13 @@ const DebtCreditManagement = () => {
 
                         <form onSubmit={handleCreateDebt} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የመዝገብ ዓይነት *' : 'Record Type *'}
                                 </label>
                                 <select
                                     value={newDebtForm.type}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, type: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 >
                                     <option value="receivable">
                                         {isAmharic ? 'የደንበኛ ብድር (ደንበኛ ለሱቁ ያለበት)' : 'Customer Credit (Customer owes our store)'}
@@ -597,7 +608,7 @@ const DebtCreditManagement = () => {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                         {isAmharic ? 'የሰው / ድርጅት ስም *' : 'Person / Entity Name *'}
                                     </label>
                                     <input
@@ -606,11 +617,11 @@ const DebtCreditManagement = () => {
                                         placeholder={isAmharic ? 'ለምሳሌ፡ አበበ ከበደ' : 'e.g. Abebe Kebede'}
                                         value={newDebtForm.personName}
                                         onChange={(e) => setNewDebtForm({ ...newDebtForm, personName: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                         {isAmharic ? 'ስልክ ቁጥር *' : 'Phone Number *'}
                                     </label>
                                     <input
@@ -619,13 +630,13 @@ const DebtCreditManagement = () => {
                                         placeholder="0911223344"
                                         value={newDebtForm.phone}
                                         onChange={(e) => setNewDebtForm({ ...newDebtForm, phone: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'ምክንያት / የተገዙ ዕቃዎች *' : 'Reason / Items Purchased *'}
                                 </label>
                                 <input
@@ -634,13 +645,13 @@ const DebtCreditManagement = () => {
                                     placeholder={isAmharic ? 'ለምሳሌ፡ 5 ቡና + የምግብ ዘይት' : 'e.g. 5x Coffee packs + Cooking Oil'}
                                     value={newDebtForm.title}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, title: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 />
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                         {isAmharic ? 'ጠቅላላ መጠን በብር *' : 'Total Amount in ETB *'}
                                     </label>
                                     <input
@@ -651,24 +662,24 @@ const DebtCreditManagement = () => {
                                         placeholder="e.g. 2400"
                                         value={newDebtForm.totalAmount}
                                         onChange={(e) => setNewDebtForm({ ...newDebtForm, totalAmount: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                         {isAmharic ? 'የመክፈያ ቀን (አማራጭ)' : 'Due Date (Optional)'}
                                     </label>
                                     <input
                                         type="date"
                                         value={newDebtForm.dueDate}
                                         onChange={(e) => setNewDebtForm({ ...newDebtForm, dueDate: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'ማስታወሻ (አማራጭ)' : 'Notes (Optional)'}
                                 </label>
                                 <input
@@ -676,7 +687,7 @@ const DebtCreditManagement = () => {
                                     placeholder={isAmharic ? 'ለምሳሌ፡ በሳምንቱ መጨረሻ እንደሚከፍል ቃል ገብቷል' : 'e.g. Promised to pay by end of the week'}
                                     value={newDebtForm.notes}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, notes: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 />
                             </div>
 
@@ -684,13 +695,13 @@ const DebtCreditManagement = () => {
                                 <button
                                     type="button"
                                     onClick={() => setAddModalOpen(false)}
-                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
+                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)', fontWeight: '600', cursor: 'pointer' }}
                                 >
                                     {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
                                 <button
                                     type="submit"
-                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: '#1a1b1e', color: 'white', fontWeight: '600', cursor: 'pointer' }}
+                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)', color: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
                                     {isAmharic ? 'መዝግብ' : 'Save Record'}
                                 </button>
@@ -705,7 +716,8 @@ const DebtCreditManagement = () => {
                 <div style={{
                     position: 'fixed',
                     inset: 0,
-                    background: 'rgba(0,0,0,0.5)',
+                    background: 'rgba(3, 7, 18, 0.75)',
+                    backdropFilter: 'blur(8px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -713,23 +725,25 @@ const DebtCreditManagement = () => {
                     padding: '1rem'
                 }}>
                     <div style={{
-                        background: 'white',
+                        background: 'var(--admin-card-bg, white)',
+                        color: 'var(--admin-text, #1a1b1e)',
+                        border: '1px solid var(--admin-border, #eee)',
                         padding: '2rem',
                         borderRadius: '20px',
                         maxWidth: '460px',
                         width: '100%',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
                     }}>
-                        <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '0.3rem' }}>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '0.3rem', color: 'var(--admin-text, #1a1b1e)' }}>
                             {isAmharic ? `ክፍያ መዝግብ: ${selectedDebt.personName}` : `Record Payment: ${selectedDebt.personName}`}
                         </h2>
-                        <p style={{ color: '#868e96', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
-                            {isAmharic ? 'ቀሪ ሒሳብ:' : 'Remaining balance:'} <strong style={{ color: '#1a1b1e' }}>ETB {selectedDebt.balance.toLocaleString()}</strong>
+                        <p style={{ color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
+                            {isAmharic ? 'ቀሪ ሒሳብ:' : 'Remaining balance:'} <strong style={{ color: 'var(--admin-text, #1a1b1e)' }}>ETB {selectedDebt.balance.toLocaleString()}</strong>
                         </p>
 
                         <form onSubmit={handleRecordPayment} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የሚከፈለው መጠን በብር *' : 'Amount to Pay in ETB *'}
                                 </label>
                                 <input
@@ -740,18 +754,18 @@ const DebtCreditManagement = () => {
                                     required
                                     value={payForm.amount}
                                     onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 />
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የክፍያ ዘዴ *' : 'Payment Method *'}
                                 </label>
                                 <select
                                     value={payForm.paymentMethod}
                                     onChange={(e) => setPayForm({ ...payForm, paymentMethod: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 >
                                     <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ (Cash)' : 'Cash'}</option>
                                     <option value="Telebirr">Telebirr</option>
@@ -763,12 +777,12 @@ const DebtCreditManagement = () => {
 
                             {/* Auto Sync with Capital Treasury */}
                             <div style={{
-                                background: '#f8f9fa',
+                                background: 'var(--admin-inner-bg, #f8f9fa)',
                                 padding: '1rem',
                                 borderRadius: '12px',
-                                border: '1px solid #dee2e6'
+                                border: '1px solid var(--admin-border, #dee2e6)'
                             }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', color: 'var(--admin-text, #1a1b1e)' }}>
                                     <input
                                         type="checkbox"
                                         checked={payForm.syncCapital}
@@ -776,7 +790,7 @@ const DebtCreditManagement = () => {
                                     />
                                     {isAmharic ? 'ከካፒታል ግምጃ ቤት ጋር አስተሳስር' : 'Sync to Capital Management Treasury'}
                                 </label>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.3rem' }}>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.3rem' }}>
                                     {selectedDebt.type === 'receivable'
                                         ? (isAmharic ? '✨ በካፒታል መዝገብ ላይ እንደ ገቢ (INFLOW) በራስ-ሰር ይመዘግባል' : '✨ Will automatically record an INFLOW into your Capital treasury')
                                         : (isAmharic ? '✨ በካፒታል መዝገብ ላይ እንደ ወጪ (OUTFLOW) በራስ-ሰር ይመዘግባል' : '✨ Will automatically record an OUTFLOW from your Capital treasury')}
@@ -784,7 +798,7 @@ const DebtCreditManagement = () => {
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የክፍያ ማጣቀሻ / ማስታወሻ' : 'Payment Reference / Note'}
                                 </label>
                                 <input
@@ -792,7 +806,7 @@ const DebtCreditManagement = () => {
                                     placeholder={isAmharic ? 'አማራጭ ማስታወሻ' : 'Optional note'}
                                     value={payForm.note}
                                     onChange={(e) => setPayForm({ ...payForm, note: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 />
                             </div>
 
@@ -800,7 +814,7 @@ const DebtCreditManagement = () => {
                                 <button
                                     type="button"
                                     onClick={() => setPayModalOpen(false)}
-                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
+                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)', fontWeight: '600', cursor: 'pointer' }}
                                 >
                                     {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
@@ -821,7 +835,8 @@ const DebtCreditManagement = () => {
                 <div style={{
                     position: 'fixed',
                     inset: 0,
-                    background: 'rgba(0,0,0,0.5)',
+                    background: 'rgba(3, 7, 18, 0.75)',
+                    backdropFilter: 'blur(8px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -829,17 +844,19 @@ const DebtCreditManagement = () => {
                     padding: '1rem'
                 }}>
                     <div style={{
-                        background: 'white',
+                        background: 'var(--admin-card-bg, white)',
+                        color: 'var(--admin-text, #1a1b1e)',
+                        border: '1px solid var(--admin-border, #eee)',
                         padding: '2rem',
                         borderRadius: '20px',
                         maxWidth: '500px',
                         width: '100%',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
                     }}>
-                        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem' }}>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem', color: 'var(--admin-text, #1a1b1e)' }}>
                             {isAmharic ? `የክፍያ ታሪክ: ${selectedDebt.personName}` : `Payment Audit: ${selectedDebt.personName}`}
                         </h2>
-                        <p style={{ color: '#868e96', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+                        <p style={{ color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
                             {isAmharic
                                 ? `ጠቅላላ: ETB ${selectedDebt.totalAmount.toLocaleString()} | የተከፈለ: ETB ${(selectedDebt.paidAmount || 0).toLocaleString()} | ቀሪ: ETB ${selectedDebt.balance.toLocaleString()}`
                                 : `Total: ETB ${selectedDebt.totalAmount.toLocaleString()} | Paid: ETB ${(selectedDebt.paidAmount || 0).toLocaleString()} | Balance: ETB ${selectedDebt.balance.toLocaleString()}`}
@@ -848,23 +865,23 @@ const DebtCreditManagement = () => {
                         <div style={{ display: 'grid', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
                             {(selectedDebt.paymentHistory || []).map((p, idx) => (
                                 <div key={idx} style={{
-                                    background: '#f8f9fa',
+                                    background: 'var(--admin-inner-bg, #f8f9fa)',
                                     padding: '0.85rem',
                                     borderRadius: '10px',
-                                    border: '1px solid #e9ecef',
+                                    border: '1px solid var(--admin-border, #e9ecef)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center'
                                 }}>
                                     <div>
-                                        <div style={{ fontWeight: '700', color: '#1a1b1e' }}>
+                                        <div style={{ fontWeight: '700', color: 'var(--admin-text, #1a1b1e)' }}>
                                             ETB {p.amount.toLocaleString()}
                                         </div>
-                                        <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)' }}>
                                             {p.paymentMethod} {p.note && `• ${p.note}`}
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)' }}>
                                         {new Date(p.date).toLocaleDateString()}
                                     </div>
                                 </div>
@@ -879,8 +896,8 @@ const DebtCreditManagement = () => {
                                 marginTop: '1.5rem',
                                 padding: '0.75rem',
                                 borderRadius: '10px',
-                                border: '1px solid #ced4da',
-                                background: '#1a1b1e',
+                                border: '1px solid var(--admin-border, #ced4da)',
+                                background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)',
                                 color: 'white',
                                 fontWeight: '600',
                                 cursor: 'pointer'

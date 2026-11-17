@@ -178,74 +178,74 @@ const StoreManagement = () => {
                 gap: '1.2rem',
                 marginBottom: '2rem'
             }}>
-                <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--admin-card-bg, white)', border: '1px solid var(--admin-border, #eee)', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
                         <span>{t('totalInventoryUnits', 'Total Inventory Units')}</span>
-                        <Package size={18} color="#228be6" />
+                        <Package size={18} color="#06b6d4" />
                     </div>
-                    <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#1a1b1e' }}>
+                    <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: 'var(--admin-text, #1a1b1e)' }}>
                         {summary.totalStockUnits.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
                         {isAmharic ? `በ ${summary.totalProducts} የተለያዩ ምርቶች ውስጥ` : `Across ${summary.totalProducts} unique products`}
                     </div>
                 </div>
 
-                <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--admin-card-bg, white)', border: '1px solid var(--admin-border, #eee)', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
                         <span>{t('costValuation', 'Cost Valuation')}</span>
                         <DollarSign size={18} color="#f59f00" />
                     </div>
-                    <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#1a1b1e' }}>
+                    <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: 'var(--admin-text, #1a1b1e)' }}>
                         ETB {summary.totalCostValuation.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
                         {t('capitalTiedInStore', 'Capital tied in store inventory')}
                     </div>
                 </div>
 
-                <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--admin-card-bg, white)', border: '1px solid var(--admin-border, #eee)', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
                         <span>{t('retailValuation', 'Retail Valuation')}</span>
                         <Layers size={18} color="#10b981" />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#10b981' }}>
                         ETB {summary.totalRetailValuation.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
                         {t('expectedGrossRevenue', 'Expected gross sales revenue')}
                     </div>
                 </div>
 
-                <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--admin-card-bg, white)', border: '1px solid var(--admin-border, #eee)', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
                         <span>{t('potentialProfit', 'Potential Profit')}</span>
                         <ArrowUpDown size={18} color="#20c997" />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#20c997' }}>
                         ETB {summary.potentialGrossProfit.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
                         {t('netStoreMarginIfSold', 'Net store margin if all sold')}
                     </div>
                 </div>
 
-                <div style={{ background: summary.lowStockCount > 0 ? '#fff5f5' : 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: summary.lowStockCount > 0 ? '1px solid #ffa8a8' : 'none' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: summary.lowStockCount > 0 ? '#e03131' : '#868e96', fontSize: '0.85rem' }}>
+                <div style={{ background: summary.lowStockCount > 0 ? 'rgba(244, 63, 94, 0.12)' : 'var(--admin-card-bg, white)', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: summary.lowStockCount > 0 ? '1px solid rgba(244, 63, 94, 0.35)' : '1px solid var(--admin-border, #eee)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: summary.lowStockCount > 0 ? '#fb7185' : 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
                         <span>{t('stockAlertsLabel', 'Stock Alerts')}</span>
-                        <AlertTriangle size={18} color={summary.lowStockCount > 0 ? '#e03131' : '#868e96'} />
+                        <AlertTriangle size={18} color={summary.lowStockCount > 0 ? '#fb7185' : 'var(--admin-subtext, #868e96)'} />
                     </div>
-                    <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: summary.lowStockCount > 0 ? '#e03131' : '#1a1b1e' }}>
+                    <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: summary.lowStockCount > 0 ? '#fb7185' : 'var(--admin-text, #1a1b1e)' }}>
                         {isAmharic ? `${summary.lowStockCount} እቃዎች` : `${summary.lowStockCount} items`}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
                         {isAmharic ? `${summary.outOfStockCount} ሙሉ በሙሉ ያለቁ` : `${summary.outOfStockCount} completely out of stock`}
                     </div>
                 </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid #eee', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--admin-border, #eee)', marginBottom: '1.5rem' }}>
                 <button
                     onClick={() => setActiveTab('inventory')}
                     style={{

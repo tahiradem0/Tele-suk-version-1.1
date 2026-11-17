@@ -134,7 +134,7 @@ const AdminLayout = () => {
                                 borderRadius: '10px',
                                 border: '1px solid var(--admin-border, #dee2e6)',
                                 background: 'var(--admin-card-bg, #ffffff)',
-                                color: isDark ? '#fab005' : '#495057',
+                                color: isDark ? '#38bdf8' : '#495057',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s'
                             }}

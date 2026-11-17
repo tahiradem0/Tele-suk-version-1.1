@@ -193,13 +193,14 @@ const CapitalManagement = () => {
             }}>
                 {/* Available Capital */}
                 <div style={{
-                    background: 'white',
+                    background: 'var(--admin-card-bg, white)',
                     padding: '1.5rem',
                     borderRadius: '18px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    border: '1px solid var(--admin-border, #eee)',
                     borderLeft: `6px solid ${netCapital >= 0 ? '#10b981' : '#fa5252'}`
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem' }}>
                         <span>{t('currentAvailableCapital', 'Current Available Capital')}</span>
                         <Wallet size={20} color={netCapital >= 0 ? '#10b981' : '#fa5252'} />
                     </div>
@@ -211,18 +212,18 @@ const CapitalManagement = () => {
                     }}>
                         ETB {netCapital.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.3rem' }}>
                         {t('netLiquidTreasury', 'Net liquid treasury after all inflows & expenses')}
                     </div>
                 </div>
 
                 {/* Total Inflow */}
-                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                <div style={{ background: 'var(--admin-card-bg, white)', border: '1px solid var(--admin-border, #eee)', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem' }}>
                         <span>{t('totalInflowLabel', 'Total Inflow (Capital + Sales)')}</span>
                         <ArrowDownRight size={20} color="#10b981" />
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1a1b1e', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--admin-text, #1a1b1e)', marginTop: '0.5rem' }}>
                         +ETB {totalInflow.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.3rem' }}>
@@ -231,12 +232,12 @@ const CapitalManagement = () => {
                 </div>
 
                 {/* Total Outflow */}
-                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
+                <div style={{ background: 'var(--admin-card-bg, white)', border: '1px solid var(--admin-border, #eee)', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem' }}>
                         <span>{t('totalOutflowLabel', 'Total Outflow (Expenses + Restocks)')}</span>
                         <ArrowUpRight size={20} color="#fa5252" />
                     </div>
-                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1a1b1e', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--admin-text, #1a1b1e)', marginTop: '0.5rem' }}>
                         -ETB {totalOutflow.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#fa5252', marginTop: '0.3rem' }}>
@@ -248,13 +249,14 @@ const CapitalManagement = () => {
             {/* Inflow vs Outflow Category Breakdown Pill Bar */}
             {overview?.categoryTotals && Object.keys(overview.categoryTotals).length > 0 && (
                 <div style={{
-                    background: 'white',
+                    background: 'var(--admin-card-bg, white)',
+                    border: '1px solid var(--admin-border, #eee)',
                     padding: '1.2rem',
                     borderRadius: '16px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                     marginBottom: '2rem'
                 }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#495057', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-subtext, #495057)', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         {t('capitalActivityByCategory', 'Capital Activity By Category')}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
@@ -306,8 +308,9 @@ const CapitalManagement = () => {
                     style={{
                         padding: '0.75rem 1rem',
                         borderRadius: '12px',
-                        border: '1px solid #dee2e6',
-                        background: 'white',
+                        border: '1px solid var(--admin-border, #dee2e6)',
+                        background: 'var(--admin-input-bg, white)',
+                        color: 'var(--admin-text, #1a1b1e)',
                         fontSize: '0.95rem'
                     }}
                 >
@@ -322,8 +325,9 @@ const CapitalManagement = () => {
                     style={{
                         padding: '0.75rem 1rem',
                         borderRadius: '12px',
-                        border: '1px solid #dee2e6',
-                        background: 'white',
+                        border: '1px solid var(--admin-border, #dee2e6)',
+                        background: 'var(--admin-input-bg, white)',
+                        color: 'var(--admin-text, #1a1b1e)',
                         fontSize: '0.95rem'
                     }}
                 >
@@ -341,7 +345,8 @@ const CapitalManagement = () => {
 
             {/* Transactions Ledger Table */}
             <div style={{
-                background: 'white',
+                background: 'var(--admin-card-bg, white)',
+                border: '1px solid var(--admin-border, #eee)',
                 borderRadius: '16px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 overflow: 'hidden',
@@ -349,7 +354,7 @@ const CapitalManagement = () => {
             }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
                     <thead>
-                        <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
+                        <tr style={{ background: 'var(--admin-inner-bg, #f8f9fc)', borderBottom: '1px solid var(--admin-border, #eee)', color: 'var(--admin-subtext, #495057)', fontSize: '0.85rem' }}>
                             <th style={{ padding: '1rem' }}>{t('colDate', 'DATE')}</th>
                             <th style={{ padding: '1rem' }}>{t('colType', 'TYPE')}</th>
                             <th style={{ padding: '1rem' }}>{t('colCategory', 'CATEGORY')}</th>

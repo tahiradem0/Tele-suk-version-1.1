@@ -563,7 +563,7 @@ const AdminSettings = () => {
                 }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <h2 style={{ fontSize: '1.3rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            {isDark ? <Moon size={24} color="#fab005" /> : <Sun size={24} color="#f59f00" />}
+                            {isDark ? <Moon size={24} color="#38bdf8" /> : <Sun size={24} color="#f59f00" />}
                             Admin Panel Theme & Appearance
                         </h2>
                         <p style={{ color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem', marginTop: '0.3rem' }}>
@@ -604,27 +604,27 @@ const AdminSettings = () => {
                         <div
                             onClick={() => handleThemeChange('dark')}
                             style={{
-                                border: settings.themeMode === 'dark' ? '3px solid #fab005' : '1px solid var(--admin-border, #dee2e6)',
+                                border: settings.themeMode === 'dark' ? '3px solid #06b6d4' : '1px solid var(--admin-border, #dee2e6)',
                                 borderRadius: '16px',
                                 padding: '1.5rem',
                                 cursor: 'pointer',
-                                background: '#1a1d21',
-                                boxShadow: settings.themeMode === 'dark' ? '0 6px 20px rgba(0,0,0,0.3)' : 'none',
+                                background: '#111c30',
+                                boxShadow: settings.themeMode === 'dark' ? '0 6px 20px rgba(6, 182, 212, 0.25)' : 'none',
                                 transition: 'all 0.2s',
                                 position: 'relative'
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                                    <Moon size={24} color="#fab005" />
-                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#f8f9fa' }}>Dark Theme</h3>
+                                    <Moon size={24} color="#38bdf8" />
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#f8fafc' }}>Cool Dark Theme</h3>
                                 </div>
                                 {settings.themeMode === 'dark' && (
-                                    <span style={{ color: '#fab005', fontWeight: '700', fontSize: '0.85rem' }}>● Active</span>
+                                    <span style={{ color: '#06b6d4', fontWeight: '700', fontSize: '0.85rem' }}>● Active</span>
                                 )}
                             </div>
-                            <p style={{ fontSize: '0.85rem', color: '#adb5bd', margin: 0 }}>
-                                Modern high-contrast dark charcoal mode designed to reduce eye strain in low-light environments.
+                            <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+                                Modern high-contrast cool obsidian slate mode with electric cyan and ice accents to reduce eye strain.
                             </p>
                         </div>
                     </div>

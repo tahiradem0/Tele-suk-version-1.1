@@ -8,19 +8,26 @@
     --admin-border: #eee;
     --admin-input-bg: #f8f9fc;
     --admin-hover: #f1f3f5;
+    --admin-accent-cool: #06b6d4;
 }
 
+/* ==========================================================================
+   COOL DARK THEME (Obsidian / Deep Slate / Electric Cyan & Cool Mint Accents)
+   ========================================================================== */
 .admin-dark-mode,
 .admin-layout.dark {
-    --admin-bg: #0d0f12;
-    --admin-sidebar-bg: #15181d;
-    --admin-card-bg: #1a1e24;
-    --admin-inner-bg: #121417;
-    --admin-text: #f8f9fa;
-    --admin-subtext: #9aa2ab;
-    --admin-border: #282d35;
-    --admin-input-bg: #121417;
-    --admin-hover: #22262e;
+    --admin-bg: #090e17;             /* Deep cool slate/obsidian canvas */
+    --admin-sidebar-bg: #0d1527;     /* Sleek cool dark blue-slate sidebar */
+    --admin-card-bg: #111c30;        /* Elevated cool slate card */
+    --admin-card-hover: #16243d;
+    --admin-inner-bg: #0a1120;       /* Recessed inner block / input bg */
+    --admin-text: #f8fafc;           /* Crisp cool white text */
+    --admin-subtext: #94a3b8;        /* Soft cool slate secondary text */
+    --admin-border: #1e293b;         /* Cool border */
+    --admin-border-subtle: rgba(56, 189, 248, 0.16);
+    --admin-input-bg: #0b1322;
+    --admin-hover: #162238;
+    --admin-accent-cool: #06b6d4;    /* Electric Cyan */
 }
 
 .admin-layout {
@@ -95,37 +102,315 @@
     color: white;
 }
 
+/* Cool active navigation in dark mode */
 .admin-layout.dark .admin-nav-item.active {
-    background: #fab005;
-    color: #121417;
+    background: linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #0d9488 100%) !important;
+    color: #ffffff !important;
     font-weight: 700;
+    box-shadow: 0 4px 18px rgba(6, 182, 212, 0.4) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
 }
 
-/* Dark mode overrides for cards, tables, and inputs */
-.admin-layout.dark table thead tr {
-    background: #14171c !important;
-    color: #ced4da !important;
-    border-bottom: 1px solid #282d35 !important;
-}
+/* ==========================================================================
+   DEEP DARK OVERRIDES (Transforms inline white backgrounds & dark texts)
+   ========================================================================== */
 
-.admin-layout.dark table tbody tr {
-    border-bottom: 1px solid #282d35 !important;
-}
-
-.admin-layout.dark table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.admin-layout.dark input,
-.admin-layout.dark select,
-.admin-layout.dark textarea {
-    background: var(--admin-input-bg) !important;
+/* 1. All White Cards & Containers */
+.admin-layout.dark div[style*="background: white"],
+.admin-layout.dark div[style*="background: 'white'"],
+.admin-layout.dark div[style*="background:white"],
+.admin-layout.dark div[style*="background: #ffffff"],
+.admin-layout.dark div[style*="background:#ffffff"],
+.admin-layout.dark div[style*="background: #fff"],
+.admin-layout.dark div[style*="background:#fff"],
+.admin-layout.dark div[style*="background: rgb(255, 255, 255)"],
+.admin-layout.dark section[style*="background: white"],
+.admin-layout.dark .desktop-table-container,
+.admin-layout.dark .auth-container {
+    background: var(--admin-card-bg) !important;
+    border: 1px solid var(--admin-border) !important;
     color: var(--admin-text) !important;
+    box-shadow: 0 4px 24px -4px rgba(2, 6, 23, 0.6) !important;
+}
+
+/* 2. Inner Recessed Blocks & Table Header Backgrounds */
+.admin-layout.dark div[style*="background: #f8f9fc"],
+.admin-layout.dark div[style*="background:#f8f9fc"],
+.admin-layout.dark div[style*="background: #f8f9fa"],
+.admin-layout.dark div[style*="background:#f8f9fa"],
+.admin-layout.dark div[style*="background: #f1f3f5"],
+.admin-layout.dark div[style*="background:#f1f3f5"],
+.admin-layout.dark div[style*="background: #e9ecef"],
+.admin-layout.dark div[style*="background:#e9ecef"] {
+    background: var(--admin-inner-bg) !important;
+    border-color: var(--admin-border) !important;
+    color: var(--admin-text) !important;
+}
+
+/* 3. Typography & Text Contrast */
+.admin-layout.dark h1,
+.admin-layout.dark h2,
+.admin-layout.dark h3,
+.admin-layout.dark h4,
+.admin-layout.dark strong,
+.admin-layout.dark [style*="color: #1a1b1e"],
+.admin-layout.dark [style*="color:#1a1b1e"],
+.admin-layout.dark [style*="color: #212529"],
+.admin-layout.dark [style*="color:#212529"],
+.admin-layout.dark [style*="color: #343a40"],
+.admin-layout.dark [style*="color:#343a40"],
+.admin-layout.dark [style*="color: #495057"],
+.admin-layout.dark [style*="color:#495057"] {
+    color: #f8fafc !important;
+}
+
+.admin-layout.dark p,
+.admin-layout.dark [style*="color: #868e96"],
+.admin-layout.dark [style*="color:#868e96"],
+.admin-layout.dark [style*="color: #adb5bd"],
+.admin-layout.dark [style*="color:#adb5bd"] {
+    color: #94a3b8 !important;
+}
+
+/* 4. Borders */
+.admin-layout.dark [style*="border: 1px solid #eee"],
+.admin-layout.dark [style*="border: 1px solid #dee2e6"],
+.admin-layout.dark [style*="border: 1px solid #ced4da"],
+.admin-layout.dark [style*="border: 1px solid #e9ecef"],
+.admin-layout.dark [style*="borderBottom: 1px solid #eee"],
+.admin-layout.dark [style*="borderBottom: '1px solid #eee'"],
+.admin-layout.dark [style*="borderBottom: 2px solid #eee"],
+.admin-layout.dark [style*="border-bottom: 1px solid #eee"],
+.admin-layout.dark [style*="border-bottom: 2px solid #eee"],
+.admin-layout.dark [style*="border-bottom: 1px solid #f1f3f5"] {
     border-color: var(--admin-border) !important;
 }
 
-.admin-layout.dark button {
-    border-color: var(--admin-border);
+/* 5. Cool KPI Cards with Glow Accents */
+.admin-layout.dark div[style*="borderLeft: 6px solid #10b981"],
+.admin-layout.dark div[style*="border-left: 6px solid #10b981"],
+.admin-layout.dark div[style*="border-left:6px solid #10b981"] {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, #111c30 100%) !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    border-left: 6px solid #10b981 !important;
+    box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.2) !important;
+}
+
+.admin-layout.dark div[style*="borderLeft: 6px solid #fa5252"],
+.admin-layout.dark div[style*="border-left: 6px solid #fa5252"],
+.admin-layout.dark div[style*="border-left:6px solid #fa5252"] {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, #111c30 100%) !important;
+    border: 1px solid rgba(244, 63, 94, 0.25) !important;
+    border-left: 6px solid #f43f5e !important;
+    box-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.2) !important;
+}
+
+.admin-layout.dark div[style*="borderLeft: 6px solid #228be6"],
+.admin-layout.dark div[style*="border-left: 6px solid #228be6"],
+.admin-layout.dark div[style*="borderLeft: 6px solid #06b6d4"],
+.admin-layout.dark div[style*="border-left: 6px solid #06b6d4"] {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, #111c30 100%) !important;
+    border: 1px solid rgba(6, 182, 212, 0.25) !important;
+    border-left: 6px solid #06b6d4 !important;
+    box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.2) !important;
+}
+
+/* 6. Cool Numbers & Metrics */
+.admin-layout.dark [style*="color: #10b981"],
+.admin-layout.dark [style*="color:#10b981"] {
+    color: #34d399 !important; /* Cool vibrant neon mint */
+}
+.admin-layout.dark [style*="color: #fa5252"],
+.admin-layout.dark [style*="color:#fa5252"],
+.admin-layout.dark [style*="color: #e03131"],
+.admin-layout.dark [style*="color:#e03131"],
+.admin-layout.dark [style*="color: #ff6b6b"] {
+    color: #fb7185 !important; /* Cool electric coral/rose */
+}
+.admin-layout.dark [style*="color: #228be6"],
+.admin-layout.dark [style*="color:#228be6"],
+.admin-layout.dark [style*="color: #3b82f6"],
+.admin-layout.dark [style*="color:#3b82f6"] {
+    color: #38bdf8 !important; /* Cool cyan/sky blue */
+}
+
+/* 7. Action Buttons (Replaces pitch black with modern cool cyan-blue gradients) */
+.admin-layout.dark button[style*="background: #1a1b1e"],
+.admin-layout.dark button[style*="background:#1a1b1e"],
+.admin-layout.dark a[style*="background: #1a1b1e"],
+.admin-layout.dark a[style*="background:#1a1b1e"] {
+    background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4) !important;
+    transition: all 0.2s ease !important;
+}
+.admin-layout.dark button[style*="background: #1a1b1e"]:hover,
+.admin-layout.dark a[style*="background: #1a1b1e"]:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #0891b2 100%) !important;
+    box-shadow: 0 6px 22px rgba(6, 182, 212, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+.admin-layout.dark button[style*="background: #495057"],
+.admin-layout.dark button[style*="background:#495057"] {
+    background: #1e293b !important;
+    color: #38bdf8 !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+.admin-layout.dark button[style*="background: #495057"]:hover {
+    background: #334155 !important;
+    color: #7dd3fc !important;
+}
+
+/* 8. Tabs Bar */
+.admin-layout.dark div[style*="borderBottom: 2px solid #eee"],
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"],
+.admin-layout.dark div[style*="border-bottom:2px solid #eee"] {
+    border-bottom: 2px solid #1e293b !important;
+}
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button,
+.admin-layout.dark div[style*="borderBottom: 2px solid #eee"] button {
+    color: #94a3b8 !important;
+}
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button[style*="borderBottom: 3px solid #10b981"],
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button[style*="border-bottom: 3px solid #10b981"] {
+    color: #34d399 !important;
+    border-bottom: 3px solid #34d399 !important;
+}
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button[style*="borderBottom: 3px solid #fa5252"],
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button[style*="border-bottom: 3px solid #fa5252"] {
+    color: #fb7185 !important;
+    border-bottom: 3px solid #fb7185 !important;
+}
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button[style*="borderBottom: 3px solid #1a1b1e"],
+.admin-layout.dark div[style*="border-bottom: 2px solid #eee"] button[style*="border-bottom: 3px solid #1a1b1e"] {
+    color: #38bdf8 !important;
+    border-bottom: 3px solid #38bdf8 !important;
+}
+
+/* 9. Inputs, Selects & Textareas */
+.admin-layout.dark input[type="text"],
+.admin-layout.dark input[type="number"],
+.admin-layout.dark input[type="date"],
+.admin-layout.dark input[type="password"],
+.admin-layout.dark textarea,
+.admin-layout.dark select {
+    background: #0b1322 !important;
+    color: #f8fafc !important;
+    border: 1px solid #1e293b !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.admin-layout.dark input::placeholder,
+.admin-layout.dark textarea::placeholder {
+    color: #64748b !important;
+}
+
+.admin-layout.dark input:focus,
+.admin-layout.dark textarea:focus,
+.admin-layout.dark select:focus {
+    border-color: #06b6d4 !important;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.25) !important;
+}
+
+.admin-layout.dark select option {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+}
+
+/* 10. Tables */
+.admin-layout.dark table {
+    background: var(--admin-card-bg) !important;
+}
+
+.admin-layout.dark table thead tr {
+    background: #0a1120 !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid #1e293b !important;
+}
+
+.admin-layout.dark table thead th {
+    color: #94a3b8 !important;
+}
+
+.admin-layout.dark table tbody tr {
+    border-bottom: 1px solid #1e293b !important;
+}
+
+.admin-layout.dark table tbody tr:hover {
+    background: rgba(56, 189, 248, 0.04) !important;
+}
+
+.admin-layout.dark table td {
+    color: #e2e8f0 !important;
+}
+
+.admin-layout.dark table td [style*="color: #1a1b1e"] {
+    color: #f8fafc !important;
+}
+
+/* 11. Badges & Pills */
+.admin-layout.dark [style*="background: #ebfbee"],
+.admin-layout.dark [style*="background:#ebfbee"],
+.admin-layout.dark [style*="background: #e6fcf5"],
+.admin-layout.dark [style*="background:#e6fcf5"] {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.admin-layout.dark [style*="background: #fff5f5"],
+.admin-layout.dark [style*="background:#fff5f5"],
+.admin-layout.dark [style*="background: #ffe3e3"],
+.admin-layout.dark [style*="background:#ffe3e3"] {
+    background: rgba(244, 63, 94, 0.15) !important;
+    color: #fb7185 !important;
+    border: 1px solid rgba(244, 63, 94, 0.3) !important;
+}
+
+.admin-layout.dark [style*="background: #e7f5ff"],
+.admin-layout.dark [style*="background:#e7f5ff"] {
+    background: rgba(56, 189, 248, 0.15) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.admin-layout.dark [style*="background: #fff9db"],
+.admin-layout.dark [style*="background:#fff9db"] {
+    background: rgba(245, 159, 0, 0.15) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 159, 0, 0.3) !important;
+}
+
+/* 12. Modals */
+.admin-layout.dark div[style*="background: rgba(0,0,0,0.5)"],
+.admin-layout.dark div[style*="background: rgba(0, 0, 0, 0.5)"] {
+    background: rgba(3, 7, 18, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+.admin-layout.dark div[style*="background: rgba(0,0,0,0.5)"] > div,
+.admin-layout.dark div[style*="background: rgba(0, 0, 0, 0.5)"] > div {
+    background: #111c30 !important;
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 30px rgba(6, 182, 212, 0.1) !important;
+    color: #f8fafc !important;
+}
+
+/* 13. Topbar Controls */
+.admin-layout.dark .admin-topbar div[title*="Language"] {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+}
+
+.admin-layout.dark .admin-topbar button[title*="Mode"] {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #38bdf8 !important;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.2) !important;
 }
 
 /* Mobile Responsive */
@@ -133,7 +418,7 @@
     .admin-sidebar {
         position: fixed;
         transform: translateX(-100%);
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
     }
 
     .admin-sidebar.open {
