@@ -53,7 +53,7 @@ const createProduct = asyncHandler(async (req, res) => {
         supplier = '',
         description,
     } = req.body;
-    const image = req.file ? req.file.path : null;
+    const image = req.file ? req.file.path : (req.body.image || null);
 
     if (!image) {
         res.status(400);

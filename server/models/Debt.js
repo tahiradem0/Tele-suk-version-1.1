@@ -85,7 +85,7 @@ debtSchema.pre('save', function (next) {
     } else {
         this.status = 'pending';
     }
-    next();
+    if (typeof next === 'function') next();
 });
 
 const Debt = mongoose.model('Debt', debtSchema);
