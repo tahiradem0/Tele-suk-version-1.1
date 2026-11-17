@@ -26,20 +26,27 @@ api.interceptors.request.use(
     }
 );
 
-// Add a response interceptor to handle 401 (Unauthorized) errors globally
+// Add a response interceptor to handle 401 (Unauthorized) and 403 (Forbidden) errors globally
 api.interceptors.response.use(
     (response) => {
         return response;
     },
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token is invalid or expired
-            localStorage.removeItem('user');
-            // Redirect to admin login if on admin page, otherwise customer auth
-            if (window.location.pathname.startsWith('/admin')) {
-                window.location.href = '/admin/login';
-            } else {
-                window.location.href = '/auth';
+        if (error.response) {
+            const status = error.response.status;
+            const isOnAdminRoute = window.location.pathname.startsWith('/admin');
+            const isOnAdminLogin = window.location.pathname === '/admin/login';
+
+            // Auto-recover from stale tokens or revoked permissions
+            if (status === 401 || (status === 403 && isOnAdminRoute)) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('admin_session');
+
+                if (isOnAdminRoute && !isOnAdminLogin) {
+                    window.location.href = '/admin/login';
+                } else if (!isOnAdminRoute && status === 401 && window.location.pathname !== '/auth') {
+                    window.location.href = '/auth';
+                }
             }
         }
         return Promise.reject(error);

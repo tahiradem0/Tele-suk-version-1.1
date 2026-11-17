@@ -12,7 +12,7 @@ import { useShop } from '../../../context/ShopContext';
 const AdminSidebar = ({ isOpen, onClose }) => {
     const { theme, toggleTheme, isDark } = useAdminTheme();
     const { language, toggleLanguage, isAmharic, t } = useAdminLanguage();
-    const { storeName } = useShop();
+    const { storeName = 'Gondar ሱቅ' } = useShop() || {};
 
     const menuItems = [
         { icon: LayoutDashboard, label: t('dashboard', 'Dashboard'), path: '/admin/dashboard' },

@@ -3,7 +3,30 @@ import { authService, productService, categoryService, orderService, bannerServi
 
 const ShopContext = createContext();
 
-export const useShop = () => useContext(ShopContext);
+const defaultShopContext = {
+    storeName: 'Gondar ሱቅ',
+    products: [],
+    categories: [],
+    banners: [],
+    cart: [],
+    language: 'en',
+    user: null,
+    settings: { storeName: 'Gondar ሱቅ', deliveryFee: 5.00 },
+    addToCart: () => {},
+    removeFromCart: () => {},
+    updateQuantity: () => {},
+    clearCart: () => {},
+    login: async () => ({ success: false }),
+    logout: () => {},
+    register: async () => ({ success: false }),
+    refreshProducts: async () => {},
+    refreshSettings: async () => {},
+};
+
+export const useShop = () => {
+    const context = useContext(ShopContext);
+    return context || defaultShopContext;
+};
 
 export const ShopProvider = ({ children }) => {
     // Global State
