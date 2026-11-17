@@ -73,10 +73,6 @@ const Home = () => {
                         </div>
                         <span className={language === 'am' ? 'active' : ''}>አማ</span>
                     </div>
-                    <button className="menu-btn">
-                        <span className="dot"></span>
-                        <span className="dot"></span>
-                    </button>
                 </div>
             </header>
 
