@@ -5,9 +5,11 @@ import {
 } from 'lucide-react';
 import { storeService, categoryService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import { useShop } from '../../../context/ShopContext';
 
 const StoreManagement = () => {
     const { t, isAmharic } = useAdminLanguage();
+    const { refreshProducts } = useShop();
     const [overview, setOverview] = useState(null);
     const [movements, setMovements] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -16,6 +18,8 @@ const StoreManagement = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'low_stock' | 'out_of_stock' | 'in_stock'
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [justRefreshed, setJustRefreshed] = useState(false);
 
     // Modals
     const [restockModalOpen, setRestockModalOpen] = useState(false);
@@ -58,6 +62,24 @@ const StoreManagement = () => {
             console.error("Failed to load store data", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        setJustRefreshed(false);
+        try {
+            await loadData();
+            if (refreshProducts) {
+                await refreshProducts();
+            }
+            setJustRefreshed(true);
+            setTimeout(() => setJustRefreshed(false), 2000);
+        } catch (error) {
+            console.error("Failed to refresh store data:", error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -153,21 +175,22 @@ const StoreManagement = () => {
                     </p>
                 </div>
                 <button
-                    onClick={loadData}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.65rem 1.2rem',
-                        borderRadius: '10px',
-                        background: 'white',
-                        border: '1px solid #dee2e6',
-                        cursor: 'pointer',
-                        fontWeight: '600'
-                    }}
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className={`admin-refresh-btn ${justRefreshed ? 'refreshed-success' : ''}`}
+                    title={isAmharic ? 'የመደብር ክምችትና መረጃዎችን እንደገና አድስ' : 'Refresh store stock and movements'}
                 >
-                    <RefreshCw size={16} />
-                    {t('refresh', 'Refresh')}
+                    {justRefreshed ? (
+                        <>
+                            <CheckCircle2 size={16} color="#10b981" />
+                            <span>{isAmharic ? 'ተዘምኗል!' : 'Updated!'}</span>
+                        </>
+                    ) : (
+                        <>
+                            <RefreshCw size={16} className={isRefreshing ? 'spinning-refresh-icon' : ''} />
+                            <span>{isRefreshing ? (isAmharic ? 'በማደስ ላይ...' : 'Refreshing...') : t('refresh', 'Refresh')}</span>
+                        </>
+                    )}
                 </button>
             </div>
 

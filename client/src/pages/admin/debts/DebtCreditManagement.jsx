@@ -12,6 +12,8 @@ const DebtCreditManagement = () => {
     const [debts, setDebts] = useState([]);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [justRefreshed, setJustRefreshed] = useState(false);
 
     // Filters
     const [activeTab, setActiveTab] = useState('receivable'); // 'receivable' | 'payable' | 'all'
@@ -60,6 +62,21 @@ const DebtCreditManagement = () => {
             console.error("Failed to load debts", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        setJustRefreshed(false);
+        try {
+            await loadData();
+            setJustRefreshed(true);
+            setTimeout(() => setJustRefreshed(false), 2000);
+        } catch (error) {
+            console.error("Failed to refresh debts data:", error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -159,7 +176,25 @@ const DebtCreditManagement = () => {
                             : 'Customer receivables (ገንዘብ ያለባቸው ሰዎች) and supplier payables (የሱቁ ዕዳዎች)'}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className={`admin-refresh-btn ${justRefreshed ? 'refreshed-success' : ''}`}
+                        title={isAmharic ? 'የብድር እና እዳ መረጃዎችን እንደገና አድስ' : 'Refresh debt & credit ledger'}
+                    >
+                        {justRefreshed ? (
+                            <>
+                                <CheckCircle2 size={16} color="#10b981" />
+                                <span>{isAmharic ? 'ተዘምኗል!' : 'Updated!'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw size={16} className={isRefreshing ? 'spinning-refresh-icon' : ''} />
+                                <span>{isRefreshing ? (isAmharic ? 'በማደስ ላይ...' : 'Refreshing...') : (isAmharic ? 'አድስ' : 'Refresh')}</span>
+                            </>
+                        )}
+                    </button>
                     <button
                         onClick={() => handleOpenAddModal('receivable')}
                         style={{

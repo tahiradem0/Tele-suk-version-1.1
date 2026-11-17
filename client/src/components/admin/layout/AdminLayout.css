@@ -433,3 +433,58 @@
         display: block !important;
     }
 }
+
+/* ==========================================================================
+   GLOBAL ADMIN REFRESH BUTTON & ANIMATIONS
+   ========================================================================== */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinning-refresh-icon {
+    animation: spin 0.75s linear infinite;
+}
+
+.admin-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    background: var(--admin-card-bg, #ffffff);
+    border: 1px solid var(--admin-border, #dee2e6);
+    color: var(--admin-text, #1a1b1e);
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-refresh-btn:hover:not(:disabled) {
+    background: var(--admin-hover, #f1f3f5);
+    border-color: var(--admin-accent-cool, #06b6d4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.admin-refresh-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.admin-refresh-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.admin-refresh-btn.refreshed-success {
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Coins, ArrowDownRight, ArrowUpRight, Plus, Minus, Search,
-    Filter, RefreshCw, Wallet, TrendingUp, Calendar, Trash2
+    Filter, RefreshCw, Wallet, TrendingUp, Calendar, Trash2, CheckCircle2
 } from 'lucide-react';
 import { capitalService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
@@ -37,6 +37,8 @@ const CapitalManagement = () => {
     const [overview, setOverview] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [justRefreshed, setJustRefreshed] = useState(false);
 
     // Filters
     const [typeFilter, setTypeFilter] = useState('all');
@@ -75,6 +77,21 @@ const CapitalManagement = () => {
             console.error("Failed to load capital data", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        setJustRefreshed(false);
+        try {
+            await loadData();
+            setJustRefreshed(true);
+            setTimeout(() => setJustRefreshed(false), 2000);
+        } catch (error) {
+            console.error("Failed to refresh capital data:", error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -142,7 +159,25 @@ const CapitalManagement = () => {
                         {t('capitalSubtitle', 'Live balance, cash flow tracking, sales revenue, and business expense ledger')}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className={`admin-refresh-btn ${justRefreshed ? 'refreshed-success' : ''}`}
+                        title={isAmharic ? 'የካፒታል ሂሳቦችን እንደገና አድስ' : 'Refresh capital balances & transactions'}
+                    >
+                        {justRefreshed ? (
+                            <>
+                                <CheckCircle2 size={16} color="#10b981" />
+                                <span>{isAmharic ? 'ተዘምኗል!' : 'Updated!'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw size={16} className={isRefreshing ? 'spinning-refresh-icon' : ''} />
+                                <span>{isRefreshing ? (isAmharic ? 'በማደስ ላይ...' : 'Refreshing...') : t('refresh', 'Refresh')}</span>
+                            </>
+                        )}
+                    </button>
                     <button
                         onClick={() => handleOpenModal('inflow')}
                         style={{
