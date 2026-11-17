@@ -62,53 +62,137 @@
     color: white;
 }
 
-.hero-banner {
-    background: #e9ecef;
-    /* Placeholder color */
-    border-radius: var(--radius-md);
-    padding: 24px;
+/* Modern Cool Hero Banner */
+.banners-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
     margin-bottom: 24px;
+}
+
+.cool-hero-banner {
     position: relative;
+    border-radius: 20px;
     overflow: hidden;
-    height: 200px;
+    min-height: 215px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    /* This is a visual approximation of the banner */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Simulate the chocolate bar image with a gradient or placeholer */
-.hero-banner::after {
-    content: '';
+.cool-hero-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px -8px rgba(0, 0, 0, 0.28), 0 6px 16px -2px rgba(0, 0, 0, 0.12);
+}
+
+.cool-hero-banner.fallback-banner-bg {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.banner-gradient-overlay {
     position: absolute;
-    top: -20px;
-    right: -20px;
-    width: 150px;
-    height: 150px;
-    background: var(--accent-color);
-    border-radius: 50%;
-    opacity: 0.2;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.92) 0%,
+        rgba(15, 23, 42, 0.72) 50%,
+        rgba(15, 23, 42, 0.35) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
 }
 
-.banner-text h2 {
-    font-size: 18px;
-    margin-bottom: 4px;
+.banner-inner-content {
+    position: relative;
+    z-index: 2;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
 }
 
-.banner-text p {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 16px;
+.banner-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #fde047;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.banner-btn {
-    background: var(--text-primary);
-    color: white;
-    padding: 12px;
-    border-radius: var(--radius-full);
+.badge-sparkle-icon {
+    color: #fde047;
+}
+
+.banner-text-block h2 {
+    color: #ffffff;
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 6px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    letter-spacing: -0.01em;
+}
+
+.banner-text-block p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.88rem;
+    line-height: 1.4;
+    margin: 0;
+    max-width: 90%;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.banner-cool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    padding: 9px 20px;
+    border-radius: 9999px;
+    font-size: 0.86rem;
     font-weight: 600;
-    font-size: 14px;
-    width: 100%;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 4px;
+}
+
+.banner-cool-btn:hover {
+    background: #f8fafc;
+    color: #000000;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.banner-cool-btn:active {
+    transform: translateY(0);
+}
+
+.banner-arrow-icon {
+    transition: transform 0.2s ease;
+}
+
+.banner-cool-btn:hover .banner-arrow-icon {
+    transform: translateX(4px);
 }
 
 .section-title {

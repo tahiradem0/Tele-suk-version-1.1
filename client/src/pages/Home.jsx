@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import SearchBar from '../components/ui/SearchBar';
 import ItemCard from '../components/ui/ItemCard';
 import FilterModal from '../components/ui/FilterModal';
@@ -104,31 +105,48 @@ const Home = () => {
                 </div>
 
                 {/* Dynamic Banners */}
-                <div className="banners-container" style={{ display: 'grid', gap: '1rem' }}>
+                <div className="banners-container">
                     {banners.length > 0 ? (
                         banners.map(banner => (
-                            <div key={banner._id} className="hero-banner" style={{ backgroundImage: `url(${banner.image})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
-                                {/* Overlay for text readability */}
-                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', borderRadius: 'inherit' }}></div>
-                                <div className="banner-text" style={{ position: 'relative', zIndex: 1 }}>
-                                    <h2>{banner.title}</h2>
-                                    <p>{banner.subtitle}</p>
+                            <div 
+                                key={banner._id} 
+                                className="cool-hero-banner" 
+                                style={{ backgroundImage: `url(${banner.image})` }}
+                            >
+                                <div className="banner-gradient-overlay" />
+                                <div className="banner-inner-content">
+                                    <div className="banner-pill-badge">
+                                        <Sparkles size={13} className="badge-sparkle-icon" />
+                                        <span>{language === 'en' ? 'Fast Local Delivery' : 'ፈጣን የቤት አቅርቦት'}</span>
+                                    </div>
+                                    <div className="banner-text-block">
+                                        <h2>{banner.title}</h2>
+                                        <p>{banner.subtitle}</p>
+                                    </div>
+                                    <a href={banner.buttonLink || '#'} className="banner-cool-btn">
+                                        <span>{banner.buttonText || (language === 'en' ? 'Shop Now' : 'አሁን ይግዙ')}</span>
+                                        <ArrowRight size={15} className="banner-arrow-icon" />
+                                    </a>
                                 </div>
-                                <a href={banner.buttonLink || '/search'} className="banner-btn" style={{ position: 'relative', zIndex: 1, textDecoration: 'none', display: 'inline-block' }}>
-                                    {banner.buttonText || 'Explore'}
-                                </a>
                             </div>
                         ))
                     ) : (
-                        <div className="hero-banner">
-                            <div className="banner-text">
-                                <h2>{language === 'en' ? `Welcome to ${storeName}` : `እንኳን ወደ ${storeName} በደህና መጡ`}</h2>
-                                <p>{language === 'en' ? 'Your one stop shop.' : 'የእርስዎ አንድ ማቆሚያ ሱቅ።'}</p>
+                        <div className="cool-hero-banner fallback-banner-bg">
+                            <div className="banner-gradient-overlay" />
+                            <div className="banner-inner-content">
+                                <div className="banner-pill-badge">
+                                    <Sparkles size={13} className="badge-sparkle-icon" />
+                                    <span>{language === 'en' ? 'Welcome' : 'እንኳን ደህና መጡ'}</span>
+                                </div>
+                                <div className="banner-text-block">
+                                    <h2>{language === 'en' ? `Welcome to ${storeName}` : `እንኳን ወደ ${storeName} በደህና መጡ`}</h2>
+                                    <p>{language === 'en' ? 'Your one stop shop for everyday essentials.' : 'የእርስዎ አንድ ማቆሚያ ሱቅ።'}</p>
+                                </div>
+                                <button className="banner-cool-btn" onClick={() => window.location.href = '/'}>
+                                    <span>{language === 'en' ? 'Shop Now' : 'አሁን ይግዙ'}</span>
+                                    <ArrowRight size={15} className="banner-arrow-icon" />
+                                </button>
                             </div>
-                            <button className="banner-btn" onClick={() => window.location.href = '/search'}>
-                                {language === 'en' ? 'Shop Now' : 'አሁን ይግዙ'}
-                            </button>
-                            <div className="banner-img-placeholder"></div>
                         </div>
                     )}
                 </div>
