@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ShopProvider } from './context/ShopContext'
 import { ToastProvider } from './context/ToastContext'
 import { AdminThemeProvider } from './context/AdminThemeContext'
+import { AdminLanguageProvider } from './context/AdminLanguageContext'
 import UserLayout from './components/layout/UserLayout'
 import AdminLayout from './components/admin/layout/AdminLayout'
 import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute'
@@ -37,7 +38,8 @@ function App() {
         <ShopProvider>
             <ToastProvider>
                 <AdminThemeProvider>
-                    <Router>
+                    <AdminLanguageProvider>
+                        <Router>
                         <Routes>
                             {/* User Application Routes */}
                             <Route element={<UserLayout />}>
@@ -84,7 +86,8 @@ function App() {
                             </Route>
                         </Routes>
                     </Router>
-                </AdminThemeProvider>
+                </AdminLanguageProvider>
+            </AdminThemeProvider>
             </ToastProvider>
         </ShopProvider>
     )

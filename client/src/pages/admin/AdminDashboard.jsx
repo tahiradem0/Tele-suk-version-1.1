@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { settingsService, adminService } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
+import { useAdminLanguage } from '../../context/AdminLanguageContext';
 
 const StatCard = ({ title, value, change, icon: Icon, color, linkTo }) => {
     const cardContent = (
@@ -52,6 +53,7 @@ const StatCard = ({ title, value, change, icon: Icon, color, linkTo }) => {
 
 const AdminDashboard = () => {
     const { refreshSettings } = useShop();
+    const { t, isAmharic } = useAdminLanguage();
     const [stats, setStats] = useState({
         totalRevenue: 0,
         ordersCount: 0,
@@ -109,8 +111,14 @@ const AdminDashboard = () => {
     return (
         <div style={{ padding: '1.5rem', maxWidth: '1240px', margin: '0 auto' }}>
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '800' }}>Business Control Center</h1>
-                <p style={{ color: '#868e96' }}>Comprehensive overview of store inventory, capital cash flow, orders, and credit debts.</p>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '800' }}>
+                    {isAmharic ? 'የንግድ ስራ መቆጣጠሪያ ማዕከል' : 'Business Control Center'}
+                </h1>
+                <p style={{ color: '#868e96' }}>
+                    {isAmharic
+                        ? 'የመደብር ክምችት፣ የካፒታል ፍሰት፣ ትዕዛዞች እና የብድር እዳዎች አጠቃላይ ማጠቃለያ።'
+                        : 'Comprehensive overview of store inventory, capital cash flow, orders, and credit debts.'}
+                </p>
             </header>
 
             {/* Low Stock Warning Banner */}
@@ -130,9 +138,14 @@ const AdminDashboard = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <AlertTriangle size={24} color="#f08c00" />
                         <div>
-                            <strong style={{ color: '#d9480f', fontSize: '0.95rem' }}>Inventory Stock Alert:</strong>{' '}
+                            <strong style={{ color: '#d9480f', fontSize: '0.95rem' }}>
+                                {isAmharic ? 'የክምችት ማስጠንቀቂያ:' : 'Inventory Stock Alert:'}
+                            </strong>{' '}
                             <span style={{ color: '#495057', fontSize: '0.9rem' }}>
-                                <strong>{stats.lowStockCount}</strong> product(s) have reached low stock or are completely out of stock.
+                                <strong>{stats.lowStockCount}</strong>{' '}
+                                {isAmharic
+                                    ? 'ምርት(ቶች) ዝቅተኛ ደረጃ ላይ ደርሰዋል ወይም ሙሉ በሙሉ አልቀዋል።'
+                                    : 'product(s) have reached low stock or are completely out of stock.'}
                             </span>
                         </div>
                     </div>
@@ -148,7 +161,7 @@ const AdminDashboard = () => {
                             fontSize: '0.85rem'
                         }}
                     >
-                        Restock Inventory →
+                        {isAmharic ? 'ክምችት ሙላ →' : 'Restock Inventory →'}
                     </Link>
                 </div>
             )}
@@ -161,33 +174,33 @@ const AdminDashboard = () => {
                 marginBottom: '2rem'
             }}>
                 <StatCard
-                    title="Available Capital Treasury"
+                    title={isAmharic ? "የካፒታል ግምጃ ቤት" : "Available Capital Treasury"}
                     value={`ETB ${(stats.netCapital || 0).toLocaleString()}`}
-                    change="Net Liquid Cash"
+                    change={isAmharic ? "የተጣራ ጥሬ ገንዘብ" : "Net Liquid Cash"}
                     icon={Wallet}
                     color="#10b981"
                     linkTo="/admin/capital"
                 />
                 <StatCard
-                    title="Customer Credit (Receivable)"
+                    title={isAmharic ? "የደንበኞች እዳ (የሚሰበሰብ)" : "Customer Credit (Receivable)"}
                     value={`ETB ${(stats.totalReceivables || 0).toLocaleString()}`}
-                    change="Owed To Store"
+                    change={isAmharic ? "ለሱቁ የሚገባ" : "Owed To Store"}
                     icon={UserPlus}
                     color="#228be6"
                     linkTo="/admin/debt-credit"
                 />
                 <StatCard
-                    title="Store Liabilities (Payable)"
+                    title={isAmharic ? "የሱቁ እዳ (የሚከፈል)" : "Store Liabilities (Payable)"}
                     value={`ETB ${(stats.totalPayables || 0).toLocaleString()}`}
-                    change="Store Owes Suppliers"
+                    change={isAmharic ? "ለአቅራቢዎች የሚከፈል" : "Store Owes Suppliers"}
                     icon={UserMinus}
                     color="#fa5252"
                     linkTo="/admin/debt-credit"
                 />
                 <StatCard
-                    title="Store Stock Valuation"
+                    title={isAmharic ? "የእቃ ክምችት ግምት" : "Store Stock Valuation"}
                     value={`ETB ${(stats.totalInventoryCost || 0).toLocaleString()}`}
-                    change={`${(stats.totalStockUnits || 0).toLocaleString()} units in store`}
+                    change={isAmharic ? `${(stats.totalStockUnits || 0).toLocaleString()} እቃዎች በመደብር` : `${(stats.totalStockUnits || 0).toLocaleString()} units in store`}
                     icon={Warehouse}
                     color="#f59f00"
                     linkTo="/admin/store"
@@ -202,25 +215,25 @@ const AdminDashboard = () => {
                 marginBottom: '2.5rem'
             }}>
                 <StatCard
-                    title="Total Sales Revenue"
+                    title={isAmharic ? "ጠቅላላ የሽያጭ ገቢ" : "Total Sales Revenue"}
                     value={`ETB ${(stats.totalRevenue || 0).toLocaleString()}`}
-                    change="Orders Revenue"
+                    change={isAmharic ? "የትዕዛዞች ገቢ" : "Orders Revenue"}
                     icon={DollarSign}
                     color="#10b981"
                     linkTo="/admin/orders"
                 />
                 <StatCard
-                    title="Total Orders"
+                    title={isAmharic ? "ጠቅላላ ትዕዛዞች" : "Total Orders"}
                     value={stats.ordersCount || 0}
-                    change="Customer Orders"
+                    change={isAmharic ? "የደንበኞች ትዕዛዞች" : "Customer Orders"}
                     icon={ShoppingBag}
                     color="#3b82f6"
                     linkTo="/admin/orders"
                 />
                 <StatCard
-                    title="Registered Users"
+                    title={isAmharic ? "የተመዘገቡ ተጠቃሚዎች" : "Registered Users"}
                     value={stats.usersCount || 0}
-                    change="Active Customer Base"
+                    change={isAmharic ? "ንቁ ደንበኞች" : "Active Customer Base"}
                     icon={Users}
                     color="#8b5cf6"
                     linkTo="/admin/users"

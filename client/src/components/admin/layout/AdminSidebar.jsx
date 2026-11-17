@@ -4,32 +4,34 @@ import {
     LayoutDashboard, ShoppingBag, FolderTree, ShoppingCart,
     CreditCard, Users, Truck, Image, MessageSquare,
     FileText, Settings, LogOut, X, Warehouse, Coins, Receipt,
-    Sun, Moon, MapPin
+    Sun, Moon, MapPin, Languages
 } from 'lucide-react';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
-
-const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: Warehouse, label: 'Store & Stock', path: '/admin/store' },
-    { icon: Coins, label: 'Capital Treasury', path: '/admin/capital' },
-    { icon: Receipt, label: 'Debt & Credit', path: '/admin/debt-credit' },
-    { icon: ShoppingBag, label: 'Products', path: '/admin/products' },
-    { icon: FolderTree, label: 'Categories', path: '/admin/categories' },
-    { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
-    { icon: CreditCard, label: 'Payments', path: '/admin/payments' },
-    { icon: Users, label: 'Users', path: '/admin/users' },
-    { icon: Truck, label: 'Delivery', path: '/admin/delivery' },
-    { icon: MapPin, label: 'Addresses', path: '/admin/addresses' },
-    { icon: Image, label: 'Banners', path: '/admin/banners' },
-    { icon: MessageSquare, label: 'Feedback', path: '/admin/feedback' },
-    { icon: FileText, label: 'Content', path: '/admin/content' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
-];
 
 const AdminSidebar = ({ isOpen, onClose }) => {
     const { theme, toggleTheme, isDark } = useAdminTheme();
+    const { language, toggleLanguage, isAmharic, t } = useAdminLanguage();
     const { storeName } = useShop();
+
+    const menuItems = [
+        { icon: LayoutDashboard, label: t('dashboard', 'Dashboard'), path: '/admin/dashboard' },
+        { icon: Warehouse, label: t('storeAndStock', 'Store & Stock'), path: '/admin/store' },
+        { icon: Coins, label: t('capitalTreasury', 'Capital Treasury'), path: '/admin/capital' },
+        { icon: Receipt, label: t('debtAndCredit', 'Debt & Credit'), path: '/admin/debt-credit' },
+        { icon: ShoppingBag, label: t('products', 'Products'), path: '/admin/products' },
+        { icon: FolderTree, label: t('categories', 'Categories'), path: '/admin/categories' },
+        { icon: ShoppingCart, label: t('orders', 'Orders'), path: '/admin/orders' },
+        { icon: CreditCard, label: t('payments', 'Payments'), path: '/admin/payments' },
+        { icon: Users, label: t('users', 'Users'), path: '/admin/users' },
+        { icon: Truck, label: t('delivery', 'Delivery'), path: '/admin/delivery' },
+        { icon: MapPin, label: t('addresses', 'Addresses'), path: '/admin/addresses' },
+        { icon: Image, label: t('banners', 'Banners'), path: '/admin/banners' },
+        { icon: MessageSquare, label: t('feedback', 'Feedback'), path: '/admin/feedback' },
+        { icon: FileText, label: t('content', 'Content'), path: '/admin/content' },
+        { icon: Settings, label: t('settings', 'Settings'), path: '/admin/settings' },
+    ];
 
     return (
         <>
@@ -75,6 +77,40 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 </nav>
 
                 <div style={{ borderTop: '1px solid var(--admin-border, #eee)', paddingTop: '1rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {/* Language Switch Button */}
+                    <button
+                        onClick={toggleLanguage}
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: 'var(--admin-inner-bg, #f8f9fa)',
+                            border: '1px solid var(--admin-border, #eee)',
+                            padding: '0.7rem 0.85rem',
+                            borderRadius: '12px',
+                            color: 'var(--admin-text, #1a1b1e)',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: '600'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <Languages size={18} color="#0ca678" />
+                            <span>{t('language', 'Language')}</span>
+                        </div>
+                        <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            fontSize: '0.75rem',
+                            background: isAmharic ? '#0ca678' : 'var(--admin-text, #1a1b1e)',
+                            color: '#ffffff',
+                            fontWeight: '700'
+                        }}>
+                            {isAmharic ? 'አማርኛ' : 'ENGLISH'}
+                        </span>
+                    </button>
+
                     {/* Theme Toggle Button in Sidebar */}
                     <button
                         onClick={toggleTheme}
@@ -95,7 +131,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                             {isDark ? <Moon size={18} color="#fab005" /> : <Sun size={18} color="#f59f00" />}
-                            <span>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
+                            <span>{isDark ? t('darkMode', 'Dark Mode') : t('lightMode', 'Light Mode')}</span>
                         </div>
                         <span style={{
                             padding: '2px 8px',
@@ -131,7 +167,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                         }}
                     >
                         <LogOut size={20} />
-                        <span>Logout</span>
+                        <span>{t('logout', 'Logout')}</span>
                     </button>
                 </div>
             </aside>

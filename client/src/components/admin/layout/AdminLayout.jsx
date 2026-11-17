@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { Menu, Sun, Moon, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Menu, Sun, Moon, ShieldAlert, ShieldCheck, Languages } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { settingsService } from '../../../services/api';
 import './AdminLayout.css';
 
 const AdminLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { theme, toggleTheme, isDark } = useAdminTheme();
+    const { language, setLanguage, toggleLanguage, isAmharic, t } = useAdminLanguage();
     const [paymentMode, setPaymentMode] = useState('test');
 
     useEffect(() => {
@@ -43,11 +45,59 @@ const AdminLayout = () => {
                             <Menu size={24} color="var(--admin-text, #1a1b1e)" />
                         </button>
                         <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--admin-text, #1a1b1e)' }}>
-                            Admin Console
+                            {t('adminConsole', 'Admin Console')}
                         </span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                        {/* Language Changing Mode Pill Switcher */}
+                        <div
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                background: 'var(--admin-card-bg, #ffffff)',
+                                borderRadius: '24px',
+                                padding: '2px 3px',
+                                border: '1px solid var(--admin-border, #dee2e6)',
+                                gap: '2px',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                            }}
+                            title={isAmharic ? 'ቋንቋ ቀይር (English / አማርኛ)' : 'Change Language (English / አማርኛ)'}
+                        >
+                            <button
+                                onClick={() => setLanguage('en')}
+                                style={{
+                                    border: 'none',
+                                    background: language === 'en' ? 'var(--admin-text, #1a1b1e)' : 'transparent',
+                                    color: language === 'en' ? 'var(--admin-card-bg, #ffffff)' : 'var(--admin-subtext, #868e96)',
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.76rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s'
+                                }}
+                            >
+                                EN
+                            </button>
+                            <button
+                                onClick={() => setLanguage('am')}
+                                style={{
+                                    border: 'none',
+                                    background: language === 'am' ? '#0ca678' : 'transparent',
+                                    color: language === 'am' ? '#ffffff' : 'var(--admin-subtext, #868e96)',
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.76rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s'
+                                }}
+                            >
+                                አማ
+                            </button>
+                        </div>
+
                         {/* Live vs Test Mode Pill Indicator */}
                         <Link
                             to="/admin/settings"
@@ -68,7 +118,7 @@ const AdminLayout = () => {
                             }}
                         >
                             {isLive ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-                            <span>{isLive ? 'CHAPA LIVE' : 'CHAPA TEST'}</span>
+                            <span>{isLive ? t('chapaLive', 'CHAPA LIVE') : t('chapaTest', 'CHAPA TEST')}</span>
                         </Link>
 
                         {/* Quick Theme Toggle Button */}

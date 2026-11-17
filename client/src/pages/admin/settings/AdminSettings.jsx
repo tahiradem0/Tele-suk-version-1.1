@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import {
     Settings as SettingsIcon, CreditCard, Moon, Sun, Save,
     ShieldAlert, ShieldCheck, CheckCircle2, RefreshCw, Key,
-    Store, Truck, Mail, Phone, Lock, Eye, EyeOff, MapPin
+    Store, Truck, Mail, Phone, Lock, Eye, EyeOff, MapPin, Languages
 } from 'lucide-react';
 import { settingsService } from '../../../services/api';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
 
 const AdminSettings = () => {
     const { theme, setTheme, toggleTheme, isDark } = useAdminTheme();
+    const { language, setLanguage, isAmharic, t } = useAdminLanguage();
     const { refreshSettings } = useShop();
 
     const [settings, setSettings] = useState({
@@ -623,6 +625,85 @@ const AdminSettings = () => {
                             </div>
                             <p style={{ fontSize: '0.85rem', color: '#adb5bd', margin: 0 }}>
                                 Modern high-contrast dark charcoal mode designed to reduce eye strain in low-light environments.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 2.5. ADMIN LANGUAGE CONFIGURATION */}
+                <div style={{
+                    background: 'var(--admin-card-bg, white)',
+                    padding: '1.8rem',
+                    borderRadius: '20px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                    border: '1px solid var(--admin-border, #eee)'
+                }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <Languages size={24} color="#0ca678" />
+                            {isAmharic ? 'የአስተዳዳሪ ቋንቋ ቅንብር (Language Mode)' : 'Admin Language Mode'}
+                        </h2>
+                        <p style={{ color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem', marginTop: '0.3rem' }}>
+                            {isAmharic
+                                ? 'ለመላው የአስተዳዳሪ መቆጣጠሪያ የሚመርጡትን ቋንቋ ይምረጡ (እንግሊዝኛ ወይም አማርኛ)።'
+                                : 'Select your preferred interface language for the administrative control console.'}
+                        </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+                        {/* English Card */}
+                        <div
+                            onClick={() => setLanguage('en')}
+                            style={{
+                                border: language === 'en' ? '3px solid #1a1b1e' : '1px solid var(--admin-border, #dee2e6)',
+                                borderRadius: '16px',
+                                padding: '1.5rem',
+                                cursor: 'pointer',
+                                background: 'var(--admin-input-bg, #ffffff)',
+                                boxShadow: language === 'en' ? '0 6px 20px rgba(0,0,0,0.08)' : 'none',
+                                transition: 'all 0.2s',
+                                position: 'relative'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <span style={{ fontSize: '1.5rem' }}>🇬🇧</span>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, color: 'var(--admin-text, #1a1b1e)' }}>English</h3>
+                                </div>
+                                {language === 'en' && (
+                                    <span style={{ color: '#10b981', fontWeight: '700', fontSize: '0.85rem' }}>● Active</span>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', margin: 0 }}>
+                                Standard international English interface for menus, metrics, orders, and products.
+                            </p>
+                        </div>
+
+                        {/* Amharic Card */}
+                        <div
+                            onClick={() => setLanguage('am')}
+                            style={{
+                                border: language === 'am' ? '3px solid #0ca678' : '1px solid var(--admin-border, #dee2e6)',
+                                borderRadius: '16px',
+                                padding: '1.5rem',
+                                cursor: 'pointer',
+                                background: 'var(--admin-input-bg, #ffffff)',
+                                boxShadow: language === 'am' ? '0 6px 20px rgba(12,166,120,0.15)' : 'none',
+                                transition: 'all 0.2s',
+                                position: 'relative'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <span style={{ fontSize: '1.5rem' }}>🇪🇹</span>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, color: 'var(--admin-text, #1a1b1e)' }}>አማርኛ (Amharic)</h3>
+                                </div>
+                                {language === 'am' && (
+                                    <span style={{ color: '#0ca678', fontWeight: '700', fontSize: '0.85rem' }}>● ንቁ (Active)</span>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', margin: 0 }}>
+                                የተሟላ የአማርኛ ቋንቋ ቅንብር ለዳሽቦርድ፣ መደብር፣ ትዕዛዞች፣ የማድረስ ስራ እና አድራሻዎች።
                             </p>
                         </div>
                     </div>

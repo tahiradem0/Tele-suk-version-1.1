@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Plus, Trash2, Search, RotateCcw, Edit2, CheckCircle2, X, Building2 } from 'lucide-react';
 import { deliveryLocationService } from '../../../services/api';
 import { useShop } from '../../../context/ShopContext';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const AddressManager = () => {
     const { refreshDeliveryLocations } = useShop();
+    const { t, isAmharic } = useAdminLanguage();
 
     // Locations State
     const [locations, setLocations] = useState([]);
@@ -140,10 +142,10 @@ const AddressManager = () => {
             <header style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '0 0 0.4rem', color: 'var(--admin-text, #1a1b1e)', letterSpacing: '-0.5px' }}>
-                        Address Management
+                        {t('addressManagement', 'Address Management')}
                     </h1>
                     <p style={{ color: 'var(--admin-subtext, #868e96)', margin: 0, fontSize: '0.95rem' }}>
-                        Manage Gondar delivery locations, shortcuts, and areas for customer checkout autocomplete.
+                        {t('addressSubtitle', 'Manage Gondar delivery locations, shortcuts, and areas for customer checkout autocomplete.')}
                     </p>
                 </div>
 
@@ -166,10 +168,10 @@ const AddressManager = () => {
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f8f9fa'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--admin-card-bg, #ffffff)'; }}
-                    title="Restore original 14 standard Gondar sub-cities & districts"
+                    title={isAmharic ? 'መደበኛ 14 የጎንደር ክፍለ-ከተሞችን እና አካባቢዎችን መልስ' : 'Restore original 14 standard Gondar sub-cities & districts'}
                 >
                     <RotateCcw size={15} />
-                    Reset Standard 14 Gondar Locations
+                    {t('resetStandardLocations', 'Reset Standard 14 Gondar Locations')}
                 </button>
             </header>
 
@@ -204,17 +206,17 @@ const AddressManager = () => {
                 marginBottom: '1.5rem'
             }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '700', margin: '0 0 1rem', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--admin-text, #1a1b1e)' }}>
-                    <Plus size={20} color="#0ca678" /> Add New Gondar Delivery Location
+                    <Plus size={20} color="#0ca678" /> {t('addNewLocation', 'Add New Gondar Delivery Location')}
                 </h3>
                 <form onSubmit={handleAddLocation} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr)) 110px', gap: '0.85rem', alignItems: 'end' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: 'var(--admin-subtext, #868e96)', marginBottom: '5px' }}>
-                            Address Name *
+                            {t('addressName', 'Address Name')} *
                         </label>
                         <input
                             type="text"
                             required
-                            placeholder="e.g. Arada, Gondar"
+                            placeholder={isAmharic ? 'ምሳሌ: አራዳ፣ ጎንደር' : 'e.g. Arada, Gondar'}
                             value={newLocation.name}
                             onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
                             style={{
@@ -233,7 +235,7 @@ const AddressManager = () => {
 
                     <div>
                         <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: 'var(--admin-subtext, #868e96)', marginBottom: '5px' }}>
-                            Short Code / Shortcut (e.g. AR, PS)
+                            {t('shortCode', 'Short Code / Shortcut (e.g. AR, PS)')}
                         </label>
                         <input
                             type="text"
@@ -259,11 +261,11 @@ const AddressManager = () => {
 
                     <div>
                         <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: 'var(--admin-subtext, #868e96)', marginBottom: '5px' }}>
-                            Sub-city / Zone / Landmark
+                            {t('zoneLandmark', 'Sub-city / Zone / Landmark')}
                         </label>
                         <input
                             type="text"
-                            placeholder="e.g. City Center / Market"
+                            placeholder={isAmharic ? 'ምሳሌ: ገበያ እና የንግድ ማዕከል' : 'e.g. City Center / Market'}
                             value={newLocation.zone}
                             onChange={(e) => setNewLocation({ ...newLocation, zone: e.target.value })}
                             style={{
@@ -300,7 +302,7 @@ const AddressManager = () => {
                             opacity: isSubmitting ? 0.7 : 1
                         }}
                     >
-                        <Plus size={18} /> {isSubmitting ? 'Adding...' : 'Add'}
+                        <Plus size={18} /> {isSubmitting ? t('saving', 'Adding...') : t('add', 'Add')}
                     </button>
                 </form>
             </div>
@@ -308,14 +310,14 @@ const AddressManager = () => {
             {/* SEARCH & TITLE BAR */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--admin-text, #1a1b1e)' }}>
-                    <Building2 size={20} color="#0ca678" /> Registered Locations ({filteredLocations.length})
+                    <Building2 size={20} color="#0ca678" /> {t('registeredLocations', 'Registered Locations')} ({filteredLocations.length})
                 </h3>
 
                 <div style={{ position: 'relative', width: '280px' }}>
                     <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#adb5bd' }} />
                     <input
                         type="text"
-                        placeholder="Search location or code (e.g. Arada, AR)..."
+                        placeholder={isAmharic ? 'የጎንደር ቦታ ወይም ኮድ ፈልግ...' : 'Search location or code (e.g. Arada, AR)...'}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{
@@ -507,10 +509,10 @@ const AddressManager = () => {
                                 </div>
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)' }}>
-                                        Edit Delivery Address
+                                        {t('editDeliveryAddress', 'Edit Delivery Address')}
                                     </h3>
                                     <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)' }}>
-                                        Update details for Gondar customer suggestions
+                                        {t('updateDetailsForCustomer', 'Update details for Gondar customer suggestions')}
                                     </p>
                                 </div>
                             </div>
@@ -534,14 +536,14 @@ const AddressManager = () => {
                         <form onSubmit={handleSaveEdit} style={{ padding: '1.5rem' }}>
                             <div style={{ marginBottom: '1.1rem' }}>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', marginBottom: '6px' }}>
-                                    Address / District Name *
+                                    {t('addressName', 'Address / District Name')} *
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={editFormData.name}
                                     onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                                    placeholder="e.g. Arada, Gondar"
+                                    placeholder={isAmharic ? 'ምሳሌ: አራዳ፣ ጎንደር' : 'e.g. Arada, Gondar'}
                                     style={{
                                         width: '100%',
                                         padding: '10px 14px',
@@ -559,7 +561,7 @@ const AddressManager = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem', marginBottom: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', marginBottom: '6px' }}>
-                                        Short Code
+                                        {t('shortCode', 'Short Code')}
                                     </label>
                                     <input
                                         type="text"
@@ -582,19 +584,19 @@ const AddressManager = () => {
                                         }}
                                     />
                                     <span style={{ fontSize: '0.72rem', color: 'var(--admin-subtext, #868e96)', marginTop: '4px', display: 'block' }}>
-                                        User shortcut
+                                        {t('userShortcut', 'User shortcut')}
                                     </span>
                                 </div>
 
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', marginBottom: '6px' }}>
-                                        Zone / Landmark
+                                        {t('zoneLandmark', 'Zone / Landmark')}
                                     </label>
                                     <input
                                         type="text"
                                         value={editFormData.zone}
                                         onChange={(e) => setEditFormData({ ...editFormData, zone: e.target.value })}
-                                        placeholder="e.g. Market & Commercial Area"
+                                        placeholder={isAmharic ? 'ምሳሌ: ገበያ እና የንግድ ማዕከል' : 'e.g. Market & Commercial Area'}
                                         style={{
                                             width: '100%',
                                             padding: '10px 14px',
@@ -608,7 +610,7 @@ const AddressManager = () => {
                                         }}
                                     />
                                     <span style={{ fontSize: '0.72rem', color: 'var(--admin-subtext, #868e96)', marginTop: '4px', display: 'block' }}>
-                                        Helps identify the area
+                                        {t('identifiesArea', 'Helps identify the area')}
                                     </span>
                                 </div>
                             </div>
@@ -630,7 +632,7 @@ const AddressManager = () => {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    Cancel
+                                    {t('cancel', 'Cancel')}
                                 </button>
                                 <button
                                     type="submit"
@@ -650,7 +652,7 @@ const AddressManager = () => {
                                         opacity: isUpdating ? 0.7 : 1
                                     }}
                                 >
-                                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                                    {isUpdating ? t('saving', 'Saving...') : t('saveChanges', 'Save Changes')}
                                 </button>
                             </div>
                         </form>
