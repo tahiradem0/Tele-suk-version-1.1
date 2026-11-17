@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Upload, AlertCircle } from 'lucide-react';
 import { productService, categoryService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const ProductForm = () => {
+    const { isAmharic } = useAdminLanguage();
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = Boolean(id);
@@ -136,42 +138,50 @@ const ProductForm = () => {
                     <ArrowLeft size={20} />
                 </button>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>
-                    {isEditMode ? 'Edit Product' : 'Add New Product'}
+                    {isEditMode ? (isAmharic ? 'ምርት አድስ' : 'Edit Product') : (isAmharic ? 'አዲስ ምርት ጨምር' : 'Add New Product')}
                 </h1>
             </div>
 
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
                 {/* Main Info Card */}
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1.5rem' }}>Basic Information</h2>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1.5rem' }}>
+                        {isAmharic ? 'መሰረታዊ መረጃ' : 'Basic Information'}
+                    </h2>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Product Name *</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'የምርት ስም *' : 'Product Name *'}
+                            </label>
                             <input
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                placeholder="e.g. Traditional Gondar Coffee Beans 1kg"
+                                placeholder={isAmharic ? 'ለምሳሌ፡ የጎንደር ባህላዊ ቡና 1 ኪሎ' : 'e.g. Traditional Gondar Coffee Beans 1kg'}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                             />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Brand *</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                    {isAmharic ? 'ብራንድ / አምራች *' : 'Brand *'}
+                                </label>
                                 <input
                                     name="brand"
                                     value={formData.brand}
                                     onChange={handleChange}
                                     required
-                                    placeholder="e.g. Local Roast"
+                                    placeholder={isAmharic ? 'ለምሳሌ፡ የአገር ውስጥ' : 'e.g. Local Roast'}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Category *</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                    {isAmharic ? 'ምድብ *' : 'Category *'}
+                                </label>
                                 <select
                                     name="category"
                                     value={formData.category}
@@ -179,7 +189,7 @@ const ProductForm = () => {
                                     required
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                                 >
-                                    <option value="">Select Category</option>
+                                    <option value="">{isAmharic ? 'ምድብ ይምረጡ' : 'Select Category'}</option>
                                     {categories.map(c => (
                                         <option key={c._id} value={c.name}>{c.name}</option>
                                     ))}
@@ -189,7 +199,9 @@ const ProductForm = () => {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>SKU / Barcode</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                    {isAmharic ? 'ባርኮድ / SKU' : 'SKU / Barcode'}
+                                </label>
                                 <input
                                     name="sku"
                                     value={formData.sku}
@@ -199,26 +211,30 @@ const ProductForm = () => {
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Supplier Name</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                    {isAmharic ? 'የአቅራቢ ስም' : 'Supplier Name'}
+                                </label>
                                 <input
                                     name="supplier"
                                     value={formData.supplier}
                                     onChange={handleChange}
-                                    placeholder="e.g. Amhara Agricultural Coop"
+                                    placeholder={isAmharic ? 'ለምሳሌ፡ የአማራ የህብረት ስራ ማህበር' : 'e.g. Amhara Agricultural Coop'}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Description *</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'ዝርዝር ማብራሪያ *' : 'Description *'}
+                            </label>
                             <textarea
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
                                 required
                                 rows={4}
-                                placeholder="Describe product details, origin, package size..."
+                                placeholder={isAmharic ? 'የምርቱን ዝርዝር፣ አመጣጥ፣ ይዘት እና መጠን ይግለጹ...' : 'Describe product details, origin, package size...'}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc', fontFamily: 'inherit' }}
                             />
                         </div>
@@ -228,7 +244,9 @@ const ProductForm = () => {
                 {/* Pricing & Capital Store Valuation */}
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Pricing & Store Stock (Capital)</h2>
+                        <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>
+                            {isAmharic ? 'ዋጋ እና የመደብር ክምችት (ካፒታል)' : 'Pricing & Store Stock (Capital)'}
+                        </h2>
                         {margin !== null && (
                             <span style={{
                                 padding: '4px 10px',
@@ -238,14 +256,16 @@ const ProductForm = () => {
                                 background: Number(margin) >= 20 ? '#e6fcf5' : '#fff4e6',
                                 color: Number(margin) >= 20 ? '#0ca678' : '#f76707'
                             }}>
-                                Margin: {margin}%
+                                {isAmharic ? 'የትርፍ ህዳግ:' : 'Margin:'} {margin}%
                             </span>
                         )}
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Selling Price (ETB) *</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'የመሸጫ ዋጋ (በብር) *' : 'Selling Price (ETB) *'}
+                            </label>
                             <input
                                 type="number"
                                 name="price"
@@ -254,12 +274,14 @@ const ProductForm = () => {
                                 required
                                 min="0"
                                 step="any"
-                                placeholder="Retail price"
+                                placeholder={isAmharic ? 'የችርቻሮ ዋጋ' : 'Retail price'}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Cost Price (ETB)</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'የግዥ ዋጋ (በብር)' : 'Cost Price (ETB)'}
+                            </label>
                             <input
                                 type="number"
                                 name="costPrice"
@@ -267,12 +289,14 @@ const ProductForm = () => {
                                 onChange={handleChange}
                                 min="0"
                                 step="any"
-                                placeholder="What store paid"
+                                placeholder={isAmharic ? 'ሱቁ የገዛበት ዋጋ' : 'What store paid'}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Original Price (Optional)</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'የቀድሞ ዋጋ (አማራጭ)' : 'Original Price (Optional)'}
+                            </label>
                             <input
                                 type="number"
                                 name="originalPrice"
@@ -280,24 +304,28 @@ const ProductForm = () => {
                                 onChange={handleChange}
                                 min="0"
                                 step="any"
-                                placeholder="Before discount"
+                                placeholder={isAmharic ? 'ከቅናሽ በፊት' : 'Before discount'}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Initial Stock Qty</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'የመነሻ ክምችት ብዛት' : 'Initial Stock Qty'}
+                            </label>
                             <input
                                 type="number"
                                 name="stock"
                                 value={formData.stock}
                                 onChange={handleChange}
                                 min="0"
-                                placeholder="Count in stock"
+                                placeholder={isAmharic ? 'በመደብር ያለው ቁጥር' : 'Count in stock'}
                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
                             />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Min Stock Alert Level</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'ዝቅተኛ የክምችት ማስጠንቀቂያ መጠን' : 'Min Stock Alert Level'}
+                            </label>
                             <input
                                 type="number"
                                 name="minStockLevel"
@@ -313,11 +341,15 @@ const ProductForm = () => {
 
                 {/* Image */}
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1.5rem' }}>Product Media</h2>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1.5rem' }}>
+                        {isAmharic ? 'የምርት ፎቶ / ሚዲያ' : 'Product Media'}
+                    </h2>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Upload Image</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'ምስል ይጫኑ' : 'Upload Image'}
+                            </label>
                             <div style={{ border: '2px dashed #eee', padding: '20px', borderRadius: '12px', textAlign: 'center' }}>
                                 <input
                                     type="file"
@@ -328,13 +360,17 @@ const ProductForm = () => {
                                 />
                                 <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                                     <Upload size={24} color="#868e96" />
-                                    <span style={{ color: '#4dabf7' }}>Click to upload image</span>
+                                    <span style={{ color: '#4dabf7' }}>
+                                        {isAmharic ? 'ምስል ለመጫን እዚህ ይጫኑ' : 'Click to upload image'}
+                                    </span>
                                 </label>
                             </div>
                         </div>
 
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>Or Image URL</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
+                                {isAmharic ? 'ወይም የምስል አድራሻ (URL)' : 'Or Image URL'}
+                            </label>
                             <input
                                 name="image"
                                 value={formData.image}
@@ -383,7 +419,11 @@ const ProductForm = () => {
                     }}
                 >
                     <Save size={20} />
-                    <span>{isLoading ? 'Saving Product...' : (isEditMode ? 'Update Product' : 'Create Product')}</span>
+                    <span>
+                        {isLoading
+                            ? (isAmharic ? 'ምርቱን በማስቀመጥ ላይ...' : 'Saving Product...')
+                            : (isEditMode ? (isAmharic ? 'ምርቱን አድስ' : 'Update Product') : (isAmharic ? 'ምርቱን ፍጠር' : 'Create Product'))}
+                    </span>
                 </button>
             </form>
         </div>

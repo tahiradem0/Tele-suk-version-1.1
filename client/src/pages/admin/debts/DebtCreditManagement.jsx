@@ -5,8 +5,10 @@ import {
     History, Trash2, ArrowRight
 } from 'lucide-react';
 import { debtService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const DebtCreditManagement = () => {
+    const { isAmharic } = useAdminLanguage();
     const [debts, setDebts] = useState([]);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -149,10 +151,12 @@ const DebtCreditManagement = () => {
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1a1b1e', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <Receipt color="#228be6" size={28} />
-                        Debt & Credit Ledger Management
+                        {isAmharic ? 'የብድር እና እዳ መዝገብ አስተዳደር' : 'Debt & Credit Ledger Management'}
                     </h1>
                     <p style={{ color: '#868e96', fontSize: '0.95rem' }}>
-                        Customer receivables (ገንዘብ ያለባቸው ሰዎች) and supplier payables (የሱቁ ዕዳዎች)
+                        {isAmharic
+                            ? 'የደንበኞች ብድር (ገንዘብ ያለባቸው ሰዎች) እና የአቅራቢዎች እዳ (የሱቁ ዕዳዎች)'
+                            : 'Customer receivables (ገንዘብ ያለባቸው ሰዎች) and supplier payables (የሱቁ ዕዳዎች)'}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -173,7 +177,7 @@ const DebtCreditManagement = () => {
                         }}
                     >
                         <Plus size={18} />
-                        + Add Customer Credit
+                        {isAmharic ? '+ የደንበኛ ብድር መዝግብ' : '+ Add Customer Credit'}
                     </button>
                     <button
                         onClick={() => handleOpenAddModal('payable')}
@@ -191,7 +195,7 @@ const DebtCreditManagement = () => {
                         }}
                     >
                         <Plus size={18} />
-                        + Add Supplier Debt
+                        {isAmharic ? '+ የአቅራቢ እዳ መዝግብ' : '+ Add Supplier Debt'}
                     </button>
                 </div>
             </div>
@@ -212,14 +216,16 @@ const DebtCreditManagement = () => {
                     borderLeft: '6px solid #10b981'
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
-                        <span>Customer Credit (Receivables)</span>
+                        <span>{isAmharic ? 'የደንበኞች ብድር (የሚሰበሰብ)' : 'Customer Credit (Receivables)'}</span>
                         <UserPlus size={20} color="#10b981" />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#10b981', marginTop: '0.5rem' }}>
                         ETB {(summary?.totalReceivableRemaining || 0).toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
-                        Customers owe to our store (Total: ETB {(summary?.totalReceivable || 0).toLocaleString()})
+                        {isAmharic
+                            ? `ደንበኞች ለሱቁ ያለባቸው (ጠቅላላ: ETB ${(summary?.totalReceivable || 0).toLocaleString()})`
+                            : `Customers owe to our store (Total: ETB ${(summary?.totalReceivable || 0).toLocaleString()})`}
                     </div>
                 </div>
 
@@ -232,14 +238,16 @@ const DebtCreditManagement = () => {
                     borderLeft: '6px solid #fa5252'
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
-                        <span>Store Liabilities (Payables)</span>
+                        <span>{isAmharic ? 'የሱቁ ዕዳዎች (የሚከፈል)' : 'Store Liabilities (Payables)'}</span>
                         <UserMinus size={20} color="#fa5252" />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#fa5252', marginTop: '0.5rem' }}>
                         ETB {(summary?.totalPayableRemaining || 0).toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
-                        Store owes to suppliers & lenders (Total: ETB {(summary?.totalPayable || 0).toLocaleString()})
+                        {isAmharic
+                            ? `ሱቁ ለአቅራቢዎች ያለበት (ጠቅላላ: ETB ${(summary?.totalPayable || 0).toLocaleString()})`
+                            : `Store owes to suppliers & lenders (Total: ETB ${(summary?.totalPayable || 0).toLocaleString()})`}
                     </div>
                 </div>
 
@@ -251,7 +259,7 @@ const DebtCreditManagement = () => {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
-                        <span>Net Credit Position</span>
+                        <span>{isAmharic ? 'የተጣራ የብድር ሁኔታ' : 'Net Credit Position'}</span>
                         <DollarSign size={20} color="#228be6" />
                     </div>
                     <div style={{
@@ -264,8 +272,12 @@ const DebtCreditManagement = () => {
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
                         {(summary?.overdueCount || 0) > 0 ? (
-                            <span style={{ color: '#e03131', fontWeight: '600' }}>⚠️ {summary.overdueCount} records overdue!</span>
-                        ) : 'All due dates healthy'}
+                            <span style={{ color: '#e03131', fontWeight: '600' }}>
+                                ⚠️ {isAmharic ? `${summary.overdueCount} መዛግብት ቀነ-ገደባቸው አልፏል!` : `${summary.overdueCount} records overdue!`}
+                            </span>
+                        ) : (
+                            isAmharic ? 'ሁሉም ቀነ-ገደቦች ጤናማ ናቸው' : 'All due dates healthy'
+                        )}
                     </div>
                 </div>
             </div>
@@ -286,7 +298,7 @@ const DebtCreditManagement = () => {
                         marginBottom: '-2px'
                     }}
                 >
-                    Customer Credit (Receivables)
+                    {isAmharic ? 'የደንበኞች ብድር (የሚሰበሰብ)' : 'Customer Credit (Receivables)'}
                 </button>
                 <button
                     onClick={() => setActiveTab('payable')}
@@ -302,7 +314,7 @@ const DebtCreditManagement = () => {
                         marginBottom: '-2px'
                     }}
                 >
-                    Store Debts (Payables to Suppliers)
+                    {isAmharic ? 'የሱቁ እዳዎች (ለአቅራቢዎች የሚከፈል)' : 'Store Debts (Payables to Suppliers)'}
                 </button>
                 <button
                     onClick={() => setActiveTab('all')}
@@ -318,7 +330,7 @@ const DebtCreditManagement = () => {
                         marginBottom: '-2px'
                     }}
                 >
-                    All Records
+                    {isAmharic ? 'ሁሉም መዛግብት' : 'All Records'}
                 </button>
             </div>
 
@@ -334,7 +346,7 @@ const DebtCreditManagement = () => {
                     <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
                     <input
                         type="text"
-                        placeholder="Search by name, phone number, or reason..."
+                        placeholder={isAmharic ? 'በስም፣ በስልክ ቁጥር ወይም በምክንያት ፈልግ...' : 'Search by name, phone number, or reason...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{
@@ -359,10 +371,10 @@ const DebtCreditManagement = () => {
                         fontSize: '0.95rem'
                     }}
                 >
-                    <option value="all">All Payment Statuses</option>
-                    <option value="pending">Pending Unpaid</option>
-                    <option value="partially_paid">Partially Paid</option>
-                    <option value="settled">Fully Settled</option>
+                    <option value="all">{isAmharic ? 'ሁሉም የክፍያ ሁኔታዎች' : 'All Payment Statuses'}</option>
+                    <option value="pending">{isAmharic ? 'ያልተከፈለ' : 'Pending Unpaid'}</option>
+                    <option value="partially_paid">{isAmharic ? 'በከፊል የተከፈለ' : 'Partially Paid'}</option>
+                    <option value="settled">{isAmharic ? 'ሙሉ በሙሉ የተጠናቀቀ' : 'Fully Settled'}</option>
                 </select>
             </div>
 
@@ -377,14 +389,14 @@ const DebtCreditManagement = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
                     <thead>
                         <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
-                            <th style={{ padding: '1rem' }}>PERSON / CONTACT</th>
-                            <th style={{ padding: '1rem' }}>TYPE</th>
-                            <th style={{ padding: '1rem' }}>DETAILS / REASON</th>
-                            <th style={{ padding: '1rem' }}>TOTAL / PAID</th>
-                            <th style={{ padding: '1rem' }}>REMAINING BALANCE</th>
-                            <th style={{ padding: '1rem' }}>DUE DATE</th>
-                            <th style={{ padding: '1rem' }}>STATUS</th>
-                            <th style={{ padding: '1rem', textAlign: 'right' }}>ACTIONS</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ሰው / አድራሻ' : 'PERSON / CONTACT'}</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ዓይነት' : 'TYPE'}</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ዝርዝር / ምክንያት' : 'DETAILS / REASON'}</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ጠቅላላ / የተከፈለ' : 'TOTAL / PAID'}</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ቀሪ ሒሳብ' : 'REMAINING BALANCE'}</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'የመክፈያ ቀን' : 'DUE DATE'}</th>
+                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ሁኔታ' : 'STATUS'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'right' }}>{isAmharic ? 'እርምጃዎች' : 'ACTIONS'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -411,7 +423,9 @@ const DebtCreditManagement = () => {
                                             background: debt.type === 'receivable' ? '#ebfbee' : '#fff5f5',
                                             color: debt.type === 'receivable' ? '#2b8a3e' : '#c92a2a'
                                         }}>
-                                            {debt.type === 'receivable' ? 'RECEIVABLE (CUSTOMER)' : 'PAYABLE (SUPPLIER)'}
+                                            {debt.type === 'receivable'
+                                                ? (isAmharic ? 'የደንበኛ ብድር' : 'RECEIVABLE (CUSTOMER)')
+                                                : (isAmharic ? 'የሱቅ እዳ' : 'PAYABLE (SUPPLIER)')}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem', maxWidth: '200px' }}>
@@ -425,7 +439,7 @@ const DebtCreditManagement = () => {
                                             ETB {debt.totalAmount.toLocaleString()}
                                         </div>
                                         <div style={{ fontSize: '0.8rem', color: '#10b981' }}>
-                                            Paid: ETB {(debt.paidAmount || 0).toLocaleString()}
+                                            {isAmharic ? 'የተከፈለ:' : 'Paid:'} ETB {(debt.paidAmount || 0).toLocaleString()}
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
@@ -444,11 +458,15 @@ const DebtCreditManagement = () => {
                                                     {new Date(debt.dueDate).toLocaleDateString()}
                                                 </div>
                                                 {isOverdue && (
-                                                    <span style={{ fontSize: '0.75rem', color: '#e03131', fontWeight: '700' }}>Overdue!</span>
+                                                    <span style={{ fontSize: '0.75rem', color: '#e03131', fontWeight: '700' }}>
+                                                        {isAmharic ? 'ቀን ያለፈበት!' : 'Overdue!'}
+                                                    </span>
                                                 )}
                                             </div>
                                         ) : (
-                                            <span style={{ color: '#ced4da', fontSize: '0.85rem' }}>No due date</span>
+                                            <span style={{ color: '#ced4da', fontSize: '0.85rem' }}>
+                                                {isAmharic ? 'ቀነ-ገደብ የለም' : 'No due date'}
+                                            </span>
                                         )}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
@@ -460,7 +478,11 @@ const DebtCreditManagement = () => {
                                             background: debt.status === 'settled' ? '#ebfbee' : debt.status === 'partially_paid' ? '#e7f5ff' : '#fff9db',
                                             color: debt.status === 'settled' ? '#2b8a3e' : debt.status === 'partially_paid' ? '#1c7ed6' : '#f08c00'
                                         }}>
-                                            {debt.status === 'settled' ? 'SETTLED' : debt.status === 'partially_paid' ? 'PARTIAL' : 'PENDING'}
+                                            {debt.status === 'settled'
+                                                ? (isAmharic ? 'የተጠናቀቀ' : 'SETTLED')
+                                                : debt.status === 'partially_paid'
+                                                    ? (isAmharic ? 'በከፊል' : 'PARTIAL')
+                                                    : (isAmharic ? 'ያልተከፈለ' : 'PENDING')}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem', textAlign: 'right' }}>
@@ -479,13 +501,13 @@ const DebtCreditManagement = () => {
                                                         cursor: 'pointer'
                                                     }}
                                                 >
-                                                    Record Repayment
+                                                    {isAmharic ? 'ክፍያ መዝግብ' : 'Record Repayment'}
                                                 </button>
                                             )}
                                             {debt.paymentHistory?.length > 0 && (
                                                 <button
                                                     onClick={() => handleOpenHistory(debt)}
-                                                    title="View payment audit"
+                                                    title={isAmharic ? 'የክፍያ ታሪክ' : 'View payment audit'}
                                                     style={{
                                                         background: '#f1f3f5',
                                                         border: '1px solid #dee2e6',
@@ -499,7 +521,7 @@ const DebtCreditManagement = () => {
                                             )}
                                             <button
                                                 onClick={() => handleDelete(debt._id)}
-                                                title="Delete record"
+                                                title={isAmharic ? 'መዝገቡን ሰርዝ' : 'Delete record'}
                                                 style={{
                                                     background: 'none',
                                                     border: 'none',
@@ -520,7 +542,7 @@ const DebtCreditManagement = () => {
                         {filteredDebts.length === 0 && (
                             <tr>
                                 <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: '#868e96' }}>
-                                    No credit/debt records found.
+                                    {isAmharic ? 'ምንም የብድር/እዳ መዛግብት አልተገኙም።' : 'No credit/debt records found.'}
                                 </td>
                             </tr>
                         )}
@@ -549,33 +571,39 @@ const DebtCreditManagement = () => {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
                     }}>
                         <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '1.2rem' }}>
-                            {newDebtForm.type === 'receivable' ? '+ New Customer Credit (Receivable)' : '+ New Store Debt (Payable)'}
+                            {newDebtForm.type === 'receivable'
+                                ? (isAmharic ? '+ አዲስ የደንበኛ ብድር (የሚሰበሰብ)' : '+ New Customer Credit (Receivable)')
+                                : (isAmharic ? '+ አዲስ የሱቅ እዳ (የሚከፈል)' : '+ New Store Debt (Payable)')}
                         </h2>
 
                         <form onSubmit={handleCreateDebt} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Record Type *
+                                    {isAmharic ? 'የመዝገብ ዓይነት *' : 'Record Type *'}
                                 </label>
                                 <select
                                     value={newDebtForm.type}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, type: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
                                 >
-                                    <option value="receivable">Customer Credit (Customer owes our store)</option>
-                                    <option value="payable">Store Liability (Store owes supplier/creditor)</option>
+                                    <option value="receivable">
+                                        {isAmharic ? 'የደንበኛ ብድር (ደንበኛ ለሱቁ ያለበት)' : 'Customer Credit (Customer owes our store)'}
+                                    </option>
+                                    <option value="payable">
+                                        {isAmharic ? 'የሱቅ ዕዳ (ሱቁ ለአቅራቢ/አበዳሪ ያለበት)' : 'Store Liability (Store owes supplier/creditor)'}
+                                    </option>
                                 </select>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Person / Entity Name *
+                                        {isAmharic ? 'የሰው / ድርጅት ስም *' : 'Person / Entity Name *'}
                                     </label>
                                     <input
                                         type="text"
                                         required
-                                        placeholder="e.g. Abebe Kebede"
+                                        placeholder={isAmharic ? 'ለምሳሌ፡ አበበ ከበደ' : 'e.g. Abebe Kebede'}
                                         value={newDebtForm.personName}
                                         onChange={(e) => setNewDebtForm({ ...newDebtForm, personName: e.target.value })}
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -583,7 +611,7 @@ const DebtCreditManagement = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Phone Number *
+                                        {isAmharic ? 'ስልክ ቁጥር *' : 'Phone Number *'}
                                     </label>
                                     <input
                                         type="text"
@@ -598,12 +626,12 @@ const DebtCreditManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Reason / Items Purchased *
+                                    {isAmharic ? 'ምክንያት / የተገዙ ዕቃዎች *' : 'Reason / Items Purchased *'}
                                 </label>
                                 <input
                                     type="text"
                                     required
-                                    placeholder="e.g. 5x Coffee packs + Cooking Oil"
+                                    placeholder={isAmharic ? 'ለምሳሌ፡ 5 ቡና + የምግብ ዘይት' : 'e.g. 5x Coffee packs + Cooking Oil'}
                                     value={newDebtForm.title}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, title: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -613,7 +641,7 @@ const DebtCreditManagement = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Total Amount in ETB *
+                                        {isAmharic ? 'ጠቅላላ መጠን በብር *' : 'Total Amount in ETB *'}
                                     </label>
                                     <input
                                         type="number"
@@ -628,7 +656,7 @@ const DebtCreditManagement = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Due Date (Optional)
+                                        {isAmharic ? 'የመክፈያ ቀን (አማራጭ)' : 'Due Date (Optional)'}
                                     </label>
                                     <input
                                         type="date"
@@ -641,11 +669,11 @@ const DebtCreditManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Notes (Optional)
+                                    {isAmharic ? 'ማስታወሻ (አማራጭ)' : 'Notes (Optional)'}
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="e.g. Promised to pay by end of the week"
+                                    placeholder={isAmharic ? 'ለምሳሌ፡ በሳምንቱ መጨረሻ እንደሚከፍል ቃል ገብቷል' : 'e.g. Promised to pay by end of the week'}
                                     value={newDebtForm.notes}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, notes: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -658,13 +686,13 @@ const DebtCreditManagement = () => {
                                     onClick={() => setAddModalOpen(false)}
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Cancel
+                                    {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
                                 <button
                                     type="submit"
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: '#1a1b1e', color: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Save Record
+                                    {isAmharic ? 'መዝግብ' : 'Save Record'}
                                 </button>
                             </div>
                         </form>
@@ -693,16 +721,16 @@ const DebtCreditManagement = () => {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
                     }}>
                         <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '0.3rem' }}>
-                            Record Payment: {selectedDebt.personName}
+                            {isAmharic ? `ክፍያ መዝግብ: ${selectedDebt.personName}` : `Record Payment: ${selectedDebt.personName}`}
                         </h2>
                         <p style={{ color: '#868e96', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
-                            Remaining balance: <strong style={{ color: '#1a1b1e' }}>ETB {selectedDebt.balance.toLocaleString()}</strong>
+                            {isAmharic ? 'ቀሪ ሒሳብ:' : 'Remaining balance:'} <strong style={{ color: '#1a1b1e' }}>ETB {selectedDebt.balance.toLocaleString()}</strong>
                         </p>
 
                         <form onSubmit={handleRecordPayment} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Amount to Pay in ETB *
+                                    {isAmharic ? 'የሚከፈለው መጠን በብር *' : 'Amount to Pay in ETB *'}
                                 </label>
                                 <input
                                     type="number"
@@ -718,18 +746,18 @@ const DebtCreditManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Payment Method *
+                                    {isAmharic ? 'የክፍያ ዘዴ *' : 'Payment Method *'}
                                 </label>
                                 <select
                                     value={payForm.paymentMethod}
                                     onChange={(e) => setPayForm({ ...payForm, paymentMethod: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
                                 >
-                                    <option value="Cash">Cash</option>
+                                    <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ (Cash)' : 'Cash'}</option>
                                     <option value="Telebirr">Telebirr</option>
                                     <option value="CBEBirr">CBEBirr</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Other">Other</option>
+                                    <option value="Bank Transfer">{isAmharic ? 'የባንክ ሒሳብ ማስተላለፍ' : 'Bank Transfer'}</option>
+                                    <option value="Other">{isAmharic ? 'ሌላ' : 'Other'}</option>
                                 </select>
                             </div>
 
@@ -746,22 +774,22 @@ const DebtCreditManagement = () => {
                                         checked={payForm.syncCapital}
                                         onChange={(e) => setPayForm({ ...payForm, syncCapital: e.target.checked })}
                                     />
-                                    Sync to Capital Management Treasury
+                                    {isAmharic ? 'ከካፒታል ግምጃ ቤት ጋር አስተሳስር' : 'Sync to Capital Management Treasury'}
                                 </label>
                                 <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.3rem' }}>
                                     {selectedDebt.type === 'receivable'
-                                        ? '✨ Will automatically record an INFLOW into your Capital treasury'
-                                        : '✨ Will automatically record an OUTFLOW from your Capital treasury'}
+                                        ? (isAmharic ? '✨ በካፒታል መዝገብ ላይ እንደ ገቢ (INFLOW) በራስ-ሰር ይመዘግባል' : '✨ Will automatically record an INFLOW into your Capital treasury')
+                                        : (isAmharic ? '✨ በካፒታል መዝገብ ላይ እንደ ወጪ (OUTFLOW) በራስ-ሰር ይመዘግባል' : '✨ Will automatically record an OUTFLOW from your Capital treasury')}
                                 </div>
                             </div>
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Payment Reference / Note
+                                    {isAmharic ? 'የክፍያ ማጣቀሻ / ማስታወሻ' : 'Payment Reference / Note'}
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Optional note"
+                                    placeholder={isAmharic ? 'አማራጭ ማስታወሻ' : 'Optional note'}
                                     value={payForm.note}
                                     onChange={(e) => setPayForm({ ...payForm, note: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -774,13 +802,13 @@ const DebtCreditManagement = () => {
                                     onClick={() => setPayModalOpen(false)}
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Cancel
+                                    {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
                                 <button
                                     type="submit"
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: '#10b981', color: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Confirm Payment
+                                    {isAmharic ? 'ክፍያውን አረጋግጥ' : 'Confirm Payment'}
                                 </button>
                             </div>
                         </form>
@@ -809,10 +837,12 @@ const DebtCreditManagement = () => {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
                     }}>
                         <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.3rem' }}>
-                            Payment Audit: {selectedDebt.personName}
+                            {isAmharic ? `የክፍያ ታሪክ: ${selectedDebt.personName}` : `Payment Audit: ${selectedDebt.personName}`}
                         </h2>
                         <p style={{ color: '#868e96', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                            Total: ETB {selectedDebt.totalAmount.toLocaleString()} | Paid: ETB {(selectedDebt.paidAmount || 0).toLocaleString()} | Balance: ETB {selectedDebt.balance.toLocaleString()}
+                            {isAmharic
+                                ? `ጠቅላላ: ETB ${selectedDebt.totalAmount.toLocaleString()} | የተከፈለ: ETB ${(selectedDebt.paidAmount || 0).toLocaleString()} | ቀሪ: ETB ${selectedDebt.balance.toLocaleString()}`
+                                : `Total: ETB ${selectedDebt.totalAmount.toLocaleString()} | Paid: ETB ${(selectedDebt.paidAmount || 0).toLocaleString()} | Balance: ETB ${selectedDebt.balance.toLocaleString()}`}
                         </p>
 
                         <div style={{ display: 'grid', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
@@ -856,7 +886,7 @@ const DebtCreditManagement = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Close
+                            {isAmharic ? 'ዝጋ' : 'Close'}
                         </button>
                     </div>
                 </div>

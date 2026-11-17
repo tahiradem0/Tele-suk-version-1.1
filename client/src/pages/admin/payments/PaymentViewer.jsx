@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, CreditCard, CheckCircle, XCircle } from 'lucide-react';
 import { orderService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const PaymentViewer = () => {
+    const { isAmharic } = useAdminLanguage();
     const [payments, setPayments] = useState([]);
 
     useEffect(() => {
@@ -16,9 +18,10 @@ const PaymentViewer = () => {
             const mappedPayments = data.map(order => ({
                 id: order.paymentResult?.id || `ORD-${order._id.slice(-6)}`,
                 // _id: order._id, // Keep ref if needed
-                provider: order.paymentMethod || 'Unknown',
+                provider: order.paymentMethod || (isAmharic ? 'ያልታወቀ' : 'Unknown'),
                 amount: order.totalPrice,
-                status: order.isPaid ? 'Success' : 'Pending',
+                status: order.isPaid ? (isAmharic ? 'ተሳክቷል' : 'Success') : (isAmharic ? 'በመጠባበቅ ላይ' : 'Pending'),
+                isPaid: order.isPaid,
                 date: order.paidAt ? new Date(order.paidAt).toLocaleDateString() : new Date(order.createdAt).toLocaleDateString()
             }));
             setPayments(mappedPayments);
@@ -29,8 +32,8 @@ const PaymentViewer = () => {
     return (
         <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>Payments</h1>
-                <p style={{ color: '#868e96' }}>Transaction history (Read-only)</p>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>{isAmharic ? 'ክፍያዎች' : 'Payments'}</h1>
+                <p style={{ color: '#868e96' }}>{isAmharic ? 'የግብይት ታሪክ (ለማየት ብቻ)' : 'Transaction history (Read-only)'}</p>
             </header>
 
             {/* Desktop Table */}
@@ -38,9 +41,11 @@ const PaymentViewer = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f8f9fc', borderBottom: '1px solid #eee' }}>
                         <tr>
-                            {['Transaction ID', 'Provider', 'Amount', 'Date', 'Status'].map(h => (
-                                <th key={h} style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{h}</th>
-                            ))}
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'የግብይት መለያ' : 'Transaction ID'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'አቅራቢ / ዘዴ' : 'Provider'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'መጠን' : 'Amount'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ቀን' : 'Date'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ሁኔታ' : 'Status'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -52,8 +57,8 @@ const PaymentViewer = () => {
                                 <td style={{ padding: '1rem', color: '#868e96' }}>{tx.date}</td>
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        {tx.status === 'Success' ? <CheckCircle size={16} color="#10b981" /> : <XCircle size={16} color="#f59e0b" />}
-                                        <span style={{ color: tx.status === 'Success' ? '#10b981' : '#f59e0b', fontWeight: '500' }}>{tx.status}</span>
+                                        {tx.isPaid ? <CheckCircle size={16} color="#10b981" /> : <XCircle size={16} color="#f59e0b" />}
+                                        <span style={{ color: tx.isPaid ? '#10b981' : '#f59e0b', fontWeight: '500' }}>{tx.status}</span>
                                     </div>
                                 </td>
                             </tr>
@@ -72,8 +77,8 @@ const PaymentViewer = () => {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ fontSize: '0.85rem', color: '#868e96' }}>{tx.provider} • {tx.date}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: tx.status === 'Success' ? '#10b981' : '#f59e0b', fontWeight: '500' }}>
-                                {tx.status === 'Success' ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: tx.isPaid ? '#10b981' : '#f59e0b', fontWeight: '500' }}>
+                                {tx.isPaid ? <CheckCircle size={14} /> : <XCircle size={14} />}
                                 {tx.status}
                             </div>
                         </div>

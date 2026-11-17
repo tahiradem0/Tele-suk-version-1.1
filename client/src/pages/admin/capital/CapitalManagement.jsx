@@ -4,6 +4,7 @@ import {
     Filter, RefreshCw, Wallet, TrendingUp, Calendar, Trash2
 } from 'lucide-react';
 import { capitalService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const categoryLabels = {
     sale: 'Sales Revenue',
@@ -18,7 +19,21 @@ const categoryLabels = {
     rent_utilities: 'Rent & Utilities'
 };
 
+const categoryLabelsAm = {
+    sale: 'የሽያጭ ገቢ',
+    owner_investment: 'የባለቤት ካፒታል ተቀማጭ',
+    debt_collection: 'የተሰበሰበ የደንበኞች ብድር',
+    other_income: 'ሌላ ገቢ',
+    stock_purchase: 'የእቃ ክምችት ግዢ',
+    expense: 'ጠቅላላ ወጪ',
+    owner_withdrawal: 'የባለቤት ገንዘብ ማውጣት',
+    debt_payment: 'የተከፈለ የአቅራቢ እዳ',
+    salary: 'የሰራተኛ ደመወዝ',
+    rent_utilities: 'ኪራይ እና መገልገያዎች'
+};
+
 const CapitalManagement = () => {
+    const { t, isAmharic } = useAdminLanguage();
     const [overview, setOverview] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -121,10 +136,10 @@ const CapitalManagement = () => {
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1a1b1e', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <Coins color="#fab005" size={28} />
-                        Capital & Treasury Management
+                        {t('capitalTreasuryManagement', 'Capital & Treasury Management')}
                     </h1>
                     <p style={{ color: '#868e96', fontSize: '0.95rem' }}>
-                        Live balance, cash flow tracking, sales revenue, and business expense ledger
+                        {t('capitalSubtitle', 'Live balance, cash flow tracking, sales revenue, and business expense ledger')}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -145,7 +160,7 @@ const CapitalManagement = () => {
                         }}
                     >
                         <Plus size={18} />
-                        Add Capital / Inflow
+                        {t('btnAddCapital', 'Add Capital / Inflow')}
                     </button>
                     <button
                         onClick={() => handleOpenModal('outflow')}
@@ -164,7 +179,7 @@ const CapitalManagement = () => {
                         }}
                     >
                         <Minus size={18} />
-                        Record Outflow / Expense
+                        {t('btnRecordOutflow', 'Record Outflow / Expense')}
                     </button>
                 </div>
             </div>
@@ -185,7 +200,7 @@ const CapitalManagement = () => {
                     borderLeft: `6px solid ${netCapital >= 0 ? '#10b981' : '#fa5252'}`
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
-                        <span>Current Available Capital</span>
+                        <span>{t('currentAvailableCapital', 'Current Available Capital')}</span>
                         <Wallet size={20} color={netCapital >= 0 ? '#10b981' : '#fa5252'} />
                     </div>
                     <div style={{
@@ -197,35 +212,35 @@ const CapitalManagement = () => {
                         ETB {netCapital.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#868e96', marginTop: '0.3rem' }}>
-                        Net liquid treasury after all inflows & expenses
+                        {t('netLiquidTreasury', 'Net liquid treasury after all inflows & expenses')}
                     </div>
                 </div>
 
                 {/* Total Inflow */}
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
-                        <span>Total Inflow (Capital + Sales)</span>
+                        <span>{t('totalInflowLabel', 'Total Inflow (Capital + Sales)')}</span>
                         <ArrowDownRight size={20} color="#10b981" />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1a1b1e', marginTop: '0.5rem' }}>
                         +ETB {totalInflow.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.3rem' }}>
-                        Deposits, customer orders & debt collections
+                        {t('totalInflowSubtitle', 'Deposits, customer orders & debt collections')}
                     </div>
                 </div>
 
                 {/* Total Outflow */}
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.9rem' }}>
-                        <span>Total Outflow (Expenses + Restocks)</span>
+                        <span>{t('totalOutflowLabel', 'Total Outflow (Expenses + Restocks)')}</span>
                         <ArrowUpRight size={20} color="#fa5252" />
                     </div>
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1a1b1e', marginTop: '0.5rem' }}>
                         -ETB {totalOutflow.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#fa5252', marginTop: '0.3rem' }}>
-                        Stock procurement, overhead & debt payments
+                        {t('totalOutflowSubtitle', 'Stock procurement, overhead & debt payments')}
                     </div>
                 </div>
             </div>
@@ -240,7 +255,7 @@ const CapitalManagement = () => {
                     marginBottom: '2rem'
                 }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#495057', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Capital Activity By Category
+                        {t('capitalActivityByCategory', 'Capital Activity By Category')}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
                         {Object.entries(overview.categoryTotals).map(([cat, amount]) => (
@@ -251,7 +266,7 @@ const CapitalManagement = () => {
                                 borderRadius: '10px',
                                 fontSize: '0.85rem'
                             }}>
-                                <span style={{ color: '#868e96' }}>{categoryLabels[cat] || cat}:</span>{' '}
+                                <span style={{ color: '#868e96' }}>{(isAmharic ? categoryLabelsAm[cat] : categoryLabels[cat]) || cat}:</span>{' '}
                                 <strong style={{ color: '#1a1b1e' }}>ETB {amount.toLocaleString()}</strong>
                             </div>
                         ))}
@@ -271,7 +286,7 @@ const CapitalManagement = () => {
                     <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
                     <input
                         type="text"
-                        placeholder="Search transactions by note or payment method..."
+                        placeholder={t('searchTransactionsPlaceholder', 'Search transactions by note or payment method...')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{
@@ -296,9 +311,9 @@ const CapitalManagement = () => {
                         fontSize: '0.95rem'
                     }}
                 >
-                    <option value="all">All Types (+ & -)</option>
-                    <option value="inflow">Inflows Only (+)</option>
-                    <option value="outflow">Outflows Only (-)</option>
+                    <option value="all">{t('allTypes', 'All Types (+ & -)')}</option>
+                    <option value="inflow">{t('inflowType', 'Inflows Only (+)')}</option>
+                    <option value="outflow">{t('outflowType', 'Outflows Only (-)')}</option>
                 </select>
 
                 <select
@@ -312,15 +327,15 @@ const CapitalManagement = () => {
                         fontSize: '0.95rem'
                     }}
                 >
-                    <option value="all">All Categories</option>
-                    <option value="sale">Sales Revenue</option>
-                    <option value="owner_investment">Owner Deposits</option>
-                    <option value="debt_collection">Customer Debt Collections</option>
-                    <option value="stock_purchase">Stock Purchases</option>
-                    <option value="expense">General Expenses</option>
-                    <option value="debt_payment">Debt Repayments</option>
-                    <option value="salary">Staff Salaries</option>
-                    <option value="rent_utilities">Rent & Utilities</option>
+                    <option value="all">{t('allCategories', 'All Categories')}</option>
+                    <option value="sale">{isAmharic ? 'የሽያጭ ገቢ' : 'Sales Revenue'}</option>
+                    <option value="owner_investment">{isAmharic ? 'የባለቤት ተቀማጭ' : 'Owner Deposits'}</option>
+                    <option value="debt_collection">{isAmharic ? 'የተሰበሰበ ብድር' : 'Customer Debt Collections'}</option>
+                    <option value="stock_purchase">{isAmharic ? 'የእቃ ግዢዎች' : 'Stock Purchases'}</option>
+                    <option value="expense">{isAmharic ? 'ጠቅላላ ወጪዎች' : 'General Expenses'}</option>
+                    <option value="debt_payment">{isAmharic ? 'የተከፈለ ዕዳ' : 'Debt Repayments'}</option>
+                    <option value="salary">{isAmharic ? 'የሰራተኛ ደመወዝ' : 'Staff Salaries'}</option>
+                    <option value="rent_utilities">{isAmharic ? 'ኪራይ እና መገልገያዎች' : 'Rent & Utilities'}</option>
                 </select>
             </div>
 
@@ -335,13 +350,13 @@ const CapitalManagement = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
                     <thead>
                         <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
-                            <th style={{ padding: '1rem' }}>DATE</th>
-                            <th style={{ padding: '1rem' }}>TYPE</th>
-                            <th style={{ padding: '1rem' }}>CATEGORY</th>
-                            <th style={{ padding: '1rem' }}>DESCRIPTION</th>
-                            <th style={{ padding: '1rem' }}>PAYMENT METHOD</th>
-                            <th style={{ padding: '1rem', textAlign: 'right' }}>AMOUNT</th>
-                            <th style={{ padding: '1rem', textAlign: 'center' }}>ACTION</th>
+                            <th style={{ padding: '1rem' }}>{t('colDate', 'DATE')}</th>
+                            <th style={{ padding: '1rem' }}>{t('colType', 'TYPE')}</th>
+                            <th style={{ padding: '1rem' }}>{t('colCategory', 'CATEGORY')}</th>
+                            <th style={{ padding: '1rem' }}>{t('colDescription', 'DESCRIPTION')}</th>
+                            <th style={{ padding: '1rem' }}>{t('colPaymentMethod', 'PAYMENT METHOD')}</th>
+                            <th style={{ padding: '1rem', textAlign: 'right' }}>{t('colAmount', 'AMOUNT')}</th>
+                            <th style={{ padding: '1rem', textAlign: 'center' }}>{t('colAction', 'ACTION')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -363,12 +378,12 @@ const CapitalManagement = () => {
                                         gap: '4px'
                                     }}>
                                         {tx.type === 'inflow' ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />}
-                                        {tx.type.toUpperCase()}
+                                        {tx.type === 'inflow' ? t('badgeInflow', 'INFLOW') : t('badgeOutflow', 'OUTFLOW')}
                                     </span>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <span style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1b1e' }}>
-                                        {categoryLabels[tx.category] || tx.category}
+                                        {(isAmharic ? categoryLabelsAm[tx.category] : categoryLabels[tx.category]) || tx.category}
                                     </span>
                                 </td>
                                 <td style={{ padding: '1rem', color: '#495057', fontSize: '0.9rem' }}>
@@ -417,7 +432,7 @@ const CapitalManagement = () => {
                         {filteredTransactions.length === 0 && (
                             <tr>
                                 <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#868e96' }}>
-                                    No capital transactions found.
+                                    {isAmharic ? 'ምንም የካፒታል ግብይት አልተገኘም።' : 'No capital transactions found.'}
                                 </td>
                             </tr>
                         )}
@@ -455,13 +470,15 @@ const CapitalManagement = () => {
                             gap: '0.5rem'
                         }}>
                             {txType === 'inflow' ? <ArrowDownRight /> : <ArrowUpRight />}
-                            {txType === 'inflow' ? 'Add Capital / Inflow' : 'Record Outflow / Expense'}
+                            {txType === 'inflow'
+                                ? (isAmharic ? 'ካፒታል / ገቢ መዝግብ' : 'Add Capital / Inflow')
+                                : (isAmharic ? 'ወጪ መዝግብ' : 'Record Outflow / Expense')}
                         </h2>
 
                         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Category *
+                                    {isAmharic ? 'ምድብ *' : 'Category *'}
                                 </label>
                                 <select
                                     value={formData.category}
@@ -470,19 +487,19 @@ const CapitalManagement = () => {
                                 >
                                     {txType === 'inflow' ? (
                                         <>
-                                            <option value="owner_investment">Owner Capital Deposit / Injection</option>
-                                            <option value="sale">Cash / Manual Sales Revenue</option>
-                                            <option value="debt_collection">Customer Credit / Debt Collected</option>
-                                            <option value="other_income">Other Miscellaneous Income</option>
+                                            <option value="owner_investment">{isAmharic ? 'የባለቤት ካፒታል ተቀማጭ' : 'Owner Capital Deposit / Injection'}</option>
+                                            <option value="sale">{isAmharic ? 'ጥሬ ገንዘብ / የሽያጭ ገቢ' : 'Cash / Manual Sales Revenue'}</option>
+                                            <option value="debt_collection">{isAmharic ? 'የተሰበሰበ የደንበኛ ብድር' : 'Customer Credit / Debt Collected'}</option>
+                                            <option value="other_income">{isAmharic ? 'ሌላ ልዩ ልዩ ገቢ' : 'Other Miscellaneous Income'}</option>
                                         </>
                                     ) : (
                                         <>
-                                            <option value="expense">General Operational Expense</option>
-                                            <option value="stock_purchase">Stock / Wholesale Procurement</option>
-                                            <option value="rent_utilities">Rent, Power & Internet</option>
-                                            <option value="salary">Staff Salary & Wages</option>
-                                            <option value="debt_payment">Supplier Debt / Loan Payment</option>
-                                            <option value="owner_withdrawal">Owner Capital Withdrawal</option>
+                                            <option value="expense">{isAmharic ? 'አጠቃላይ የስራ ማስኬጃ ወጪ' : 'General Operational Expense'}</option>
+                                            <option value="stock_purchase">{isAmharic ? 'የእቃ / የጅምላ ግዢ' : 'Stock / Wholesale Procurement'}</option>
+                                            <option value="rent_utilities">{isAmharic ? 'ኪራይ፣ መብራት እና ኢንተርኔት' : 'Rent, Power & Internet'}</option>
+                                            <option value="salary">{isAmharic ? 'የሰራተኛ ደመወዝ' : 'Staff Salary & Wages'}</option>
+                                            <option value="debt_payment">{isAmharic ? 'የአቅራቢ እዳ / የብድር ክፍያ' : 'Supplier Debt / Loan Payment'}</option>
+                                            <option value="owner_withdrawal">{isAmharic ? 'የባለቤት ካፒታል ማውጣት' : 'Owner Capital Withdrawal'}</option>
                                         </>
                                     )}
                                 </select>
@@ -490,7 +507,7 @@ const CapitalManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Amount in ETB *
+                                    {isAmharic ? 'መጠን በብር *' : 'Amount in ETB *'}
                                 </label>
                                 <input
                                     type="number"
@@ -506,12 +523,12 @@ const CapitalManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Description / Details *
+                                    {isAmharic ? 'ዝርዝር ማብራሪያ *' : 'Description / Details *'}
                                 </label>
                                 <input
                                     type="text"
                                     required
-                                    placeholder="e.g. Additional working capital injection"
+                                    placeholder={isAmharic ? 'ለምሳሌ፡ ተጨማሪ የንግድ ካፒታል ተቀማጭ' : 'e.g. Additional working capital injection'}
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -521,23 +538,23 @@ const CapitalManagement = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Payment Method
+                                        {isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}
                                     </label>
                                     <select
                                         value={formData.paymentMethod}
                                         onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
                                     >
-                                        <option value="Cash">Cash on Hand</option>
+                                        <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ' : 'Cash on Hand'}</option>
                                         <option value="Telebirr">Telebirr</option>
                                         <option value="CBEBirr">CBEBirr</option>
-                                        <option value="Bank Transfer">Bank Transfer (CBE/Awash/etc.)</option>
-                                        <option value="Other">Other</option>
+                                        <option value="Bank Transfer">{isAmharic ? 'የባንክ ማስተላለፍ (ንግድ ባንክ/አዋሽ)' : 'Bank Transfer (CBE/Awash/etc.)'}</option>
+                                        <option value="Other">{isAmharic ? 'ሌላ' : 'Other'}</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Date
+                                        {isAmharic ? 'ቀን' : 'Date'}
                                     </label>
                                     <input
                                         type="date"
@@ -554,7 +571,7 @@ const CapitalManagement = () => {
                                     onClick={() => setModalOpen(false)}
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Cancel
+                                    {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
                                 <button
                                     type="submit"
@@ -569,7 +586,7 @@ const CapitalManagement = () => {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    Save Transaction
+                                    {isAmharic ? 'ግብይቱን መዝግብ' : 'Save Transaction'}
                                 </button>
                             </div>
                         </form>

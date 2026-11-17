@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
 import { productService, categoryService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const ProductList = () => {
+    const { isAmharic } = useAdminLanguage();
     const [products, setProducts] = useState([]); // Init empty
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,12 +35,12 @@ const ProductList = () => {
     });
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
+        if (window.confirm(isAmharic ? 'ይህን ምርት ለማጥፋት እርግጠኛ ነዎት?' : 'Are you sure you want to delete this product?')) {
             try {
                 await productService.delete(id);
                 setProducts(products.filter(p => p._id !== id));
             } catch (error) {
-                alert("Failed to delete product");
+                alert(isAmharic ? 'ምርቱን መሰረዝ አልተቻለም' : "Failed to delete product");
             }
         }
     };
@@ -48,8 +50,8 @@ const ProductList = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>Products</h1>
-                    <p style={{ color: '#868e96' }}>Manage your inventory</p>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>{isAmharic ? 'ምርቶች' : 'Products'}</h1>
+                    <p style={{ color: '#868e96' }}>{isAmharic ? 'የዕቃ ክምችትዎን ያስተዳድሩ' : 'Manage your inventory'}</p>
                 </div>
                 <Link
                     to="/admin/products/new"
@@ -65,7 +67,7 @@ const ProductList = () => {
                     }}
                 >
                     <Plus size={20} />
-                    <span className="btn-text-responsive">Add Product</span>
+                    <span className="btn-text-responsive">{isAmharic ? 'ምርት ጨምር' : 'Add Product'}</span>
                 </Link>
             </div>
 
@@ -86,7 +88,7 @@ const ProductList = () => {
                     <Search size={20} style={{ position: 'absolute', left: '1rem', color: '#868e96' }} />
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder={isAmharic ? 'ምርቶችን ፈልግ...' : 'Search products...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{
@@ -116,7 +118,7 @@ const ProductList = () => {
                             cursor: 'pointer'
                         }}
                     >
-                        <option value="All">All Categories</option>
+                        <option value="All">{isAmharic ? 'ሁሉም ምድቦች' : 'All Categories'}</option>
                         {categories.map(cat => (
                             <option key={cat._id} value={cat.name}>{cat.name}</option>
                         ))}
@@ -135,11 +137,11 @@ const ProductList = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f8f9fc', borderBottom: '1px solid #eee' }}>
                         <tr>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>PRODUCT</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>CATEGORY</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>PRICE</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>STOCK</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>ACTIONS</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ምርት' : 'PRODUCT'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ምድብ' : 'CATEGORY'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ዋጋ' : 'PRICE'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ክምችት' : 'STOCK'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'እርምጃዎች' : 'ACTIONS'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,19 +163,30 @@ const ProductList = () => {
                                 <td style={{ padding: '1rem', color: '#495057' }}>{product.category}</td>
                                 <td style={{ padding: '1rem', fontWeight: '500' }}>ETB {product.price}</td>
                                 <td style={{ padding: '1rem' }}>
-                                    <span style={{
-                                        background: '#e6fcf5',
-                                        color: '#0ca678',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        fontSize: '0.8rem',
-                                        fontWeight: '500'
-                                    }}>In Stock</span>
+                                    {(product.countInStock > 0 || product.stock > 0) ? (
+                                        <span style={{
+                                            background: '#e6fcf5',
+                                            color: '#0ca678',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500'
+                                        }}>{isAmharic ? 'በክምችት አለ' : 'In Stock'}</span>
+                                    ) : (
+                                        <span style={{
+                                            background: '#fff5f5',
+                                            color: '#e03131',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '500'
+                                        }}>{isAmharic ? 'አልቋል' : 'Out of Stock'}</span>
+                                    )}
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'right' }}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                                         <Link to={`/admin/products/edit/${product._id}`} style={{ padding: '6px', color: '#4dabf7' }}><Edit2 size={18} /></Link>
-                                        <button onClick={() => handleDelete(product._id)} style={{ padding: '6px', color: '#ff6b6b' }}><Trash2 size={18} /></button>
+                                        <button onClick={() => handleDelete(product._id)} style={{ padding: '6px', color: '#ff6b6b', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={18} /></button>
                                     </div>
                                 </td>
                             </tr>

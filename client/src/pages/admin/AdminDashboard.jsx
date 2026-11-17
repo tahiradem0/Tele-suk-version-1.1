@@ -90,10 +90,10 @@ const AdminDashboard = () => {
             setIsSaving(true);
             await settingsService.updateSettings({ deliveryFee: Number(deliveryFee) });
             if (refreshSettings) await refreshSettings();
-            alert('Settings saved successfully!');
+            alert(isAmharic ? 'ቅንብሩ በተሳካ ሁኔታ ተቀምጧል!' : 'Settings saved successfully!');
         } catch (error) {
             console.error('Failed to save settings', error);
-            alert('Error saving settings');
+            alert(isAmharic ? 'ቅንብሩን ማስቀመጥ አልተቻለም' : 'Error saving settings');
         } finally {
             setIsSaving(false);
         }
@@ -239,9 +239,9 @@ const AdminDashboard = () => {
                     linkTo="/admin/users"
                 />
                 <StatCard
-                    title="Unique Products"
+                    title={isAmharic ? "ልዩ ምርቶች" : "Unique Products"}
                     value={stats.productsCount || 0}
-                    change="Catalog Items"
+                    change={isAmharic ? "የካታሎግ ዕቃዎች" : "Catalog Items"}
                     icon={TrendingUp}
                     color="#e8590c"
                     linkTo="/admin/products"
@@ -251,7 +251,7 @@ const AdminDashboard = () => {
             {/* Quick Management Navigation Hub */}
             <div style={{ marginBottom: '2.5rem' }}>
                 <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: '#1a1b1e' }}>
-                    Enterprise Management Hub
+                    {isAmharic ? 'የንግድ ስራ ማኔጅመንት ማዕከል' : 'Enterprise Management Hub'}
                 </h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.2rem' }}>
                     <Link
@@ -274,8 +274,12 @@ const AdminDashboard = () => {
                                 <Warehouse size={22} />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>Store & Stock Management</h3>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>Restock, count inventory & cost valuation</div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>
+                                    {isAmharic ? 'የመደብር እና የክምችት አስተዳደር' : 'Store & Stock Management'}
+                                </h3>
+                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
+                                    {isAmharic ? 'ክምችት መሙላት፣ መቁጠር እና የወጪ ግምት' : 'Restock, count inventory & cost valuation'}
+                                </div>
                             </div>
                         </div>
                     </Link>
@@ -300,8 +304,12 @@ const AdminDashboard = () => {
                                 <Coins size={22} />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>Capital Management</h3>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>Cash flow, owner equity & business expenses</div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>
+                                    {isAmharic ? 'የካፒታል አስተዳደር' : 'Capital Management'}
+                                </h3>
+                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
+                                    {isAmharic ? 'የጥሬ ገንዘብ ፍሰት እና የንግድ ወጪዎች' : 'Cash flow, owner equity & business expenses'}
+                                </div>
                             </div>
                         </div>
                     </Link>
@@ -326,8 +334,12 @@ const AdminDashboard = () => {
                                 <Receipt size={22} />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>Debt & Credit Ledger</h3>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>Customer credit receivables & supplier payables</div>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>
+                                    {isAmharic ? 'የብድር እና እዳ መዝገብ' : 'Debt & Credit Ledger'}
+                                </h3>
+                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
+                                    {isAmharic ? 'የደንበኞች ብድር እና ለአቅራቢዎች የሚከፈል' : 'Customer credit receivables & supplier payables'}
+                                </div>
                             </div>
                         </div>
                     </Link>
@@ -344,13 +356,15 @@ const AdminDashboard = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
                     <SettingsIcon size={24} color="#3b82f6" />
-                    <h2 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Store Delivery Settings</h2>
+                    <h2 style={{ fontSize: '1.2rem', fontWeight: '700' }}>
+                        {isAmharic ? 'የመደብር ማድረሻ ዋጋ ቅንብር' : 'Store Delivery Settings'}
+                    </h2>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '400px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '0.9rem', color: '#495057', marginBottom: '0.5rem', fontWeight: '500' }}>
-                            Standard Delivery Fee (ETB)
+                            {isAmharic ? 'መደበኛ የማድረሻ ክፍያ (በብር)' : 'Standard Delivery Fee (ETB)'}
                         </label>
                         <input
                             type="number"
@@ -380,7 +394,7 @@ const AdminDashboard = () => {
                             opacity: isSaving ? 0.7 : 1
                         }}
                     >
-                        {isSaving ? 'Saving...' : 'Save Settings'}
+                        {isSaving ? (isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...') : (isAmharic ? 'ቅንብሩን አስቀምጥ' : 'Save Settings')}
                     </button>
                 </div>
             </div>

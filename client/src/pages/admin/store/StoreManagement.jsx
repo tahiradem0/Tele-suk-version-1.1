@@ -4,8 +4,10 @@ import {
     CheckCircle2, XCircle, RefreshCw, Layers, DollarSign, Package
 } from 'lucide-react';
 import { storeService, categoryService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const StoreManagement = () => {
+    const { t, isAmharic } = useAdminLanguage();
     const [overview, setOverview] = useState(null);
     const [movements, setMovements] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -144,10 +146,10 @@ const StoreManagement = () => {
                 <div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#1a1b1e', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <Warehouse color="#d4a373" size={28} />
-                        Store & Inventory Management
+                        {t('storeInventoryManagement', 'Store & Inventory Management')}
                     </h1>
                     <p style={{ color: '#868e96', fontSize: '0.95rem' }}>
-                        Track stock levels, store valuation, cost margins, and restock records
+                        {t('trackStockLevels', 'Track stock levels, store valuation, cost margins, and restock records')}
                     </p>
                 </div>
                 <button
@@ -165,7 +167,7 @@ const StoreManagement = () => {
                     }}
                 >
                     <RefreshCw size={16} />
-                    Refresh
+                    {t('refresh', 'Refresh')}
                 </button>
             </div>
 
@@ -178,66 +180,66 @@ const StoreManagement = () => {
             }}>
                 <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
-                        <span>Total Inventory Units</span>
+                        <span>{t('totalInventoryUnits', 'Total Inventory Units')}</span>
                         <Package size={18} color="#228be6" />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#1a1b1e' }}>
                         {summary.totalStockUnits.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
-                        Across {summary.totalProducts} unique products
+                        {isAmharic ? `በ ${summary.totalProducts} የተለያዩ ምርቶች ውስጥ` : `Across ${summary.totalProducts} unique products`}
                     </div>
                 </div>
 
                 <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
-                        <span>Cost Valuation</span>
+                        <span>{t('costValuation', 'Cost Valuation')}</span>
                         <DollarSign size={18} color="#f59f00" />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#1a1b1e' }}>
                         ETB {summary.totalCostValuation.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
-                        Capital tied in store inventory
+                        {t('capitalTiedInStore', 'Capital tied in store inventory')}
                     </div>
                 </div>
 
                 <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
-                        <span>Retail Valuation</span>
+                        <span>{t('retailValuation', 'Retail Valuation')}</span>
                         <Layers size={18} color="#10b981" />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#10b981' }}>
                         ETB {summary.totalRetailValuation.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
-                        Expected gross sales revenue
+                        {t('expectedGrossRevenue', 'Expected gross sales revenue')}
                     </div>
                 </div>
 
                 <div style={{ background: 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#868e96', fontSize: '0.85rem' }}>
-                        <span>Potential Profit</span>
+                        <span>{t('potentialProfit', 'Potential Profit')}</span>
                         <ArrowUpDown size={18} color="#20c997" />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: '#20c997' }}>
                         ETB {summary.potentialGrossProfit.toLocaleString()}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
-                        Net store margin if all sold
+                        {t('netStoreMarginIfSold', 'Net store margin if all sold')}
                     </div>
                 </div>
 
                 <div style={{ background: summary.lowStockCount > 0 ? '#fff5f5' : 'white', padding: '1.3rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: summary.lowStockCount > 0 ? '1px solid #ffa8a8' : 'none' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: summary.lowStockCount > 0 ? '#e03131' : '#868e96', fontSize: '0.85rem' }}>
-                        <span>Stock Alerts</span>
+                        <span>{t('stockAlertsLabel', 'Stock Alerts')}</span>
                         <AlertTriangle size={18} color={summary.lowStockCount > 0 ? '#e03131' : '#868e96'} />
                     </div>
                     <div style={{ fontSize: '1.7rem', fontWeight: '700', marginTop: '0.4rem', color: summary.lowStockCount > 0 ? '#e03131' : '#1a1b1e' }}>
-                        {summary.lowStockCount} items
+                        {isAmharic ? `${summary.lowStockCount} እቃዎች` : `${summary.lowStockCount} items`}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#868e96', marginTop: '0.2rem' }}>
-                        {summary.outOfStockCount} completely out of stock
+                        {isAmharic ? `${summary.outOfStockCount} ሙሉ በሙሉ ያለቁ` : `${summary.outOfStockCount} completely out of stock`}
                     </div>
                 </div>
             </div>
@@ -258,7 +260,7 @@ const StoreManagement = () => {
                         marginBottom: '-2px'
                     }}
                 >
-                    Stock & Inventory ({filteredInventory.length})
+                    {isAmharic ? `ክምችት እና እቃዎች (${filteredInventory.length})` : `Stock & Inventory (${filteredInventory.length})`}
                 </button>
                 <button
                     onClick={() => setActiveTab('movements')}
@@ -274,7 +276,7 @@ const StoreManagement = () => {
                         marginBottom: '-2px'
                     }}
                 >
-                    Stock Movement Audit Trail ({movements.length})
+                    {isAmharic ? `የክምችት እንቅስቃሴ መዝገብ (${movements.length})` : `Stock Movement Audit Trail (${movements.length})`}
                 </button>
             </div>
 
@@ -292,7 +294,7 @@ const StoreManagement = () => {
                             <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
                             <input
                                 type="text"
-                                placeholder="Search inventory by product name or SKU..."
+                                placeholder={t('searchInventoryPlaceholder', 'Search inventory by product name or SKU...')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{
@@ -317,7 +319,7 @@ const StoreManagement = () => {
                                 fontSize: '0.95rem'
                             }}
                         >
-                            <option value="All">All Categories</option>
+                            <option value="All">{t('allCategories', 'All Categories')}</option>
                             {categories.map(c => (
                                 <option key={c._id} value={c.name}>{c.name}</option>
                             ))}
@@ -334,10 +336,10 @@ const StoreManagement = () => {
                                 fontSize: '0.95rem'
                             }}
                         >
-                            <option value="All">All Stock Statuses</option>
-                            <option value="in_stock">In Stock Healthy</option>
-                            <option value="low_stock">Low Stock Alerts</option>
-                            <option value="out_of_stock">Out of Stock</option>
+                            <option value="All">{t('allStockStatuses', 'All Stock Statuses')}</option>
+                            <option value="in_stock">{isAmharic ? 'በክምችት ላይ ያለ' : 'In Stock Healthy'}</option>
+                            <option value="low_stock">{isAmharic ? 'አነስተኛ ክምችት' : 'Low Stock Alerts'}</option>
+                            <option value="out_of_stock">{isAmharic ? 'ያለቀ እቃ' : 'Out of Stock'}</option>
                         </select>
                     </div>
 
@@ -352,13 +354,13 @@ const StoreManagement = () => {
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
                             <thead>
                                 <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
-                                    <th style={{ padding: '1rem' }}>PRODUCT</th>
-                                    <th style={{ padding: '1rem' }}>CATEGORY / SKU</th>
-                                    <th style={{ padding: '1rem' }}>COST / RETAIL</th>
-                                    <th style={{ padding: '1rem' }}>MARGIN</th>
-                                    <th style={{ padding: '1rem' }}>CURRENT STOCK</th>
-                                    <th style={{ padding: '1rem' }}>VALUATION</th>
-                                    <th style={{ padding: '1rem', textAlign: 'right' }}>QUICK ACTIONS</th>
+                                    <th style={{ padding: '1rem' }}>{t('colProduct', 'PRODUCT')}</th>
+                                    <th style={{ padding: '1rem' }}>{t('colCategorySku', 'CATEGORY / SKU')}</th>
+                                    <th style={{ padding: '1rem' }}>{t('colCostRetail', 'COST / RETAIL')}</th>
+                                    <th style={{ padding: '1rem' }}>{t('colMargin', 'MARGIN')}</th>
+                                    <th style={{ padding: '1rem' }}>{t('colCurrentStock', 'CURRENT STOCK')}</th>
+                                    <th style={{ padding: '1rem' }}>{t('colValuation', 'VALUATION')}</th>
+                                    <th style={{ padding: '1rem', textAlign: 'right' }}>{t('colQuickActions', 'QUICK ACTIONS')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -386,7 +388,9 @@ const StoreManagement = () => {
                                         </td>
                                         <td style={{ padding: '1rem' }}>
                                             <div style={{ fontWeight: '600', color: '#1a1b1e' }}>ETB {item.price}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#868e96' }}>Cost: ETB {item.costPrice || 0}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
+                                                {isAmharic ? 'መግዣ: ' : 'Cost: '}ETB {item.costPrice || 0}
+                                            </div>
                                         </td>
                                         <td style={{ padding: '1rem' }}>
                                             <span style={{
@@ -420,15 +424,15 @@ const StoreManagement = () => {
                                                 display: 'inline-block',
                                                 marginTop: '3px'
                                             }}>
-                                                {item.status === 'out_of_stock' ? 'Out of Stock' : item.status === 'low_stock' ? `Low (≤${item.minStockLevel})` : 'In Stock'}
+                                                {item.status === 'out_of_stock' ? t('outOfStockBadge', 'Out of Stock') : item.status === 'low_stock' ? (isAmharic ? `አነስተኛ (≤${item.minStockLevel})` : `Low (≤${item.minStockLevel})`) : t('inStockBadge', 'In Stock')}
                                             </span>
                                         </td>
                                         <td style={{ padding: '1rem' }}>
                                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1a1b1e' }}>
-                                                Cost: ETB {item.costValue.toLocaleString()}
+                                                {isAmharic ? 'መግዣ: ' : 'Cost: '}ETB {item.costValue.toLocaleString()}
                                             </div>
                                             <div style={{ fontSize: '0.8rem', color: '#10b981' }}>
-                                                Retail: ETB {item.retailValue.toLocaleString()}
+                                                {isAmharic ? 'መሸጫ: ' : 'Retail: '}ETB {item.retailValue.toLocaleString()}
                                             </div>
                                         </td>
                                         <td style={{ padding: '1rem', textAlign: 'right' }}>
@@ -450,7 +454,7 @@ const StoreManagement = () => {
                                                     }}
                                                 >
                                                     <PlusCircle size={14} />
-                                                    Restock
+                                                    {t('btnRestock', 'Restock')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleOpenAdjust(item)}
@@ -465,7 +469,7 @@ const StoreManagement = () => {
                                                         cursor: 'pointer'
                                                     }}
                                                 >
-                                                    Adjust
+                                                    {t('btnAdjust', 'Adjust')}
                                                 </button>
                                             </div>
                                         </td>
@@ -474,7 +478,7 @@ const StoreManagement = () => {
                                 {filteredInventory.length === 0 && (
                                     <tr>
                                         <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#868e96' }}>
-                                            No inventory items matching your filter.
+                                            {isAmharic ? 'ከማጣሪያዎ ጋር የሚዛመድ የክምችት እቃ አልተገኘም።' : 'No inventory items matching your filter.'}
                                         </td>
                                     </tr>
                                 )}
@@ -494,12 +498,12 @@ const StoreManagement = () => {
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
                         <thead>
                             <tr style={{ background: '#f8f9fc', borderBottom: '1px solid #eee', color: '#495057', fontSize: '0.85rem' }}>
-                                <th style={{ padding: '1rem' }}>DATE</th>
-                                <th style={{ padding: '1rem' }}>PRODUCT</th>
-                                <th style={{ padding: '1rem' }}>TYPE</th>
-                                <th style={{ padding: '1rem' }}>QUANTITY</th>
-                                <th style={{ padding: '1rem' }}>PREVIOUS → NEW</th>
-                                <th style={{ padding: '1rem' }}>SUPPLIER / NOTE</th>
+                                <th style={{ padding: '1rem' }}>{isAmharic ? 'ቀን' : 'DATE'}</th>
+                                <th style={{ padding: '1rem' }}>{isAmharic ? 'ምርት' : 'PRODUCT'}</th>
+                                <th style={{ padding: '1rem' }}>{isAmharic ? 'ዓይነት' : 'TYPE'}</th>
+                                <th style={{ padding: '1rem' }}>{isAmharic ? 'መጠን' : 'QUANTITY'}</th>
+                                <th style={{ padding: '1rem' }}>{isAmharic ? 'የነበረው → አዲሱ' : 'PREVIOUS → NEW'}</th>
+                                <th style={{ padding: '1rem' }}>{isAmharic ? 'አቅራቢ / ማስታወሻ' : 'SUPPLIER / NOTE'}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -520,7 +524,11 @@ const StoreManagement = () => {
                                             background: m.type === 'restock' ? '#ebfbee' : m.type === 'sale' ? '#e7f5ff' : '#fff5f5',
                                             color: m.type === 'restock' ? '#2b8a3e' : m.type === 'sale' ? '#1c7ed6' : '#c92a2a'
                                         }}>
-                                            {m.type.toUpperCase()}
+                                            {m.type === 'restock'
+                                                ? (isAmharic ? 'ግዢ/መሙላት' : 'RESTOCK')
+                                                : m.type === 'sale'
+                                                    ? (isAmharic ? 'ሽያጭ' : 'SALE')
+                                                    : (isAmharic ? 'ማስተካከያ' : m.type.toUpperCase())}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem', fontWeight: '700', color: m.type === 'restock' ? '#2b8a3e' : '#fa5252' }}>
@@ -538,7 +546,7 @@ const StoreManagement = () => {
                             {movements.length === 0 && (
                                 <tr>
                                     <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: '#868e96' }}>
-                                        No stock movements recorded yet.
+                                        {isAmharic ? 'ምንም የክምችት እንቅስቃሴ አልተመዘገበም።' : 'No stock movements recorded yet.'}
                                     </td>
                                 </tr>
                             )}
@@ -568,16 +576,17 @@ const StoreManagement = () => {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
                     }}>
                         <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '0.3rem' }}>
-                            Restock: {selectedProduct.name}
+                            {isAmharic ? `ክምችት ሙላ: ${selectedProduct.name}` : `Restock: ${selectedProduct.name}`}
                         </h2>
                         <p style={{ color: '#868e96', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                            Current stock: <strong>{selectedProduct.stockQuantity}</strong> units
+                            {isAmharic ? `አሁን ያለው ክምችት: ` : `Current stock: `}
+                            <strong>{selectedProduct.stockQuantity}</strong> {isAmharic ? 'እቃዎች' : 'units'}
                         </p>
 
                         <form onSubmit={handleRestockSubmit} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Quantity to Add *
+                                    {isAmharic ? 'የሚጨመረው ብዛት *' : 'Quantity to Add *'}
                                 </label>
                                 <input
                                     type="number"
@@ -593,7 +602,7 @@ const StoreManagement = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Unit Cost Price (ETB)
+                                        {isAmharic ? 'የአንድ እቃ መግዣ ዋጋ (በብር)' : 'Unit Cost Price (ETB)'}
                                     </label>
                                     <input
                                         type="number"
@@ -606,11 +615,11 @@ const StoreManagement = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                        Supplier Name
+                                        {isAmharic ? 'የአቅራቢ ስም' : 'Supplier Name'}
                                     </label>
                                     <input
                                         type="text"
-                                        placeholder="Supplier"
+                                        placeholder={isAmharic ? 'አቅራቢ' : 'Supplier'}
                                         value={restockForm.supplier}
                                         onChange={(e) => setRestockForm({ ...restockForm, supplier: e.target.value })}
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -631,22 +640,22 @@ const StoreManagement = () => {
                                         checked={restockForm.syncCapital}
                                         onChange={(e) => setRestockForm({ ...restockForm, syncCapital: e.target.checked })}
                                     />
-                                    Record as Capital Outflow (Stock Purchase)
+                                    {isAmharic ? 'እንደ ካፒታል ወጪ (የዕቃ ግዢ) መዝግብ' : 'Record as Capital Outflow (Stock Purchase)'}
                                 </label>
                                 {restockForm.syncCapital && (
                                     <div style={{ marginTop: '0.8rem' }}>
                                         <div style={{ fontSize: '0.8rem', color: '#495057', marginBottom: '0.3rem' }}>
-                                            Total Cost: <strong>ETB {((Number(restockForm.quantity) || 0) * (Number(restockForm.costPrice) || 0)).toLocaleString()}</strong>
+                                            {isAmharic ? 'ጠቅላላ ወጪ:' : 'Total Cost:'} <strong>ETB {((Number(restockForm.quantity) || 0) * (Number(restockForm.costPrice) || 0)).toLocaleString()}</strong>
                                         </div>
                                         <select
                                             value={restockForm.paymentMethod}
                                             onChange={(e) => setRestockForm({ ...restockForm, paymentMethod: e.target.value })}
-                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ced4da', fontSize: '0.85rem' }}
+                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ced4da', fontSize: '0.85rem', background: 'white' }}
                                         >
-                                            <option value="Cash">Paid with Cash</option>
+                                            <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ የተከፈለ' : 'Paid with Cash'}</option>
                                             <option value="Telebirr">Paid with Telebirr</option>
                                             <option value="CBEBirr">Paid with CBEBirr</option>
-                                            <option value="Bank Transfer">Paid with Bank Transfer</option>
+                                            <option value="Bank Transfer">{isAmharic ? 'በባንክ የተከፈለ' : 'Paid with Bank Transfer'}</option>
                                         </select>
                                     </div>
                                 )}
@@ -654,11 +663,11 @@ const StoreManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Note / Receipt Reference
+                                    {isAmharic ? 'ማስታወሻ / ደረሰኝ ቁጥር' : 'Note / Receipt Reference'}
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Optional note"
+                                    placeholder={isAmharic ? 'አማራጭ ማስታወሻ' : 'Optional note'}
                                     value={restockForm.note}
                                     onChange={(e) => setRestockForm({ ...restockForm, note: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -671,13 +680,13 @@ const StoreManagement = () => {
                                     onClick={() => setRestockModalOpen(false)}
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Cancel
+                                    {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
                                 <button
                                     type="submit"
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: '#1a1b1e', color: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Confirm Restock
+                                    {isAmharic ? 'ክምችት መሙላትን አረጋግጥ' : 'Confirm Restock'}
                                 </button>
                             </div>
                         </form>
@@ -706,16 +715,17 @@ const StoreManagement = () => {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
                     }}>
                         <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '0.3rem' }}>
-                            Adjust Stock: {selectedProduct.name}
+                            {isAmharic ? `ክምችት አስተካክል: ${selectedProduct.name}` : `Adjust Stock: ${selectedProduct.name}`}
                         </h2>
                         <p style={{ color: '#868e96', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                            Current recorded stock: <strong>{selectedProduct.stockQuantity}</strong>
+                            {isAmharic ? 'በመዝገብ ላይ ያለው ክምችት: ' : 'Current recorded stock: '}
+                            <strong>{selectedProduct.stockQuantity}</strong>
                         </p>
 
                         <form onSubmit={handleAdjustSubmit} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    New Actual Stock Count *
+                                    {isAmharic ? 'አዲሱ ትክክለኛ የክምችት ቁጥር *' : 'New Actual Stock Count *'}
                                 </label>
                                 <input
                                     type="number"
@@ -729,26 +739,26 @@ const StoreManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Reason for Adjustment *
+                                    {isAmharic ? 'የማስተካከያ ምክንያት *' : 'Reason for Adjustment *'}
                                 </label>
                                 <select
                                     value={adjustForm.type}
                                     onChange={(e) => setAdjustForm({ ...adjustForm, type: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
                                 >
-                                    <option value="adjustment">Physical Inventory Audit Count</option>
-                                    <option value="damage_loss">Damaged / Expired Goods</option>
-                                    <option value="return">Returned by Customer</option>
+                                    <option value="adjustment">{isAmharic ? 'የአካል ቆጠራ ኦዲት' : 'Physical Inventory Audit Count'}</option>
+                                    <option value="damage_loss">{isAmharic ? 'የተበላሸ / ጊዜው ያለፈበት እቃ' : 'Damaged / Expired Goods'}</option>
+                                    <option value="return">{isAmharic ? 'በደንበኛ የተመለሰ' : 'Returned by Customer'}</option>
                                 </select>
                             </div>
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-                                    Audit Note
+                                    {isAmharic ? 'የኦዲት ማስታወሻ' : 'Audit Note'}
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Explain the reason for discrepancy"
+                                    placeholder={isAmharic ? 'የልዩነቱን ምክንያት ያብራሩ' : 'Explain the reason for discrepancy'}
                                     value={adjustForm.note}
                                     onChange={(e) => setAdjustForm({ ...adjustForm, note: e.target.value })}
                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
@@ -761,13 +771,13 @@ const StoreManagement = () => {
                                     onClick={() => setAdjustModalOpen(false)}
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Cancel
+                                    {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
                                 <button
                                     type="submit"
                                     style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: '#fa5252', color: 'white', fontWeight: '600', cursor: 'pointer' }}
                                 >
-                                    Update Count
+                                    {isAmharic ? 'ቁጥሩን አድስ' : 'Update Count'}
                                 </button>
                             </div>
                         </form>

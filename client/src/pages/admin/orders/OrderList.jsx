@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, ChevronDown, X } from 'lucide-react';
 import { orderService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const STATUS_COLORS = {
     'Pending': '#f59e0b',
@@ -11,7 +12,17 @@ const STATUS_COLORS = {
     'Cancelled': '#ef4444',
 };
 
+const STATUS_AMHARIC = {
+    'Pending': 'በመጠባበቅ ላይ',
+    'Confirmed': 'የተረጋገጠ',
+    'Preparing': 'በመዘጋጀት ላይ',
+    'On the way': 'በመንገድ ላይ',
+    'Delivered': 'የደረሰ',
+    'Cancelled': 'የተሰረዘ',
+};
+
 const OrderList = () => {
+    const { isAmharic } = useAdminLanguage();
     const [orders, setOrders] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -60,11 +71,13 @@ const OrderList = () => {
         return orderId.includes(searchTerm.toLowerCase()) || userName.includes(searchTerm.toLowerCase());
     });
 
+    const getStatusLabel = (s) => (isAmharic && STATUS_AMHARIC[s]) ? STATUS_AMHARIC[s] : s;
+
     return (
         <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>Orders</h1>
-                <p style={{ color: '#868e96' }}>Track and manage customer orders</p>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>{isAmharic ? 'ትዕዛዞች' : 'Orders'}</h1>
+                <p style={{ color: '#868e96' }}>{isAmharic ? 'የደንበኞችን ትዕዛዞች ይከታተሉ እና ያስተዳድሩ' : 'Track and manage customer orders'}</p>
             </header>
 
             {/* Controls */}
@@ -73,7 +86,7 @@ const OrderList = () => {
                     <Search size={20} style={{ position: 'absolute', left: '1rem', color: '#868e96' }} />
                     <input
                         type="text"
-                        placeholder="Search orders..."
+                        placeholder={isAmharic ? 'ትዕዛዞችን ፈልግ...' : 'Search orders...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.8rem', borderRadius: '12px', border: '1px solid #eee', outline: 'none' }}
@@ -86,9 +99,14 @@ const OrderList = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f8f9fc', borderBottom: '1px solid #eee' }}>
                         <tr>
-                            {['✓', 'Order ID', 'Customer', 'Items', 'Total', 'Date', 'Status', 'Actions'].map(h => (
-                                <th key={h} style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{h}</th>
-                            ))}
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>✓</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'የትዕዛዝ ቁጥር' : 'Order ID'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ደንበኛ' : 'Customer'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ዕቃዎች' : 'Items'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ጠቅላላ' : 'Total'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ቀን' : 'Date'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', color: '#868e96', fontWeight: '600' }}>{isAmharic ? 'እርምጃዎች' : 'Actions'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -104,12 +122,12 @@ const OrderList = () => {
                                 </td>
                                 <td style={{ padding: '1rem', fontWeight: '500', cursor: 'pointer' }} onClick={() => setSelectedOrder(order)}>#{order._id.slice(-6)}</td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ fontWeight: '500' }}>{order.user?.name || 'Unknown'}</div>
+                                    <div style={{ fontWeight: '500' }}>{order.user?.name || (isAmharic ? 'ያልታወቀ' : 'Unknown')}</div>
                                     <div style={{ fontSize: '0.8rem', color: '#868e96' }}>{order.user?.phone || 'N/A'}</div>
                                 </td>
                                 <td style={{ padding: '1rem', cursor: 'pointer', color: '#3b82f6' }} onClick={() => setSelectedOrder(order)}>
                                     <Eye size={16} style={{ display: 'inline', marginRight: '4px' }} />
-                                    {order.orderItems?.length || 0} items
+                                    {order.orderItems?.length || 0} {isAmharic ? 'ዕቃዎች' : 'items'}
                                 </td>
                                 <td style={{ padding: '1rem', fontWeight: '600' }}>ETB {order.totalPrice}</td>
                                 <td style={{ padding: '1rem', color: '#868e96', fontSize: '0.9rem' }}>
@@ -125,7 +143,7 @@ const OrderList = () => {
                                         fontWeight: '600',
                                         whiteSpace: 'nowrap'
                                     }}>
-                                        {order.status}
+                                        {getStatusLabel(order.status)}
                                     </span>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
@@ -143,9 +161,9 @@ const OrderList = () => {
                                                 fontSize: '0.85rem'
                                             }}
                                         >
-                                            <option value="" disabled>Update Status</option>
+                                            <option value="" disabled>{isAmharic ? 'ሁኔታ ቀይር' : 'Update Status'}</option>
                                             {Object.keys(STATUS_COLORS).map(s => (
-                                                <option key={s} value={s}>{s}</option>
+                                                <option key={s} value={s}>{getStatusLabel(s)}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -178,25 +196,27 @@ const OrderList = () => {
                         padding: '2rem'
                     }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Order #{selectedOrder._id.slice(-6)}</h2>
-                            <button onClick={() => setSelectedOrder(null)} style={{ padding: '8px', cursor: 'pointer' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>
+                                {isAmharic ? `ትዕዛዝ #${selectedOrder._id.slice(-6)}` : `Order #${selectedOrder._id.slice(-6)}`}
+                            </h2>
+                            <button onClick={() => setSelectedOrder(null)} style={{ padding: '8px', cursor: 'pointer', background: 'none', border: 'none' }}>
                                 <X size={24} />
                             </button>
                         </div>
                         <div style={{ marginBottom: '1.5rem' }}>
-                            <p style={{ color: '#868e96', marginBottom: '0.5rem' }}>Customer: <strong>{selectedOrder.user?.name}</strong></p>
-                            <p style={{ color: '#868e96', marginBottom: '0.5rem' }}>Phone: <strong>{selectedOrder.user?.phone}</strong></p>
-                            <p style={{ color: '#868e96', marginBottom: '0.5rem' }}>Total: <strong>ETB {selectedOrder.totalPrice}</strong></p>
-                            <p style={{ color: '#868e96' }}>Date: <strong>{new Date(selectedOrder.createdAt).toLocaleString()}</strong></p>
+                            <p style={{ color: '#868e96', marginBottom: '0.5rem' }}>{isAmharic ? 'ደንበኛ:' : 'Customer:'} <strong>{selectedOrder.user?.name}</strong></p>
+                            <p style={{ color: '#868e96', marginBottom: '0.5rem' }}>{isAmharic ? 'ስልክ:' : 'Phone:'} <strong>{selectedOrder.user?.phone}</strong></p>
+                            <p style={{ color: '#868e96', marginBottom: '0.5rem' }}>{isAmharic ? 'ጠቅላላ:' : 'Total:'} <strong>ETB {selectedOrder.totalPrice}</strong></p>
+                            <p style={{ color: '#868e96' }}>{isAmharic ? 'ቀን:' : 'Date:'} <strong>{new Date(selectedOrder.createdAt).toLocaleString()}</strong></p>
                         </div>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>Order Items</h3>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>{isAmharic ? 'የትዕዛዝ ዕቃዎች' : 'Order Items'}</h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
                             {selectedOrder.orderItems?.map((item, idx) => (
                                 <div key={idx} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: '#f8f9fc', borderRadius: '12px' }}>
                                     <img src={item.image} alt={item.name} style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
                                     <div style={{ flex: 1 }}>
                                         <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{item.name}</h4>
-                                        <p style={{ fontSize: '0.9rem', color: '#868e96', marginBottom: '0.5rem' }}>Qty: {item.qty}</p>
+                                        <p style={{ fontSize: '0.9rem', color: '#868e96', marginBottom: '0.5rem' }}>{isAmharic ? 'ብዛት:' : 'Qty:'} {item.qty}</p>
                                         <p style={{ fontWeight: '600', color: '#10b981' }}>ETB {item.price}</p>
                                     </div>
                                 </div>
@@ -231,16 +251,16 @@ const OrderList = () => {
                                 fontSize: '0.75rem',
                                 fontWeight: '600'
                             }}>
-                                {order.status}
+                                {getStatusLabel(order.status)}
                             </span>
                             <span style={{ fontSize: '0.85rem', color: '#868e96' }}>• ETB {order.totalPrice}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer' }} onClick={() => setSelectedOrder(order)}>
-                                <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{order.user?.name || 'Unknown'}</span>
+                                <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>{order.user?.name || (isAmharic ? 'ያልታወቀ' : 'Unknown')}</span>
                                 <span style={{ fontSize: '0.8rem', color: '#3b82f6' }}>
                                     <Eye size={14} style={{ display: 'inline', marginRight: '4px' }} />
-                                    {order.orderItems?.length || 0} Items
+                                    {order.orderItems?.length || 0} {isAmharic ? 'ዕቃዎች' : 'Items'}
                                 </span>
                             </div>
                             <select
@@ -256,7 +276,7 @@ const OrderList = () => {
                                 }}
                             >
                                 {Object.keys(STATUS_COLORS).map(s => (
-                                    <option key={s} value={s}>{s}</option>
+                                    <option key={s} value={s}>{getStatusLabel(s)}</option>
                                 ))}
                             </select>
                         </div>

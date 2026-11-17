@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Ban, Trash2 } from 'lucide-react';
 import { userService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const UserManager = () => {
+    const { isAmharic } = useAdminLanguage();
     const [users, setUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -20,13 +22,13 @@ const UserManager = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        if (window.confirm(isAmharic ? 'ይህን ተጠቃሚ ለማጥፋት እርግጠኛ ነዎት? ይህ እርምጃ ሊቀለበስ አይችልም።' : 'Are you sure you want to delete this user? This action cannot be undone.')) {
             try {
                 await userService.delete(id);
                 setUsers(users.filter(u => u._id !== id));
             } catch (error) {
                 console.error("Failed to delete user", error);
-                alert("Failed to delete user");
+                alert(isAmharic ? 'ተጠቃሚውን መሰረዝ አልተቻለም' : "Failed to delete user");
             }
         }
     };
@@ -39,8 +41,8 @@ const UserManager = () => {
     return (
         <div style={{ padding: '1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>Users</h1>
-                <p style={{ color: '#868e96' }}>Manage detailed user profiles</p>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>{isAmharic ? 'ተጠቃሚዎች' : 'Users'}</h1>
+                <p style={{ color: '#868e96' }}>{isAmharic ? 'የተጠቃሚዎችን መገለጫ ያስተዳድሩ' : 'Manage detailed user profiles'}</p>
             </header>
 
             {/* Search */}
@@ -48,7 +50,7 @@ const UserManager = () => {
                 <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
                 <input
                     type="text"
-                    placeholder="Search by name or phone..."
+                    placeholder={isAmharic ? 'በስም ወይም በስልክ ፈልግ...' : 'Search by name or phone...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.8rem', borderRadius: '12px', border: '1px solid #eee', outline: 'none' }}
@@ -77,7 +79,9 @@ const UserManager = () => {
                             </div>
                             <div>
                                 <div style={{ fontWeight: '600' }}>{user.name}</div>
-                                <div style={{ fontSize: '0.85rem', color: '#868e96' }}>{user.phone} • {user.isAdmin ? 'Admin' : 'User'}</div>
+                                <div style={{ fontSize: '0.85rem', color: '#868e96' }}>
+                                    {user.phone} • {user.isAdmin ? (isAmharic ? 'አስተዳዳሪ' : 'Admin') : (isAmharic ? 'ተጠቃሚ' : 'User')}
+                                </div>
                             </div>
                         </div>
 
@@ -88,9 +92,11 @@ const UserManager = () => {
                                     padding: '8px',
                                     borderRadius: '8px',
                                     background: '#fff5f5',
-                                    color: '#ff6b6b'
+                                    color: '#ff6b6b',
+                                    border: 'none',
+                                    cursor: 'pointer'
                                 }}
-                                title="Delete User"
+                                title={isAmharic ? 'ተጠቃሚውን ሰርዝ' : 'Delete User'}
                             >
                                 <Trash2 size={18} />
                             </button>

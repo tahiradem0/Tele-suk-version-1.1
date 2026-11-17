@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, GripVertical, Check, X } from 'lucide-react';
 import { categoryService } from '../../../services/api';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const CategoryManager = () => {
+    const { isAmharic } = useAdminLanguage();
     const [categories, setCategories] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [editName, setEditName] = useState('');
@@ -19,7 +21,7 @@ const CategoryManager = () => {
             setCategories(data);
         } catch (error) {
             console.error("Failed to load categories", error);
-            setError("Failed to load categories. Please try again.");
+            setError(isAmharic ? 'ምድቦችን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።' : "Failed to load categories. Please try again.");
         }
     };
 
@@ -32,7 +34,7 @@ const CategoryManager = () => {
                 setNewCategoryName('');
             } catch (error) {
                 console.error("Failed to add category", error);
-                setError(error.response?.data?.message || error.message || "Failed to add category.");
+                setError(error.response?.data?.message || error.message || (isAmharic ? 'ምድብ መጨመር አልተቻለም።' : "Failed to add category."));
             }
         }
     };
@@ -51,19 +53,19 @@ const CategoryManager = () => {
             setEditingId(null);
         } catch (error) {
             console.error("Failed to update category", error);
-            setError(error.response?.data?.message || error.message || "Failed to update category.");
+            setError(error.response?.data?.message || error.message || (isAmharic ? 'ምድብ ማደስ አልተቻለም።' : "Failed to update category."));
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this category?')) {
+        if (window.confirm(isAmharic ? 'ይህን ምድብ ለማጥፋት እርግጠኛ ነዎት?' : 'Delete this category?')) {
             setError('');
             try {
                 await categoryService.delete(id);
                 setCategories(categories.filter(cat => cat._id !== id));
             } catch (error) {
                 console.error("Failed to delete", error);
-                setError(error.response?.data?.message || error.message || "Failed to delete category.");
+                setError(error.response?.data?.message || error.message || (isAmharic ? 'ምድብ መሰረዝ አልተቻለም።' : "Failed to delete category."));
             }
         }
     };
@@ -71,8 +73,8 @@ const CategoryManager = () => {
     return (
         <div style={{ padding: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
             <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>Categories</h1>
-                <p style={{ color: '#868e96' }}>Manage product categories</p>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '700' }}>{isAmharic ? 'ምድቦች' : 'Categories'}</h1>
+                <p style={{ color: '#868e96' }}>{isAmharic ? 'የምርት ምድቦችን ያስተዳድሩ' : 'Manage product categories'}</p>
             </header>
 
             {error && (
@@ -89,7 +91,7 @@ const CategoryManager = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between'
                 }}>
-                    <span><strong>Error:</strong> {error}</span>
+                    <span><strong>{isAmharic ? 'ስህተት:' : 'Error:'}</strong> {error}</span>
                     <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c33' }}>
                         <X size={16} />
                     </button>
@@ -108,7 +110,7 @@ const CategoryManager = () => {
                 alignItems: 'center'
             }}>
                 <input
-                    placeholder="New Category Name"
+                    placeholder={isAmharic ? 'አዲስ የምድብ ስም' : 'New Category Name'}
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAdd()}
@@ -136,7 +138,7 @@ const CategoryManager = () => {
                     }}
                 >
                     <Plus size={20} />
-                    <span>Add</span>
+                    <span>{isAmharic ? 'ጨምር' : 'Add'}</span>
                 </button>
             </div>
 
