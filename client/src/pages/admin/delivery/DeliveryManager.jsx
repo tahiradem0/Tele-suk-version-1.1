@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, Edit2, Check, MapPin, Plus, Trash2, Search, RotateCcw, Building2, CheckCircle2 } from 'lucide-react';
+import { Truck, Edit2, Check, MapPin, Plus, Trash2, Search, RotateCcw, Building2, CheckCircle2, X } from 'lucide-react';
 import { orderService, deliveryLocationService } from '../../../services/api';
 import { useShop } from '../../../context/ShopContext';
 
@@ -22,6 +22,11 @@ const DeliveryManager = () => {
     const [newLocation, setNewLocation] = useState({ name: '', shortCode: '', zone: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+
+    // Edit Location State
+    const [editingLocation, setEditingLocation] = useState(null);
+    const [editFormData, setEditFormData] = useState({ name: '', shortCode: '', zone: '' });
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         loadDeliveries();
@@ -118,6 +123,44 @@ const DeliveryManager = () => {
             if (refreshDeliveryLocations) refreshDeliveryLocations();
         } catch (error) {
             console.error("Failed to reset locations", error);
+        }
+    };
+
+    const handleStartEdit = (loc) => {
+        setEditingLocation(loc);
+        setEditFormData({
+            name: loc.name || '',
+            shortCode: loc.shortCode || '',
+            zone: loc.zone || ''
+        });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingLocation(null);
+        setEditFormData({ name: '', shortCode: '', zone: '' });
+    };
+
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        if (!editingLocation || !editFormData.name.trim()) return;
+
+        setIsUpdating(true);
+        try {
+            const { data } = await deliveryLocationService.update(editingLocation._id, {
+                name: editFormData.name.trim(),
+                shortCode: editFormData.shortCode.trim().toUpperCase(),
+                zone: editFormData.zone.trim()
+            });
+            setLocations(prev => prev.map(l => l._id === editingLocation._id ? data : l));
+            setEditingLocation(null);
+            setSuccessMessage(`Updated "${data.name}" successfully!`);
+            setTimeout(() => setSuccessMessage(''), 3000);
+            if (refreshDeliveryLocations) refreshDeliveryLocations();
+        } catch (error) {
+            console.error("Failed to update location", error);
+            alert("Failed to update location: " + (error.response?.data?.message || error.message));
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -435,20 +478,48 @@ const DeliveryManager = () => {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={() => handleDeleteLocation(loc._id, loc.name)}
-                                    title="Delete Location"
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        color: '#fa5252',
-                                        cursor: 'pointer',
-                                        padding: '6px',
-                                        borderRadius: '6px'
-                                    }}
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                    <button
+                                        onClick={() => handleStartEdit(loc)}
+                                        title="Edit Location"
+                                        style={{
+                                            background: '#f8f9fa',
+                                            border: '1px solid #e9ecef',
+                                            color: '#2b8a3e',
+                                            cursor: 'pointer',
+                                            padding: '6px 8px',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            transition: 'all 0.15s'
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#e6fcf5'; e.currentTarget.style.borderColor = '#63e6be'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#f8f9fa'; e.currentTarget.style.borderColor = '#e9ecef'; }}
+                                    >
+                                        <Edit2 size={15} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteLocation(loc._id, loc.name)}
+                                        title="Delete Location"
+                                        style={{
+                                            background: '#fff5f5',
+                                            border: '1px solid #ffe3e3',
+                                            color: '#fa5252',
+                                            cursor: 'pointer',
+                                            padding: '6px 8px',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            transition: 'all 0.15s'
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#ffe3e3'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#fff5f5'; }}
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -530,6 +601,208 @@ const DeliveryManager = () => {
                             </div>
                         ))
                     )}
+                </div>
+            )}
+
+            {/* EDIT LOCATION MODAL */}
+            {editingLocation && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.55)',
+                        backdropFilter: 'blur(3px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '1rem'
+                    }}
+                    onClick={handleCancelEdit}
+                >
+                    <div
+                        style={{
+                            background: 'var(--admin-card-bg, #ffffff)',
+                            borderRadius: '18px',
+                            maxWidth: '480px',
+                            width: '100%',
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                            border: '1px solid var(--admin-border, #edf2f7)',
+                            overflow: 'hidden'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div style={{
+                            padding: '1.25rem 1.5rem',
+                            borderBottom: '1px solid var(--admin-border, #edf2f7)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    background: '#e6fcf5',
+                                    color: '#0ca678',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <MapPin size={18} />
+                                </div>
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)' }}>
+                                        Edit Delivery Address
+                                    </h3>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)' }}>
+                                        Update details for Gondar customer suggestions
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleCancelEdit}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--admin-subtext, #868e96)',
+                                    cursor: 'pointer',
+                                    padding: '6px',
+                                    borderRadius: '8px',
+                                    display: 'flex'
+                                }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleSaveEdit} style={{ padding: '1.5rem' }}>
+                            <div style={{ marginBottom: '1.1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', marginBottom: '6px' }}>
+                                    Address / District Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editFormData.name}
+                                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                                    placeholder="e.g. Arada, Gondar"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        borderRadius: '10px',
+                                        border: '1.5px solid var(--admin-border, #e2e8f0)',
+                                        background: 'var(--admin-input-bg, #ffffff)',
+                                        color: 'var(--admin-text, #1a1b1e)',
+                                        fontSize: '0.95rem',
+                                        outline: 'none',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', marginBottom: '6px' }}>
+                                        Short Code
+                                    </label>
+                                    <input
+                                        type="text"
+                                        maxLength="6"
+                                        value={editFormData.shortCode}
+                                        onChange={(e) => setEditFormData({ ...editFormData, shortCode: e.target.value.toUpperCase() })}
+                                        placeholder="e.g. AR"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 14px',
+                                            borderRadius: '10px',
+                                            border: '1.5px solid var(--admin-border, #e2e8f0)',
+                                            background: 'var(--admin-input-bg, #ffffff)',
+                                            color: 'var(--admin-text, #1a1b1e)',
+                                            fontSize: '0.95rem',
+                                            fontWeight: '700',
+                                            letterSpacing: '1px',
+                                            outline: 'none',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--admin-subtext, #868e96)', marginTop: '4px', display: 'block' }}>
+                                        User shortcut
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', marginBottom: '6px' }}>
+                                        Zone / Landmark
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editFormData.zone}
+                                        onChange={(e) => setEditFormData({ ...editFormData, zone: e.target.value })}
+                                        placeholder="e.g. Market & Commercial Area"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 14px',
+                                            borderRadius: '10px',
+                                            border: '1.5px solid var(--admin-border, #e2e8f0)',
+                                            background: 'var(--admin-input-bg, #ffffff)',
+                                            color: 'var(--admin-text, #1a1b1e)',
+                                            fontSize: '0.95rem',
+                                            outline: 'none',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--admin-subtext, #868e96)', marginTop: '4px', display: 'block' }}>
+                                        Helps identify the area
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Buttons */}
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid var(--admin-border, #f1f3f5)' }}>
+                                <button
+                                    type="button"
+                                    onClick={handleCancelEdit}
+                                    disabled={isUpdating}
+                                    style={{
+                                        padding: '10px 18px',
+                                        borderRadius: '10px',
+                                        border: '1px solid var(--admin-border, #e2e8f0)',
+                                        background: 'var(--admin-btn-secondary, #f8f9fa)',
+                                        color: 'var(--admin-text, #495057)',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isUpdating || !editFormData.name.trim()}
+                                    style={{
+                                        padding: '10px 22px',
+                                        borderRadius: '10px',
+                                        border: 'none',
+                                        background: '#0ca678',
+                                        color: '#ffffff',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        opacity: isUpdating ? 0.7 : 1
+                                    }}
+                                >
+                                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>
