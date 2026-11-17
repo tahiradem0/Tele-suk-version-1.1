@@ -134,4 +134,21 @@ export const deliveryLocationService = {
     resetDefaults: () => api.post('/delivery-locations/reset-defaults'),
 };
 
+export const expenseService = {
+    getOverview: (params) => api.get('/expenses/overview', { params }),
+    getExpenses: (params) => api.get('/expenses', { params }),
+    create: (data) => api.post('/expenses', data),
+    update: (id, data) => api.put(`/expenses/${id}`, data),
+    delete: (id) => api.delete(`/expenses/${id}`),
+    getCategories: () => api.get('/expenses/categories'),
+    createCategory: (data) => api.post('/expenses/categories', data),
+};
+
+export const groupService = {
+    getGroups: () => api.get('/groups'),
+    create: (data) => api.post('/groups', data),
+    join: (data) => api.post('/groups/join', data),
+    updateBudget: (id, data) => api.put(`/groups/${id}/budget`, data),
+};
+
 export default api;

@@ -4,7 +4,7 @@ import {
     LayoutDashboard, ShoppingBag, FolderTree, ShoppingCart,
     CreditCard, Users, Truck, Image, MessageSquare,
     FileText, Settings, LogOut, X, Warehouse, Coins, Receipt,
-    Sun, Moon, MapPin, Languages
+    Sun, Moon, MapPin, Languages, BookOpen
 } from 'lucide-react';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
@@ -20,6 +20,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         { icon: Warehouse, label: t('storeAndStock', 'Store & Stock'), path: '/admin/store' },
         { icon: Coins, label: t('capitalTreasury', 'Capital Treasury'), path: '/admin/capital' },
         { icon: Receipt, label: t('debtAndCredit', 'Debt & Credit'), path: '/admin/debt-credit' },
+        { icon: BookOpen, label: t('expensesAndMezgeb', 'Expenses & Mezgeb'), path: '/admin/expenses' },
         { icon: ShoppingBag, label: t('products', 'Products'), path: '/admin/products' },
         { icon: FolderTree, label: t('categories', 'Categories'), path: '/admin/categories' },
         { icon: ShoppingCart, label: t('orders', 'Orders'), path: '/admin/orders' },

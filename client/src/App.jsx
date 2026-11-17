@@ -21,6 +21,7 @@ import BannerManager from './pages/admin/banners/BannerManager'
 import StoreManagement from './pages/admin/store/StoreManagement'
 import CapitalManagement from './pages/admin/capital/CapitalManagement'
 import DebtCreditManagement from './pages/admin/debts/DebtCreditManagement'
+import ExpenseManagement from './pages/admin/expenses/ExpenseManagement'
 import AdminSettings from './pages/admin/settings/AdminSettings'
 
 // User Pages
@@ -68,6 +69,7 @@ function App() {
                                 <Route path="store" element={<StoreManagement />} />
                                 <Route path="capital" element={<CapitalManagement />} />
                                 <Route path="debt-credit" element={<DebtCreditManagement />} />
+                                <Route path="expenses" element={<ExpenseManagement />} />
 
                                 {/* Product & Order Management */}
                                 <Route path="products" element={<ProductList />} />

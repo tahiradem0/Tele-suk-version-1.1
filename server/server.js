@@ -63,6 +63,8 @@ app.use('/api/capital', require('./routes/capitalRoutes'));
 app.use('/api/debts', require('./routes/debtRoutes'));
 app.use('/api/store', require('./routes/storeRoutes'));
 app.use('/api/delivery-locations', require('./routes/deliveryLocationRoutes'));
+app.use('/api/expenses', require('./routes/expenseRoutes'));
+app.use('/api/groups', require('./routes/groupRoutes'));
 
 // Basic Route
 app.get('/', (req, res) => {
