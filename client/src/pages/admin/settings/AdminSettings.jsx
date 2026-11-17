@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import {
     Settings as SettingsIcon, CreditCard, Moon, Sun, Save,
     ShieldAlert, ShieldCheck, CheckCircle2, RefreshCw, Key,
-    Store, Truck, Mail, Phone, Lock, Eye, EyeOff, MapPin, Languages
+    Store, Truck, Mail, Phone, Lock, Eye, EyeOff, MapPin, Languages, KeyRound
 } from 'lucide-react';
-import { settingsService } from '../../../services/api';
+import { settingsService, authService } from '../../../services/api';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
@@ -33,6 +33,34 @@ const AdminSettings = () => {
     const [saving, setSaving] = useState(false);
     const [savedSuccess, setSavedSuccess] = useState(false);
     const [showKeys, setShowKeys] = useState(true);
+    const [newAdminPassword, setNewAdminPassword] = useState('');
+    const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
+    const [updatingPassword, setUpdatingPassword] = useState(false);
+    const [passwordFeedback, setPasswordFeedback] = useState(null);
+
+    const handleUpdateAdminPassword = async (e) => {
+        e.preventDefault();
+        setPasswordFeedback(null);
+        if (!newAdminPassword.trim()) {
+            setPasswordFeedback({ type: 'error', text: isAmharic ? 'እባክዎ አዲሱን የይለፍ ቃል ያስገቡ' : 'Please enter a new password' });
+            return;
+        }
+        if (newAdminPassword !== confirmAdminPassword) {
+            setPasswordFeedback({ type: 'error', text: isAmharic ? 'የይለፍ ቃሎች አይዛመዱም' : 'Passwords do not match' });
+            return;
+        }
+        setUpdatingPassword(true);
+        try {
+            await authService.updatePassword({ newPassword: newAdminPassword.trim() });
+            setPasswordFeedback({ type: 'success', text: isAmharic ? 'የአስተዳዳሪ የይለፍ ቃል በተሳካ ሁኔታ ተቀይሯል!' : 'Admin password updated successfully! Use this new password for your next login.' });
+            setNewAdminPassword('');
+            setConfirmAdminPassword('');
+        } catch (err) {
+            setPasswordFeedback({ type: 'error', text: err.response?.data?.message || 'Failed to update password' });
+        } finally {
+            setUpdatingPassword(false);
+        }
+    };
 
     useEffect(() => {
         loadSettings();
@@ -850,6 +878,110 @@ const AdminSettings = () => {
                             >
                                 Manage Delivery Addresses →
                             </Link>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. ADMIN ACCESS & MASTER PASSWORD */}
+                <div style={{
+                    background: 'var(--admin-card-bg, white)',
+                    padding: '1.8rem',
+                    borderRadius: '20px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                    border: '1px solid var(--admin-border, #eee)'
+                }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.3rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <KeyRound size={24} color="#10b981" />
+                            {isAmharic ? 'የአስተዳዳሪ የይለፍ ቃል ማስተካከያ (Admin Security)' : 'Admin Security & Master Password'}
+                        </h2>
+                        <p style={{ color: 'var(--admin-subtext, #868e96)', fontSize: '0.9rem', marginTop: '0.3rem' }}>
+                            {isAmharic
+                                ? 'የአስተዳዳሪ መግቢያ የይለፍ ቃልዎን እዚህ ይቀይሩ። አዲሱ የይለፍ ቃል ለቀጣይ መግቢያ የሚያገለግል ይሆናል።'
+                                : 'Update your single-password access key for the admin portal. This password is required to unlock the admin console.'}
+                        </p>
+                    </div>
+
+                    {passwordFeedback && (
+                        <div style={{
+                            padding: '0.8rem 1rem',
+                            borderRadius: '10px',
+                            marginBottom: '1.2rem',
+                            fontSize: '0.9rem',
+                            background: passwordFeedback.type === 'success' ? '#e6fcf5' : '#fff5f5',
+                            color: passwordFeedback.type === 'success' ? '#0ca678' : '#e03131',
+                            border: `1px solid ${passwordFeedback.type === 'success' ? '#b2f2bb' : '#ffc9c9'}`
+                        }}>
+                            {passwordFeedback.text}
+                        </div>
+                    )}
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', alignItems: 'flex-end' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                {isAmharic ? 'አዲስ የአስተዳዳሪ የይለፍ ቃል' : 'New Admin Password'}
+                            </label>
+                            <input
+                                type="password"
+                                value={newAdminPassword}
+                                onChange={(e) => setNewAdminPassword(e.target.value)}
+                                placeholder={isAmharic ? 'አዲስ የይለፍ ቃል...' : 'Enter new password...'}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)'
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                {isAmharic ? 'የይለፍ ቃሉን ያረጋግጡ' : 'Confirm New Password'}
+                            </label>
+                            <input
+                                type="password"
+                                value={confirmAdminPassword}
+                                onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                                placeholder={isAmharic ? 'የይለፍ ቃሉን እንደገና ያስገቡ...' : 'Confirm new password...'}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)'
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <button
+                                type="button"
+                                onClick={handleUpdateAdminPassword}
+                                disabled={updatingPassword}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem 1.2rem',
+                                    borderRadius: '10px',
+                                    background: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    fontWeight: '700',
+                                    fontSize: '0.9rem',
+                                    cursor: updatingPassword ? 'not-allowed' : 'pointer',
+                                    opacity: updatingPassword ? 0.7 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <Lock size={16} />
+                                {updatingPassword ? (isAmharic ? 'በመቀየር ላይ...' : 'Updating...') : (isAmharic ? 'የይለፍ ቃል ቀይር' : 'Update Password')}
+                            </button>
                         </div>
                     </div>
                 </div>

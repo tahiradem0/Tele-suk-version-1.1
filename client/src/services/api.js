@@ -35,8 +35,12 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             // Token is invalid or expired
             localStorage.removeItem('user');
-            // Redirect to login to reset state
-            window.location.href = '/auth';
+            // Redirect to admin login if on admin page, otherwise customer auth
+            if (window.location.pathname.startsWith('/admin')) {
+                window.location.href = '/admin/login';
+            } else {
+                window.location.href = '/auth';
+            }
         }
         return Promise.reject(error);
     }
@@ -46,6 +50,7 @@ export const authService = {
     register: (userData) => api.post('/auth/register', userData),
     login: (userData) => api.post('/auth/login', userData),
     getMe: () => api.get('/auth/me'),
+    updatePassword: (data) => api.put('/auth/update-password', data),
 };
 
 export const productService = {

@@ -201,7 +201,8 @@ export const ShopProvider = ({ children }) => {
     // --- Auth Actions ---
     const login = async (phone, password) => {
         try {
-            const { data } = await authService.login({ phone, password });
+            const payload = phone ? { phone, password } : { password };
+            const { data } = await authService.login(payload);
             setUser(data);
             localStorage.setItem('user', JSON.stringify(data));
             return { success: true };

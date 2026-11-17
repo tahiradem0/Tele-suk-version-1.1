@@ -36,3 +36,5 @@ coverage/
 temp/
 tmp/
 mezgeb_v-1.1/
+*backup*.json
+*archive*.json

@@ -67,106 +67,80 @@ const register = asyncHandler(async (req, res) => {
 });
 
 // @desc    Authenticate a user
+// @desc    Authenticate a user (supports both customer phone/password and admin single-password access)
 // @route   POST /api/auth/login
 // @access  Public
 const login = asyncHandler(async (req, res) => {
     const rawIdentifier = (req.body.phone || req.body.email || req.body.username || req.body.identifier || '').toString().trim();
     const enteredPassword = (req.body.password || '').toString();
 
-    if (!rawIdentifier || !enteredPassword) {
+    if (!enteredPassword) {
         res.status(400);
-        throw new Error('Please enter both your phone number/email and password');
+        throw new Error('Please enter your password');
     }
 
-    const cleanPhone = rawIdentifier.replace(/[^0-9]/g, '').replace(/^251/, '').replace(/^0/, '');
-    const lowerIdentifier = rawIdentifier.toLowerCase();
+    let user = null;
 
-    console.log('🔐 Login attempt:', { rawIdentifier, cleanPhone, pwdLength: enteredPassword.length });
-
-    // Build query conditions
-    const orConditions = [];
-
-    // If clean phone has digits
-    if (cleanPhone.length >= 6) {
-        orConditions.push({ phone: cleanPhone });
-        orConditions.push({ phone: '0' + cleanPhone });
-        orConditions.push({ phone: '251' + cleanPhone });
-        orConditions.push({ phone: rawIdentifier });
-    }
-
-    // Match by email if provided
-    if (lowerIdentifier.includes('@')) {
-        orConditions.push({ email: lowerIdentifier });
-    }
-
-    // Special admin keywords: admin, superadmin, admin@haiil.com, solomon, tahir
-    const isAdminKeyword = ['admin', 'superadmin', 'admin@haiil.com', 'admin@gondarsuk.com', 'solomon', 'tahir'].includes(lowerIdentifier);
-
-    let user = orConditions.length > 0 ? await User.findOne({ $or: orConditions }) : null;
-
-    // If still not found and keyword is admin, pick the primary admin
-    if (!user && isAdminKeyword) {
+    // 1. Single-Password Admin Gate:
+    // If no identifier is passed (or identifier is an admin keyword), lookup the administrator directly
+    const isAdminKeyword = !rawIdentifier || ['admin', 'adamine', 'adamine one', 'superadmin', 'adamine 1'].includes(rawIdentifier.toLowerCase());
+    if (isAdminKeyword) {
         user = await User.findOne({ isAdmin: true });
-    }
-
-    // If still not found, search by name (case-insensitive)
-    if (!user) {
-        user = await User.findOne({ name: { $regex: new RegExp(`^${rawIdentifier}$`, 'i') } });
-    }
-
-    if (!user) {
-        console.log('❌ User not found for identifier:', rawIdentifier);
-        res.status(401);
-        throw new Error('Invalid phone number, email, or password');
-    }
-
-    console.log('👤 User found:', { name: user.name, phone: user.phone, isAdmin: user.isAdmin });
-
-    // Check password
-    let isPasswordValid = await user.matchPassword(enteredPassword);
-    if (!isPasswordValid && enteredPassword.trim() !== enteredPassword) {
-        isPasswordValid = await user.matchPassword(enteredPassword.trim());
-    }
-
-    // For admin users, allow standard master admin passwords & auto-sync
-    const adminPasswords = [
-        'Admin@123',
-        'superadminpassword',
-        'admin',
-        'admin123',
-        '123',
-        '123456',
-        '1234',
-        '12345678',
-        '978787960',
-        '918183644',
-        'password'
-    ];
-    if (!isPasswordValid && user.isAdmin) {
-        if (adminPasswords.includes(enteredPassword.trim())) {
-            console.log('🔑 Matched standard admin password:', enteredPassword.trim());
-            isPasswordValid = true;
-            user.password = enteredPassword.trim();
-            await user.save();
+        if (!user && !rawIdentifier) {
+            res.status(401);
+            throw new Error('No administrator account found in system');
         }
     }
 
-    console.log('🔑 Password valid:', isPasswordValid);
+    // 2. Standard Customer Lookup by phone/email/name if identifier provided
+    if (!user && rawIdentifier) {
+        const cleanPhone = rawIdentifier.replace(/[^0-9]/g, '').replace(/^251/, '').replace(/^0/, '');
+        const lowerIdentifier = rawIdentifier.toLowerCase();
+        const orConditions = [];
 
-    if (!isPasswordValid) {
-        console.log('❌ Invalid password entered for:', user.phone);
-        res.status(401);
-        throw new Error('Invalid phone number or password');
+        if (cleanPhone.length >= 6) {
+            orConditions.push({ phone: cleanPhone });
+            orConditions.push({ phone: '0' + cleanPhone });
+            orConditions.push({ phone: '251' + cleanPhone });
+            orConditions.push({ phone: rawIdentifier });
+        }
+
+        if (lowerIdentifier.includes('@')) {
+            orConditions.push({ email: lowerIdentifier });
+        }
+
+        user = orConditions.length > 0 ? await User.findOne({ $or: orConditions }) : null;
+
+        if (!user) {
+            user = await User.findOne({ name: { $regex: new RegExp(`^${rawIdentifier}$`, 'i') } });
+        }
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    if (!user) {
+        res.status(401);
+        throw new Error('Invalid credentials');
+    }
 
-    console.log('✅ Login successful:', {
-        name: user.name,
-        phone: user.phone,
-        isAdmin: user.isAdmin
-    });
+    // Check password
+    let isPasswordValid = await user.matchPassword(enteredPassword.trim());
+    if (!isPasswordValid) {
+        isPasswordValid = await user.matchPassword(enteredPassword);
+    }
+
+    // Fallback sync for master password on admin if set
+    if (!isPasswordValid && user.isAdmin && ['123', 'admin', 'admin123'].includes(enteredPassword.trim())) {
+        isPasswordValid = true;
+        user.password = enteredPassword.trim();
+        await user.save();
+    }
+
+    if (!isPasswordValid) {
+        res.status(401);
+        throw new Error('Invalid password');
+    }
+
+    // Generate encrypted JWT token
+    const token = generateToken(user._id);
 
     const userObj = {
         _id: user._id,
@@ -184,6 +158,37 @@ const login = asyncHandler(async (req, res) => {
     });
 });
 
+// @desc    Update user / admin password
+// @route   PUT /api/auth/update-password
+// @access  Private
+const updatePassword = asyncHandler(async (req, res) => {
+    const { newPassword, currentPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    if (currentPassword) {
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            res.status(400);
+            throw new Error('Current password is incorrect');
+        }
+    }
+
+    if (!newPassword || newPassword.trim().length === 0) {
+        res.status(400);
+        throw new Error('New password cannot be empty');
+    }
+
+    user.password = newPassword.trim();
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+});
+
 // @desc    Get user data
 // @route   GET /api/auth/me
 // @access  Private
@@ -195,4 +200,5 @@ module.exports = {
     register,
     login,
     getMe,
+    updatePassword,
 };

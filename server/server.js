@@ -46,6 +46,23 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Security & Cryptographic Protection Headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    if (process.env.NODE_ENV === 'production') {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+    // Prevent caching for sensitive admin and financial endpoints
+    if (req.path.startsWith('/api/admin') || req.path.startsWith('/api/capital') || req.path.startsWith('/api/store') || req.path.startsWith('/api/debts') || req.path.startsWith('/api/expenses')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.setHeader('Pragma', 'no-cache');
+    }
+    next();
+});
+
 // Database Connection
 connectDB();
 
