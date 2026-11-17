@@ -126,4 +126,12 @@ export const storeService = {
     getMovements: (params) => api.get('/store/movements', { params }),
 };
 
+export const deliveryLocationService = {
+    getAll: () => api.get('/delivery-locations'),
+    create: (data) => api.post('/delivery-locations', data),
+    update: (id, data) => api.put(`/delivery-locations/${id}`, data),
+    delete: (id) => api.delete(`/delivery-locations/${id}`),
+    resetDefaults: () => api.post('/delivery-locations/reset-defaults'),
+};
+
 export default api;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService, productService, categoryService, orderService, bannerService, settingsService } from '../services/api';
+import { authService, productService, categoryService, orderService, bannerService, settingsService, deliveryLocationService } from '../services/api';
 
 const ShopContext = createContext();
 
@@ -13,6 +13,7 @@ export const ShopProvider = ({ children }) => {
     const [categories, setCategories] = useState([]);
     const [banners, setBanners] = useState([]);
     const [deliveryFee, setDeliveryFee] = useState(5.00);
+    const [deliveryLocations, setDeliveryLocations] = useState([]);
     const [settings, setSettings] = useState({
         storeName: 'Gondar ሱቅ',
         storePhone: '0978787960',
@@ -41,17 +42,19 @@ export const ShopProvider = ({ children }) => {
                     setUser(parsedUser);
                 }
 
-                // Fetch Products, Categories, Banners & Settings
-                const [prodRes, catRes, banRes, setRes] = await Promise.all([
+                // Fetch Products, Categories, Banners, Settings & Delivery Locations
+                const [prodRes, catRes, banRes, setRes, locRes] = await Promise.all([
                     productService.getAll(),
                     categoryService.getAll(),
                     bannerService.getActive(),
-                    settingsService.getSettings()
+                    settingsService.getSettings(),
+                    deliveryLocationService.getAll().catch(() => ({ data: [] }))
                 ]);
 
                 if (prodRes.data) setProducts(prodRes.data);
                 if (catRes.data) setCategories(catRes.data);
                 if (banRes.data) setBanners(banRes.data);
+                if (locRes && locRes.data) setDeliveryLocations(locRes.data);
                 if (setRes.data) {
                     setSettings(setRes.data);
                     if (setRes.data.deliveryFee !== undefined) setDeliveryFee(setRes.data.deliveryFee);
@@ -116,6 +119,19 @@ export const ShopProvider = ({ children }) => {
             }
         } catch (e) {
             console.error("Failed to refresh settings:", e);
+        }
+    };
+
+    // Refresh delivery locations from server
+    const refreshDeliveryLocations = async () => {
+        try {
+            const { data } = await deliveryLocationService.getAll();
+            if (data) {
+                setDeliveryLocations(data);
+                return data;
+            }
+        } catch (e) {
+            console.error("Failed to refresh delivery locations:", e);
         }
     };
 
@@ -247,7 +263,9 @@ export const ShopProvider = ({ children }) => {
                 storeName,
                 storePhone: settings?.storePhone || '0978787960',
                 storeEmail: settings?.storeEmail || 'admin@gondarsuk.com',
-                refreshSettings
+                refreshSettings,
+                deliveryLocations,
+                refreshDeliveryLocations
             }}
         >
             {children}

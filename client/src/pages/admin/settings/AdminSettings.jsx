@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
     Settings as SettingsIcon, CreditCard, Moon, Sun, Save,
     ShieldAlert, ShieldCheck, CheckCircle2, RefreshCw, Key,
-    Store, Truck, Mail, Phone, Lock, Eye, EyeOff
+    Store, Truck, Mail, Phone, Lock, Eye, EyeOff, MapPin
 } from 'lucide-react';
 import { settingsService } from '../../../services/api';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
@@ -726,6 +727,48 @@ const AdminSettings = () => {
                                     color: 'var(--admin-text, #1a1b1e)'
                                 }}
                             />
+                        </div>
+
+                        {/* Link to Delivery Addresses Management */}
+                        <div style={{
+                            gridColumn: '1 / -1',
+                            padding: '1.2rem',
+                            background: 'var(--admin-input-bg, #f8f9fc)',
+                            borderRadius: '12px',
+                            border: '1px dashed var(--admin-border, #ced4da)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '0.8rem',
+                            marginTop: '0.5rem'
+                        }}>
+                            <div>
+                                <h4 style={{ margin: '0 0 4px', fontSize: '0.94rem', fontWeight: 700, color: 'var(--admin-text, #1a1b1e)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <MapPin size={17} color="#0ca678" />
+                                    Gondar Delivery Addresses & Autocomplete Management
+                                </h4>
+                                <p style={{ margin: 0, fontSize: '0.83rem', color: 'var(--admin-subtext, #868e96)' }}>
+                                    Add, edit, or remove suggested locations (Arada, Piassa, Maraki, Azezo, etc.) to help customer checkout.
+                                </p>
+                            </div>
+                            <Link
+                                to="/admin/delivery"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '9px 16px',
+                                    background: '#0ca678',
+                                    color: 'white',
+                                    borderRadius: '8px',
+                                    textDecoration: 'none',
+                                    fontSize: '0.84rem',
+                                    fontWeight: 700
+                                }}
+                            >
+                                Manage Delivery Addresses →
+                            </Link>
                         </div>
                     </div>
                 </div>
