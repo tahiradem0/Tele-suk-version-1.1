@@ -7,6 +7,7 @@ import {
 import { debtService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import CoolSelect from '../../../components/ui/CoolSelect';
+import VoiceInput from '../../../components/ui/VoiceInput';
 
 const DebtCreditManagement = () => {
     const { isAmharic } = useAdminLanguage();
@@ -711,12 +712,11 @@ const DebtCreditManagement = () => {
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'ማስታወሻ (አማራጭ)' : 'Notes (Optional)'}
                                 </label>
-                                <input
-                                    type="text"
+                                <VoiceInput
+                                    fieldHint="Debt notes"
                                     placeholder={isAmharic ? 'ለምሳሌ፡ በሳምንቱ መጨረሻ እንደሚከፍል ቃል ገብቷል' : 'e.g. Promised to pay by end of the week'}
                                     value={newDebtForm.notes}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, notes: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 />
                             </div>
 
@@ -829,12 +829,11 @@ const DebtCreditManagement = () => {
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የክፍያ ማጣቀሻ / ማስታወሻ' : 'Payment Reference / Note'}
                                 </label>
-                                <input
-                                    type="text"
+                                <VoiceInput
+                                    fieldHint="Debt payment note"
                                     placeholder={isAmharic ? 'አማራጭ ማስታወሻ' : 'Optional note'}
                                     value={payForm.note}
                                     onChange={(e) => setPayForm({ ...payForm, note: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 />
                             </div>
 

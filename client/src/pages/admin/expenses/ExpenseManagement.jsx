@@ -25,6 +25,7 @@ import { expenseService, groupService, forceRefreshCache } from '../../../servic
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import CoolSelect from '../../../components/ui/CoolSelect';
+import VoiceInput from '../../../components/ui/VoiceInput';
 import './ExpenseManagement.css';
 
 const CATEGORY_PALETTE = [
@@ -761,13 +762,12 @@ const ExpenseManagement = () => {
                                 <label className="mezgeb-field-label">
                                     {isAmharic ? 'የወጪው ምክንያት / ለምን ወጣ? *' : 'Reason / What was this expense for? *'}
                                 </label>
-                                <input
-                                    type="text"
+                                <VoiceInput
                                     required
+                                    fieldHint="Shop expense reason"
                                     placeholder={isAmharic ? 'ለምሳሌ፡ የሱቅ ኪራይ ወይም 200 ፌስታል ማሸጊያ' : 'e.g. Shop Rent or 200 Delivery Bags'}
                                     value={expenseForm.reason}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, reason: e.target.value })}
-                                    className="mezgeb-input"
                                 />
                             </div>
 
@@ -874,12 +874,11 @@ const ExpenseManagement = () => {
                                 <label className="mezgeb-field-label">
                                     {isAmharic ? 'ተጨማሪ ማስታወሻ (አማራጭ)' : 'Additional Notes (Optional)'}
                                 </label>
-                                <input
-                                    type="text"
+                                <VoiceInput
+                                    fieldHint="Additional expense note"
                                     placeholder={isAmharic ? 'ማስታወሻ...' : 'Any details...'}
                                     value={expenseForm.notes}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
-                                    className="mezgeb-input"
                                 />
                             </div>
 

@@ -608,9 +608,78 @@ const commitStructuredAction = asyncHandler(async (req, res) => {
     throw new Error('Unsupported action type');
 });
 
+// @desc    Fast Amharic & English Voice Dictation for any description/note input field
+// @route   POST /api/ai/transcribe-text
+// @access  Private/Admin
+const transcribeVoiceText = asyncHandler(async (req, res) => {
+    const { audioBase64 = '', audioMimeType = 'audio/wav', outputLanguage = 'am', fieldHint = '' } = req.body;
+    if (!audioBase64) {
+        res.status(400);
+        throw new Error('No audio recorded. Please tap the mic and speak.');
+    }
+
+    const { geminiApiKey, addisAiApiKey } = await getAiKeys();
+    const cleanMime = String(audioMimeType || 'audio/wav').split(';')[0].trim() || 'audio/wav';
+    let addisText = '';
+
+    // 1. Optional Addis AI Scribe first for crystal-clear Amharic speech recognition
+    if (addisAiApiKey) {
+        try {
+            addisText = await transcribeWithAddisAi(addisAiApiKey, audioBase64, cleanMime);
+        } catch (err) {
+            console.warn('[AI Dictate] Addis AI failed, falling back to Gemini:', err.message);
+        }
+    }
+
+    // 2. Gemini 2.5 Flash (thinkingBudget: 0) produces BOTH exact Amharic Ge'ez & clean English
+    if (geminiApiKey) {
+        const prompt = `You are a native Ethiopian Amharic & English dictation assistant for a shopkeeper.
+Listen carefully to every word spoken${fieldHint ? ` (for field: "${fieldHint}")` : ''}.
+Recognize Ethiopian names (ሃምዛ/Hamza, አበበ/Abebe, መሀመድ/Muhammed, ታሂር/Tahir, etc.) and shop terms accurately.
+Return ONLY valid JSON:
+{
+  "amharic": "Clean, natural Amharic Ge'ez script version of what was said",
+  "english": "Clean, concise natural English version of what was said"
+}`;
+
+        const parts = [{ text: prompt }];
+        if (addisText) {
+            parts.push({ text: `Exact Amharic speech transcript: "${addisText}"` });
+        } else {
+            parts.push({ inline_data: { mime_type: cleanMime, data: audioBase64 } });
+            parts.push({ text: 'Transcribe every word accurately into clean Amharic and clean English JSON.' });
+        }
+
+        const { parsed, model } = await callGemini(geminiApiKey, parts);
+        const amharicText = (parsed.amharic || addisText || '').trim();
+        const englishText = (parsed.english || parsed.amharic || addisText || '').trim();
+        const primaryText = outputLanguage === 'am' ? (amharicText || englishText) : (englishText || amharicText);
+
+        return res.json({
+            text: primaryText,
+            amharic: amharicText,
+            english: englishText,
+            engineUsed: addisText ? `addis_scribe + ${model}` : model,
+        });
+    }
+
+    if (addisText) {
+        return res.json({
+            text: addisText,
+            amharic: addisText,
+            english: addisText,
+            engineUsed: 'addis_scribe',
+        });
+    }
+
+    res.status(400);
+    throw new Error('Add a free Google Gemini API key in Settings to use voice dictation.');
+});
+
 module.exports = {
     getAiStatus,
     parseVoiceCommand,
     scanReceiptImage,
     commitStructuredAction,
+    transcribeVoiceText,
 };

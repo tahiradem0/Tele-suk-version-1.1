@@ -30,6 +30,7 @@ import { useShop } from '../../../context/ShopContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import SmartStockAdvisor from './SmartStockAdvisor';
 import CoolSelect from '../../../components/ui/CoolSelect';
+import VoiceInput from '../../../components/ui/VoiceInput';
 import './StoreManagement.css';
 
 const QUICK_ADD_AMOUNTS = [5, 10, 20, 50, 100];
@@ -1019,9 +1020,8 @@ const StoreManagement = ({ initialTab } = {}) => {
                                 <label className="sm-label">
                                     {isAmharic ? 'አጭር ማስታወሻ (አማራጭ)' : 'Short Note (optional)'}
                                 </label>
-                                <input
-                                    type="text"
-                                    className="sm-input"
+                                <VoiceInput
+                                    fieldHint="Stock purchase short note"
                                     placeholder={isAmharic ? 'ለምሳሌ፡ አዲስ ጭነት ደረሰ' : 'e.g. Morning delivery'}
                                     value={restockForm.note}
                                     onChange={(e) =>
@@ -1223,9 +1223,8 @@ const StoreManagement = ({ initialTab } = {}) => {
                                 <label className="sm-label">
                                     {isAmharic ? 'አጭር ማስታወሻ (አማራጭ)' : 'Short Note (optional)'}
                                 </label>
-                                <input
-                                    type="text"
-                                    className="sm-input"
+                                <VoiceInput
+                                    fieldHint="Stock count adjustment note"
                                     placeholder={isAmharic ? 'ለምሳሌ፡ 2 ፍሬ ተሰበረ' : 'e.g. 2 expired pieces removed'}
                                     value={adjustForm.note}
                                     onChange={(e) => setAdjustForm({ ...adjustForm, note: e.target.value })}

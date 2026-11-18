@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { crmService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import VoiceInput from '../../../components/ui/VoiceInput';
 import './CustomerMarketing.css';
 
 const CustomerMarketing = () => {
@@ -572,14 +573,15 @@ const CustomerMarketing = () => {
                             </div>
 
                             <div style={{ marginBottom: '1rem' }}>
-                                <textarea
+                                <VoiceInput
+                                    multiline
+                                    rows={4}
                                     required
-                                    className="voice-textarea"
-                                    style={{ minHeight: '110px' }}
+                                    fieldHint="Customer SMS promo or reminder message"
                                     placeholder={
                                         isAmharic
-                                            ? 'የሚላከውን SMS መልእክት እዚህ ይጻፉ...'
-                                            : 'Write your SMS message here (or click an AI button above)...'
+                                            ? 'የሚላከውን SMS መልእክት ይጻፉ ወይም ማይክሮፎኑን ተጭነው ይናገሩ...'
+                                            : 'Write your SMS message (or tap the mic to speak)...'
                                     }
                                     value={smsMessage}
                                     onChange={(e) => setSmsMessage(e.target.value)}

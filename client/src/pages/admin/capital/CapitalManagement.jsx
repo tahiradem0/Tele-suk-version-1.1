@@ -6,6 +6,7 @@ import {
 import { capitalService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import CoolSelect from '../../../components/ui/CoolSelect';
+import VoiceInput from '../../../components/ui/VoiceInput';
 
 const categoryLabels = {
     sale: 'Sales Revenue',
@@ -552,13 +553,12 @@ const CapitalManagement = () => {
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
                                     {isAmharic ? 'ዝርዝር ማብራሪያ *' : 'Description / Details *'}
                                 </label>
-                                <input
-                                    type="text"
+                                <VoiceInput
                                     required
+                                    fieldHint="Capital transaction description"
                                     placeholder={isAmharic ? 'ለምሳሌ፡ ተጨማሪ የንግድ ካፒታል ተቀማጭ' : 'e.g. Additional working capital injection'}
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
                                 />
                             </div>
 

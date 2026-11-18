@@ -29,6 +29,7 @@ export const forceRefreshCache = () => {
 
 const isReadOnlyAiPost = (url = '') =>
     url.includes('/ai/parse-voice') ||
+    url.includes('/ai/transcribe-text') ||
     url.includes('/ai/scan-receipt') ||
     url.includes('/crm/ai-write-sms');
 
@@ -266,6 +267,7 @@ export const groupService = {
 export const aiService = {
     getStatus: () => api.get('/ai/status'),
     parseVoice: (data) => api.post('/ai/parse-voice', data),
+    transcribeText: (data) => api.post('/ai/transcribe-text', data),
     scanReceipt: (data) => api.post('/ai/scan-receipt', data),
     commitAction: (data) => api.post('/ai/commit', data),
 };

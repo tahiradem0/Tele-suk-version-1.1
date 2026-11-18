@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Upload, AlertCircle } from 'lucide-react';
 import { productService, categoryService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import CoolSelect from '../../../components/ui/CoolSelect';
+import VoiceInput from '../../../components/ui/VoiceInput';
 
 const ProductForm = () => {
     const { isAmharic } = useAdminLanguage();
@@ -228,14 +229,15 @@ const ProductForm = () => {
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
                                 {isAmharic ? 'ዝርዝር ማብራሪያ *' : 'Description *'}
                             </label>
-                            <textarea
+                            <VoiceInput
+                                multiline
+                                rows={4}
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
                                 required
-                                rows={4}
-                                placeholder={isAmharic ? 'የምርቱን ዝርዝር፣ አመጣጥ፣ ይዘት እና መጠን ይግለጹ...' : 'Describe product details, origin, package size...'}
-                                style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc', fontFamily: 'inherit' }}
+                                fieldHint="Product description for online shop"
+                                placeholder={isAmharic ? 'የምርቱን ዝርዝር፣ አመጣጥ፣ ይዘት እና መጠን ይግለጹ (ወይም ማይክሮፎኑን ተጭነው ይናገሩ)...' : 'Describe product details, origin, package size (or tap the mic to speak)...'}
                             />
                         </div>
                     </div>

@@ -121,6 +121,7 @@ const cacheMiddleware = (req, res, next) => {
                 // Skip invalidating on read-only AI analysis & login endpoints
                 if (
                     !req.originalUrl.startsWith('/api/ai/parse-voice') &&
+                    !req.originalUrl.startsWith('/api/ai/transcribe-text') &&
                     !req.originalUrl.startsWith('/api/ai/scan-receipt') &&
                     !req.originalUrl.startsWith('/api/crm/ai-write-sms') &&
                     !req.originalUrl.startsWith('/api/auth/login')
