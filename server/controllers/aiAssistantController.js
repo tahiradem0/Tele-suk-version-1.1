@@ -36,29 +36,136 @@ const extractJsonObject = (text) => {
     }
 };
 
+// Helper: Exact Amharic + English Compound Number Parser (1 to 999,999,999)
+// Handles "ሁለት ሺህ አምስት መቶ" (2500), "ሁለት ሺህ ተኩል" (2500), "አንድ ሺህ ሁለት መቶ ሀምሳ" (1250),
+// "2 ሺህ 500" (2500), "2,500", "two thousand five hundred" (2500), etc.
+const parseSpokenAmount = (rawText = '') => {
+    const cleaned = String(rawText || '')
+        .replace(/,/g, '')
+        .replace(/[፡።፣፤፥፦]/g, ' ')
+        .trim();
+    if (!cleaned) return 0;
+
+    // Remove Ethiopian phone numbers before scanning amounts so "0911223344" is never read as Birr!
+    const withoutPhones = cleaned.replace(/(?:\+?251|0)[79]\d{8}/g, ' ');
+
+    const WORD_VALUES = {
+        // Amharic Units (1-9)
+        'አንድ': 1, 'አንደ': 1, 'ሁለት': 2, 'ሶስት': 3, 'ሦስት': 3, 'አራት': 4,
+        'አምስት': 5, 'ስድስት': 6, 'ሰባት': 7, 'ስምንት': 8, 'ዘጠኝ': 9,
+        // Amharic Teens & Tens (10-90)
+        'አስር': 10, 'ዐሥር': 10, 'አሥር': 10, 'አስራ': 10, 'ዐሥራ': 10, 'አሥራ': 10,
+        'ሃያ': 20, 'ሀያ': 20, 'ሐያ': 20,
+        'ሰላሳ': 30, 'ሠላሳ': 30,
+        'አርባ': 40, 'ዐርባ': 40,
+        'ሀምሳ': 50, 'ሃምሳ': 50, 'ሐምሳ': 50, 'ኀምሳ': 50,
+        'ስልሳ': 60, 'ሥልሳ': 60,
+        'ሰባ': 70,
+        'ሰማንያ': 80, 'ሰማኒያ': 80,
+        'ዘጠና': 90,
+        // English Units & Tens
+        'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+        'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+        'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+        'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19,
+        'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
+        'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90,
+    };
+
+    const MULTIPLIERS = {
+        'መቶ': 100, 'hundred': 100,
+        'ሺህ': 1000, 'ሺ': 1000, 'ሽህ': 1000, 'ሽ': 1000, 'thousand': 1000,
+        'ሚሊዮን': 1000000, 'ሚሊየን': 1000000, 'million': 1000000,
+    };
+
+    const HALF_WORDS = new Set(['ተኩል', 'ግማሽ', 'half']);
+    const CONNECTORS = new Set(['ከ', 'እና', 'and', 'with']);
+
+    const tokens = withoutPhones.toLowerCase().split(/\s+/).filter(Boolean);
+
+    let bestAmount = 0;
+    let total = 0;
+    let current = 0;
+    let lastMultiplier = 0;
+    let inNumber = false;
+
+    const flush = () => {
+        const candidate = total + current;
+        if (candidate > bestAmount) bestAmount = candidate;
+        total = 0;
+        current = 0;
+        lastMultiplier = 0;
+        inNumber = false;
+    };
+
+    for (let i = 0; i < tokens.length; i++) {
+        // Strip leading "ከ" (e.g. "ከአምስት" -> "አምስት") or trailing "ብር" punctuation
+        let tok = tokens[i].replace(/[^\p{L}\p{N}.]/gu, '');
+        if (!tok) continue;
+        if (tok.startsWith('ከ') && tok.length > 2 && (WORD_VALUES[tok.slice(1)] || MULTIPLIERS[tok.slice(1)])) {
+            tok = tok.slice(1);
+        }
+
+        // Pure numeric token (e.g. "2500", "2000", "500")
+        if (/^\d+(?:\.\d+)?$/.test(tok)) {
+            const num = Number(tok);
+            if (!isNaN(num)) {
+                inNumber = true;
+                current += num;
+                lastMultiplier = num >= 1000 ? 1000 : num >= 100 ? 100 : 1;
+                continue;
+            }
+        }
+
+        if (WORD_VALUES[tok] !== undefined) {
+            inNumber = true;
+            current += WORD_VALUES[tok];
+            continue;
+        }
+
+        if (MULTIPLIERS[tok] !== undefined) {
+            const mult = MULTIPLIERS[tok];
+            inNumber = true;
+            if (mult === 100) {
+                current = (current === 0 ? 1 : current) * 100;
+            } else {
+                total += (current === 0 ? 1 : current) * mult;
+                current = 0;
+            }
+            lastMultiplier = mult;
+            continue;
+        }
+
+        if (HALF_WORDS.has(tok) && inNumber) {
+            if (lastMultiplier >= 100) {
+                current += lastMultiplier / 2;
+            } else {
+                current += 0.5;
+            }
+            continue;
+        }
+
+        if (CONNECTORS.has(tok) && inNumber) {
+            continue;
+        }
+
+        if (inNumber) {
+            flush();
+        }
+    }
+
+    if (inNumber) flush();
+    return Math.round(bestAmount * 100) / 100;
+};
+
 // Helper: Built-in Zero-Cost Amharic + English Smart Parser (works offline with $0 API keys!)
 const parseWithLocalRules = (rawText = '') => {
     const text = String(rawText || '').trim();
     const lower = text.toLowerCase();
     const todayIso = new Date().toISOString().split('T')[0];
 
-    // 1. Extract numeric amount (supports "5,000", "1200 ብር", "ETB 350", etc.)
-    let amount = 0;
-    const numMatch = text.replace(/,/g, '').match(/(\d+(?:\.\d+)?)/);
-    if (numMatch) {
-        amount = Number(numMatch[1]);
-    } else {
-        // Basic Amharic spoken number words fallback
-        if (text.includes('አስር ሺህ')) amount = 10000;
-        else if (text.includes('አምስት ሺህ')) amount = 5000;
-        else if (text.includes('ሶስት ሺህ') || text.includes('ሦስት ሺህ')) amount = 3000;
-        else if (text.includes('ሁለት ሺህ')) amount = 2000;
-        else if (text.includes('አንድ ሺህ') || text.includes('ሺህ')) amount = 1000;
-        else if (text.includes('አምስት መቶ')) amount = 500;
-        else if (text.includes('ሶስት መቶ')) amount = 300;
-        else if (text.includes('ሁለት መቶ')) amount = 200;
-        else if (text.includes('መቶ')) amount = 100;
-    }
+    // 1. Extract exact numeric or compound Amharic/English spoken amount
+    const amount = parseSpokenAmount(text);
 
     // 2. Detect payment method
     let paymentMethod = 'Cash';
@@ -180,7 +287,13 @@ const modelCooldownUntil = new Map();
 // - Audio listening uses thinkingBudget: 256 & temperature: 0.0 for sharp Amharic phoneme accuracy
 // - Text-only parsing uses thinkingBudget: 0 for instant response
 const callGemini = async (apiKey, parts, { isAudio = false } = {}) => {
-    const models = ['gemini-2.5-flash', 'gemini-3.5-flash-lite'];
+    const models = [
+        'gemini-2.5-flash',
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-flash-lite',
+        'gemini-flash-latest',
+    ];
     let lastError = null;
 
     for (const model of models) {
@@ -433,9 +546,13 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
             }
 
             const { parsed, model } = await callGemini(geminiApiKey, parts, { isAudio: sendingAudio });
+            const exactParsedAmount = parseSpokenAmount(workingTranscript || parsed.originalText || '');
+            const geminiAmount = Number(parsed.amount) || 0;
+            const finalAmount = geminiAmount > 0 ? geminiAmount : exactParsedAmount;
+
             const resultPayload = {
                 ...parsed,
-                amount: Number(parsed.amount) || 0,
+                amount: finalAmount,
                 originalText: parsed.originalText || workingTranscript,
                 amharicSummary: parsed.amharicSummary || '',
                 engineUsed: addisUsed ? `addis_scribe + ${model}` : model,
