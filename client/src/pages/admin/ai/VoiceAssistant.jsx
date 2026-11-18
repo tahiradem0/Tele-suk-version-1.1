@@ -8,6 +8,7 @@ import {
     CheckCircle2,
     AlertCircle,
     ArrowRight,
+    ArrowUp,
     Calendar,
     Settings,
     Loader2,
@@ -23,8 +24,7 @@ import './VoiceAssistant.css';
 const QUICK_EXAMPLES = [
     'ዛሬ ለሱቅ ኪራይ 5000 ብር በቴሌብር ከፈልኩ',
     'አበበ 1200 ብር ብድር ወሰደ 0911223344',
-    'ለፌስታል ማሸጊያ 350 ብር በካሽ ከፈልኩ',
-    'Paid 450 birr for taxi delivery in cash',
+    'ለሃምዛ መቶ ብር ሰጥቼዋለሁ',
 ];
 
 const EXPENSE_CATEGORIES = [
@@ -47,11 +47,15 @@ const VoiceAssistant = () => {
         activeMode: 'builtin_free',
     });
 
+    const [activeMode, setActiveMode] = useState('voice'); // 'voice' | 'receipt'
     const [spokenLang, setSpokenLang] = useState('am-ET');
     const [transcript, setTranscript] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [recordingSeconds, setRecordingSeconds] = useState(0);
+    const [eqLevels, setEqLevels] = useState([10, 14, 18, 22, 18, 14, 10]);
     const [recordedAudioUrl, setRecordedAudioUrl] = useState(null);
+    const [responseTimeSec, setResponseTimeSec] = useState(null);
+
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isScanningReceipt, setIsScanningReceipt] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -61,19 +65,20 @@ const VoiceAssistant = () => {
     const [savedFeedback, setSavedFeedback] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
 
-    // Audio & Speech Refs
+    // Refs for audio recording + live equalizer
     const recognitionRef = useRef(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const liveTranscriptRef = useRef('');
     const timerRef = useRef(null);
+    const analyserCtxRef = useRef(null);
+    const rafRef = useRef(null);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
         loadStatus();
         return () => {
-            stopRecordingCleanup();
-            if (timerRef.current) clearInterval(timerRef.current);
+            stopAllAudio();
         };
     }, []);
 
@@ -86,7 +91,24 @@ const VoiceAssistant = () => {
         }
     };
 
-    const stopRecordingCleanup = () => {
+    const stopVisualizer = () => {
+        if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+        }
+        if (analyserCtxRef.current) {
+            analyserCtxRef.current.close().catch(() => {});
+            analyserCtxRef.current = null;
+        }
+        setEqLevels([10, 14, 18, 22, 18, 14, 10]);
+    };
+
+    const stopAllAudio = () => {
+        stopVisualizer();
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
         try {
             if (recognitionRef.current) {
                 recognitionRef.current.stop();
@@ -95,9 +117,33 @@ const VoiceAssistant = () => {
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
             }
-        } catch {
-            // ignore cleanup errors
-        }
+        } catch {}
+    };
+
+    const startLiveVisualizer = (stream) => {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const source = ctx.createMediaStreamSource(stream);
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 64;
+            source.connect(analyser);
+            analyserCtxRef.current = ctx;
+
+            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            const tick = () => {
+                analyser.getByteFrequencyData(freqData);
+                const bins = [1, 2, 4, 6, 8, 11, 14];
+                const levels = bins.map((idx) => {
+                    const val = freqData[idx] || 0;
+                    return Math.max(7, Math.min(34, Math.round((val / 255) * 34)));
+                });
+                setEqLevels(levels);
+                rafRef.current = requestAnimationFrame(tick);
+            };
+            tick();
+        } catch {}
     };
 
     const blobToBase64 = (blob) =>
@@ -112,20 +158,19 @@ const VoiceAssistant = () => {
         });
 
     const handleToggleRecording = async () => {
+        if (isAnalyzing) return;
         setErrorMsg('');
         setSavedFeedback(null);
 
         if (isRecording) {
-            // Stop recording -> triggers mediaRecorder.onstop to encode clean WAV & analyze!
             setIsRecording(false);
+            stopVisualizer();
             if (timerRef.current) {
                 clearInterval(timerRef.current);
                 timerRef.current = null;
             }
             if (recognitionRef.current) {
-                try {
-                    recognitionRef.current.stop();
-                } catch {}
+                try { recognitionRef.current.stop(); } catch {}
             }
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
@@ -135,11 +180,11 @@ const VoiceAssistant = () => {
             return;
         }
 
-        // Start fresh recording
         liveTranscriptRef.current = '';
         setTranscript('');
         setParsedData(null);
         setRecordingSeconds(0);
+        setResponseTimeSec(null);
         if (recordedAudioUrl) {
             URL.revokeObjectURL(recordedAudioUrl);
             setRecordedAudioUrl(null);
@@ -148,8 +193,6 @@ const VoiceAssistant = () => {
 
         const hasCloudAudioAi = Boolean(aiStatus.geminiEnabled || aiStatus.addisAiEnabled);
 
-        // Only use browser Web Speech API when in offline free mode (no Gemini/Addis AI),
-        // because Chrome's Web Speech often mishears Amharic consonants.
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!hasCloudAudioAi && SpeechRecognition) {
             try {
@@ -171,7 +214,6 @@ const VoiceAssistant = () => {
             } catch {}
         }
 
-        // Capture crystal-clear speech microphone audio -> encode to lossless 16kHz PCM WAV
         try {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 const stream = await navigator.mediaDevices.getUserMedia({
@@ -182,6 +224,8 @@ const VoiceAssistant = () => {
                         channelCount: 1,
                     },
                 });
+                startLiveVisualizer(stream);
+
                 const recorder = new MediaRecorder(stream);
                 mediaRecorderRef.current = recorder;
 
@@ -192,6 +236,7 @@ const VoiceAssistant = () => {
                 };
 
                 recorder.onstop = async () => {
+                    stopVisualizer();
                     stream.getTracks().forEach((track) => track.stop());
                     const rawMime = (recorder.mimeType || 'audio/webm').split(';')[0].trim();
                     const audioBlob = new Blob(audioChunksRef.current, { type: rawMime });
@@ -206,7 +251,6 @@ const VoiceAssistant = () => {
 
                     if (hasCloudAudioAi && audioBlob.size > 0) {
                         try {
-                            // Convert to lossless 16kHz Mono PCM WAV for highest Amharic accuracy!
                             const wav = await convertBlobToCleanWavBase64(audioBlob);
                             audioBase64 = wav.base64;
                             audioMimeType = wav.mimeType;
@@ -220,7 +264,6 @@ const VoiceAssistant = () => {
 
                     if (audioBase64 || finalTranscript) {
                         await analyzeInput({
-                            // Send ONLY clean audio when Cloud AI is active so Chrome typos never bias AI
                             transcript: hasCloudAudioAi ? '' : finalTranscript,
                             audioBase64,
                             audioMimeType,
@@ -228,8 +271,8 @@ const VoiceAssistant = () => {
                     } else {
                         setErrorMsg(
                             isAmharic
-                                ? 'ድምፅዎ አልተሰማም። እባክዎ እንደገና ይሞክሩ ወይም ከታች ይጻፉ።'
-                                : 'No speech detected. Try speaking closer to the mic or type your message below.'
+                                ? 'ድምፅዎ አልተሰማም። እባክዎ እንደገና ይሞክሩ።'
+                                : 'No speech detected. Try speaking closer to the mic.'
                         );
                     }
                 };
@@ -244,15 +287,15 @@ const VoiceAssistant = () => {
             } else {
                 setErrorMsg(
                     isAmharic
-                        ? 'ይህ ብራውዘር ማይክሮፎን አይደግፍም። እባክዎ Chrome ይጠቀሙ ወይም ከታች ይጻፉ።'
-                        : 'Microphone recording is not supported in this browser. Use Chrome or type your message below.'
+                        ? 'ይህ ብራውዘር ማይክሮፎን አይደግፍም።'
+                        : 'Microphone is not supported in this browser.'
                 );
             }
-        } catch (err) {
+        } catch {
             setErrorMsg(
                 isAmharic
-                    ? 'የማይክሮፎን ፍቃድ ተከልክሏል። እባክዎ ማይክሮፎን ይፍቀዱ ወይም ከታች ይጻፉ።'
-                    : 'Microphone permission was denied. Allow microphone access or type your message below.'
+                    ? 'የማይክሮፎን ፍቃድ ተከልክሏል።'
+                    : 'Microphone permission was denied.'
             );
         }
     };
@@ -261,16 +304,16 @@ const VoiceAssistant = () => {
         setErrorMsg('');
         setSavedFeedback(null);
         setIsAnalyzing(true);
+        const t0 = performance.now();
         try {
             const { data } = await aiService.parseVoice({
                 transcript: textToParse,
                 audioBase64,
                 audioMimeType,
             });
+            setResponseTimeSec(((performance.now() - t0) / 1000).toFixed(1));
             const cleanAmharic = data.originalText || textToParse || '';
-            if (cleanAmharic) {
-                setTranscript(cleanAmharic);
-            }
+            if (cleanAmharic) setTranscript(cleanAmharic);
             setParsedData({
                 originalText: cleanAmharic,
                 englishTranslation: data.englishTranslation || '',
@@ -305,14 +348,17 @@ const VoiceAssistant = () => {
             const dataUrl = String(reader.result || '');
             setReceiptPreview(dataUrl);
             setIsScanningReceipt(true);
+            const t0 = performance.now();
             try {
                 const { data } = await aiService.scanReceipt({
                     imageBase64: dataUrl,
                     mimeType: file.type || 'image/jpeg',
                 });
+                setResponseTimeSec(((performance.now() - t0) / 1000).toFixed(1));
                 setParsedData({
-                    originalText: data.originalText || 'Receipt Photo Scanned',
-                    englishTranslation: data.englishTranslation || 'Expense read from receipt photo',
+                    originalText: data.originalText || 'Receipt Photo',
+                    englishTranslation: data.englishTranslation || 'Expense read from receipt',
+                    amharicSummary: data.amharicSummary || '',
                     actionType: 'expense',
                     amount: data.amount ? String(data.amount) : '',
                     reason: data.reason || 'Receipt Expense',
@@ -355,86 +401,60 @@ const VoiceAssistant = () => {
         }
     };
 
-    const engineLabel =
+    const handleCommandSubmit = (e) => {
+        e.preventDefault();
+        if (!transcript.trim() || isAnalyzing) return;
+        analyzeInput({ transcript: transcript.trim() });
+    };
+
+    const engineBadge =
         aiStatus.activeMode === 'addis_plus_gemini'
-            ? isAmharic ? 'Addis AI + Gemini Pro ንቁ ነው' : 'Addis AI + Gemini Active'
+            ? 'Addis Scribe + Gemini'
             : aiStatus.activeMode === 'gemini_free'
-                ? isAmharic ? 'Gemini Free AI ንቁ ነው ($0)' : 'Gemini Free AI Active ($0)'
-                : isAmharic ? 'ነፃ አብሮ የተሰራ አማርኛ አንባቢ ($0)' : 'Free Built-In Amharic Reader ($0)';
+                ? 'Gemini 2.5 Fast'
+                : 'Built-In Free';
 
     return (
-        <div className="voice-page">
-            {/* 1. HERO BANNER */}
-            <div className="voice-hero">
-                <div className="voice-hero-left">
-                    <div className="voice-hero-badge">
-                        <Mic size={26} />
-                    </div>
-                    <div>
-                        <h1 className="voice-hero-title">
-                            {isAmharic ? 'በድምፅ እና በደረሰኝ ፎቶ መመዝገቢያ' : 'Amharic Voice & Receipt Helper'}
-                        </h1>
-                        <p className="voice-hero-sub">
-                            {isAmharic
-                                ? 'በአማርኛ ይናገሩ ወይም የደረሰኝ ፎቶ ያንሱ — ወደ ንጹህ መረጃ ተቀይሮ ወዲያውኑ ወደ ሱቅዎ ይቀመጣል!'
-                                : 'Just speak in Amharic or snap a receipt — turned into clean English data and saved to your shop in 1 tap!'}
-                        </p>
+        <div className="vai-stage">
+            {/* 1. MINIMAL TOP BAR */}
+            <div className="vai-topbar">
+                <div className="vai-heading-group">
+                    <h1 className="vai-title">
+                        <span>{isAmharic ? 'በድምፅ እና ደረሰኝ መመዝገቢያ' : 'Voice & Receipt AI'}</span>
+                    </h1>
+                    <div className="vai-status-dot">
+                        <span className="vai-dot-pulse" />
+                        <span>{engineBadge}</span>
+                        {responseTimeSec && <span>• {responseTimeSec}s</span>}
                     </div>
                 </div>
-                <span className="voice-engine-pill">
-                    <Sparkles size={14} />
-                    <span>{engineLabel}</span>
-                </span>
+
+                {/* Clean Segmented Mode Switch */}
+                <div className="vai-mode-switch">
+                    <button
+                        type="button"
+                        onClick={() => setActiveMode('voice')}
+                        className={`vai-mode-btn ${activeMode === 'voice' ? 'active' : ''}`}
+                    >
+                        <Mic size={15} />
+                        <span>{isAmharic ? 'ድምፅ' : 'Voice'}</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveMode('receipt')}
+                        className={`vai-mode-btn ${activeMode === 'receipt' ? 'active' : ''}`}
+                    >
+                        <Camera size={15} />
+                        <span>{isAmharic ? 'ደረሰኝ ፎቶ' : 'Receipt'}</span>
+                    </button>
+                </div>
             </div>
 
-            {/* OPTIONAL FREE SETUP TIP (when Gemini key is not yet added) */}
-            {!aiStatus.geminiEnabled && (
-                <div
-                    style={{
-                        background: 'var(--admin-card-bg, #ffffff)',
-                        border: '1px solid rgba(6, 182, 212, 0.35)',
-                        borderRadius: '16px',
-                        padding: '0.95rem 1.2rem',
-                        marginBottom: '1.3rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '0.8rem',
-                    }}
-                >
-                    <div style={{ fontSize: '0.86rem', color: 'var(--admin-text, #1e293b)', fontWeight: 600 }}>
-                        💡{' '}
-                        {isAmharic
-                            ? 'አሁን ነፃ አብሮ የተሰራው አንባቢ እየሰራ ነው። የደረሰኝ ፎቶ ለማንበብ እና የላቀ AI ለማግኘት ነፃ Gemini Key (ወይም Addis AI Key) በቅንብሮች ውስጥ ያስገቡ።'
-                            : 'Free built-in Amharic voice reader is ready now! To also unlock AI Receipt Photo Scanning & Addis AI, paste your free Gemini key in Settings.'}
-                    </div>
-                    <Link
-                        to="/admin/settings"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '6px 12px',
-                            borderRadius: '10px',
-                            background: 'rgba(6, 182, 212, 0.12)',
-                            color: '#0284c7',
-                            fontWeight: 700,
-                            fontSize: '0.82rem',
-                            textDecoration: 'none',
-                        }}
-                    >
-                        <Settings size={14} />
-                        <span>{isAmharic ? 'AI ቁልፍ አስገባ' : 'Add Free AI Key'}</span>
-                    </Link>
-                </div>
-            )}
-
-            {/* SUCCESS FEEDBACK */}
+            {/* FEEDBACK TOASTS */}
             {savedFeedback && (
-                <div className="voice-success-banner">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-                        <CheckCircle2 size={24} />
+                <div className="vai-toast-ok">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircle2 size={20} />
                         <span>{isAmharic ? savedFeedback.messageAm : savedFeedback.messageEn}</span>
                     </div>
                     <Link
@@ -442,101 +462,250 @@ const VoiceAssistant = () => {
                         style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '7px 14px',
-                            borderRadius: '10px',
-                            background: '#10b981',
+                            gap: '5px',
                             color: '#ffffff',
+                            background: '#10b981',
+                            padding: '6px 13px',
+                            borderRadius: '999px',
+                            fontSize: '0.8rem',
                             textDecoration: 'none',
-                            fontSize: '0.84rem',
-                            fontWeight: 700,
                         }}
                     >
-                        <span>{isAmharic ? 'የተመዘገበውን እይ' : 'View Saved Record'}</span>
-                        <ArrowRight size={15} />
+                        <span>{isAmharic ? 'እይ' : 'View'}</span>
+                        <ArrowRight size={14} />
                     </Link>
                 </div>
             )}
 
-            {/* ERROR BANNER */}
             {errorMsg && (
-                <div className="voice-error-banner">
-                    <AlertCircle size={18} />
+                <div className="vai-toast-err">
+                    <AlertCircle size={17} />
                     <span>{errorMsg}</span>
                 </div>
             )}
 
-            {/* 2. CONFIRMATION & SAVE CARD (Appears right away when Voice or Receipt is analyzed!) */}
-            {parsedData && (
-                <div className="voice-confirm-card">
-                    <div className="voice-card-title">
-                        <h2>
-                            <Sparkles size={20} color="#06b6d4" />
-                            <span>{isAmharic ? 'መረጃውን ያረጋግጡና ያስቀምጡ' : 'Check & Save To Your Shop'}</span>
-                        </h2>
+            {/* 2. MINIMAL FOCUSED STUDIO SURFACE */}
+            <div className={`vai-studio-card ${isRecording ? 'is-recording' : ''} ${isAnalyzing || isScanningReceipt ? 'is-analyzing' : ''}`}>
+                <div className="vai-studio-meta">
+                    <div className="vai-mini-lang">
                         <button
                             type="button"
-                            onClick={() => setParsedData(null)}
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--admin-subtext, #64748b)',
-                                cursor: 'pointer',
-                                fontWeight: 700,
-                                fontSize: '0.82rem',
-                            }}
+                            onClick={() => setSpokenLang('am-ET')}
+                            className={spokenLang === 'am-ET' ? 'active' : ''}
                         >
-                            <RotateCcw size={14} />
-                            <span>{isAmharic ? 'እንደገና ጀምር' : 'Start Over'}</span>
+                            አማርኛ
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setSpokenLang('en-US')}
+                            className={spokenLang === 'en-US' ? 'active' : ''}
+                        >
+                            EN
                         </button>
                     </div>
+                    <Link to="/admin/settings" className="vai-key-link">
+                        <Settings size={13} />
+                        <span>{isAmharic ? 'AI ቁልፎች' : 'AI Keys'}</span>
+                    </Link>
+                </div>
 
-                    {/* Amharic -> English Translation Display */}
-                    <div className="voice-translation-box">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0284c7' }}>
-                                {isAmharic ? 'ትክክለኛ የአማርኛ እና እንግሊዝኛ ትርጉም' : 'Word-for-Word Amharic & English'}
-                            </span>
-                            {parsedData.engineUsed && (
-                                <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: 'rgba(6, 182, 212, 0.14)', color: '#0284c7' }}>
-                                    {parsedData.engineUsed}
-                                </span>
+                {activeMode === 'voice' ? (
+                    <>
+                        {/* LIVING VOICE ORB */}
+                        <div className="vai-orb-container">
+                            {!isRecording && !isAnalyzing && <div className="vai-orb-aura" />}
+                            {isRecording && (
+                                <>
+                                    <div className="vai-sonar-ring" />
+                                    <div className="vai-sonar-ring delay" />
+                                </>
                             )}
+                            {isAnalyzing && <div className="vai-orbit-ring" />}
+
+                            <button
+                                type="button"
+                                onClick={handleToggleRecording}
+                                disabled={isAnalyzing}
+                                className={`vai-orb-btn ${isRecording ? 'recording' : ''} ${isAnalyzing ? 'analyzing' : ''}`}
+                                aria-label={isRecording ? 'Stop Recording' : 'Start Recording'}
+                            >
+                                {isAnalyzing ? (
+                                    <Sparkles size={36} color="#67e8f9" />
+                                ) : isRecording ? (
+                                    <Square size={30} fill="#ffffff" />
+                                ) : (
+                                    <Mic size={40} strokeWidth={2.2} />
+                                )}
+                            </button>
                         </div>
-                        {parsedData.originalText && (
-                            <div style={{ fontSize: '0.96rem', fontWeight: 700, color: 'var(--admin-text, #0f172a)', marginBottom: '6px' }}>
-                                🇪🇹 <span>"{parsedData.originalText}"</span>
+
+                        {/* REAL-TIME EQUALIZER BARS WHILE SPEAKING */}
+                        {isRecording && (
+                            <div className="vai-eq-bars" aria-hidden="true">
+                                {eqLevels.map((h, i) => (
+                                    <span key={i} className="vai-eq-bar" style={{ height: `${h}px` }} />
+                                ))}
                             </div>
                         )}
-                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#059669' }}>
+
+                        <div className="vai-orb-caption">
+                            {isRecording
+                                ? isAmharic ? 'እያዳመጥኩ ነው... ሲጨርሱ ይጫኑ' : 'Listening... tap to finish'
+                                : isAnalyzing
+                                    ? isAmharic ? 'በፍጥነት በመተርጎም ላይ...' : 'Translating...'
+                                    : isAmharic ? 'በአማርኛ ይናገሩ' : 'Tap & Speak in Amharic'}
+                        </div>
+
+                        {isRecording ? (
+                            <div className="vai-timer-badge">
+                                <span>●</span>
+                                <span>
+                                    {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="vai-orb-sub">
+                                {isAmharic
+                                    ? 'ወጪ፣ ብድር ወይም ገቢ በአንድ ዓረፍተ ነገር ይናገሩ'
+                                    : 'Say any expense, credit, or cash entry naturally'}
+                            </div>
+                        )}
+
+                        {/* MINIMAL SINGLE-LINE COMMAND PILL */}
+                        <form onSubmit={handleCommandSubmit} className="vai-command-pill">
+                            <input
+                                type="text"
+                                className="vai-command-input"
+                                placeholder={
+                                    isAmharic
+                                        ? 'ወይም እዚህ በአማርኛ ይጻፉ...'
+                                        : 'Or type in Amharic / English...'
+                                }
+                                value={transcript}
+                                onChange={(e) => setTranscript(e.target.value)}
+                            />
+                            <button
+                                type="submit"
+                                disabled={!transcript.trim() || isAnalyzing}
+                                className="vai-command-send"
+                                title="Analyze"
+                            >
+                                {isAnalyzing ? <Loader2 size={17} className="spinning-refresh-icon" /> : <ArrowUp size={18} strokeWidth={2.5} />}
+                            </button>
+                        </form>
+
+                        {/* SUBTLE GHOST EXAMPLES */}
+                        <div className="vai-ghost-chips">
+                            {QUICK_EXAMPLES.map((ex) => (
+                                <button
+                                    key={ex}
+                                    type="button"
+                                    className="vai-ghost-chip"
+                                    onClick={() => {
+                                        setTranscript(ex);
+                                        analyzeInput({ transcript: ex });
+                                    }}
+                                >
+                                    {ex}
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    /* RECEIPT SCANNER STAGE */
+                    <>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            style={{ display: 'none' }}
+                            onChange={handleReceiptFileChange}
+                        />
+                        <div
+                            className="vai-receipt-zone"
+                            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                        >
+                            {receiptPreview ? (
+                                <div className="vai-receipt-preview-wrap">
+                                    <img src={receiptPreview} alt="Receipt" className="vai-receipt-img" />
+                                    {isScanningReceipt && <div className="vai-laser-beam" />}
+                                </div>
+                            ) : (
+                                <div
+                                    style={{
+                                        width: '68px',
+                                        height: '68px',
+                                        borderRadius: '20px',
+                                        background: 'rgba(16, 185, 129, 0.14)',
+                                        color: '#10b981',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        margin: '0 auto 1rem',
+                                    }}
+                                >
+                                    <Camera size={32} />
+                                </div>
+                            )}
+                            <div className="vai-orb-caption">
+                                {isScanningReceipt
+                                    ? isAmharic ? 'ደረሰኙን በማንበብ ላይ...' : 'Scanning receipt...'
+                                    : isAmharic ? 'የደረሰኝ ፎቶ ለመምረጥ ይጫኑ' : 'Tap to snap or upload receipt'}
+                            </div>
+                            <div className="vai-orb-sub">
+                                {isAmharic
+                                    ? 'ብር፣ ቀን እና ምክንያት በራስ-ሰር ይነበባል'
+                                    : 'Amount, date & category extracted automatically'}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* 3. SPRING-ANIMATED CONFIRMATION & SAVE CARD */}
+            {parsedData && (
+                <div className="vai-confirm-card">
+                    <div className="vai-quote-bar">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#06b6d4' }}>
+                                {isAmharic ? 'ትርጉም እና ማረጋገጫ' : 'Understood'}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setParsedData(null)}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: 'var(--admin-subtext, #64748b)', cursor: 'pointer', fontSize: '0.76rem', fontWeight: 700 }}
+                            >
+                                <RotateCcw size={13} />
+                                <span>{isAmharic ? 'ዝጋ' : 'Clear'}</span>
+                            </button>
+                        </div>
+
+                        {parsedData.originalText && (
+                            <div style={{ fontSize: '0.96rem', fontWeight: 700, color: 'var(--admin-text, #0f172a)', marginBottom: '4px' }}>
+                                🇪🇹 "{parsedData.originalText}"
+                            </div>
+                        )}
+                        <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#10b981' }}>
                             🇬🇧 {parsedData.englishTranslation}
                         </div>
-                        {parsedData.amharicSummary && (
-                            <div style={{ fontSize: '0.84rem', color: 'var(--admin-subtext, #475569)', marginTop: '5px', fontWeight: 600 }}>
-                                ✨ {parsedData.amharicSummary}
-                            </div>
-                        )}
                         {recordedAudioUrl && (
-                            <audio controls src={recordedAudioUrl} style={{ width: '100%', height: '34px', marginTop: '0.7rem' }} />
+                            <audio controls src={recordedAudioUrl} style={{ width: '100%', height: '32px', marginTop: '0.65rem' }} />
                         )}
                     </div>
 
-                    {/* Choose Where To Save */}
-                    <div className="voice-action-tabs">
+                    <div className="vai-action-pills">
                         {[
-                            { key: 'expense', en: 'Shop Expense', am: 'የሱቅ ወጪ' },
-                            { key: 'debt_receivable', en: 'Customer Owes Me', am: 'የደንበኛ ብድር' },
-                            { key: 'debt_payable', en: 'I Owe Supplier', am: 'የአቅራቢ እዳ' },
-                            { key: 'capital_inflow', en: 'Add Shop Cash', am: 'ጥሬ ገንዘብ ጨምር' },
+                            { key: 'expense', en: 'Expense', am: 'የሱቅ ወጪ' },
+                            { key: 'debt_receivable', en: 'Customer Debt', am: 'የደንበኛ ብድር' },
+                            { key: 'debt_payable', en: 'Supplier Debt', am: 'የአቅራቢ እዳ' },
+                            { key: 'capital_inflow', en: 'Add Cash', am: 'ገንዘብ ጨምር' },
                         ].map((tab) => (
                             <button
                                 key={tab.key}
                                 type="button"
                                 onClick={() => setParsedData({ ...parsedData, actionType: tab.key })}
-                                className={`voice-action-tab ${parsedData.actionType === tab.key ? 'active' : ''}`}
+                                className={`vai-action-pill ${parsedData.actionType === tab.key ? 'active' : ''}`}
                             >
                                 {isAmharic ? tab.am : tab.en}
                             </button>
@@ -544,11 +713,9 @@ const VoiceAssistant = () => {
                     </div>
 
                     <form onSubmit={handleConfirmSave}>
-                        <div className="voice-form-grid">
+                        <div className="vai-form-grid">
                             <div>
-                                <label className="mezgeb-field-label">
-                                    {isAmharic ? 'መጠን በብር (ETB) *' : 'Amount (ETB) *'}
-                                </label>
+                                <label className="mezgeb-field-label">{isAmharic ? 'መጠን (ETB) *' : 'Amount (ETB) *'}</label>
                                 <input
                                     type="number"
                                     required
@@ -557,14 +724,11 @@ const VoiceAssistant = () => {
                                     value={parsedData.amount}
                                     onChange={(e) => setParsedData({ ...parsedData, amount: e.target.value })}
                                     className="mezgeb-input"
-                                    style={{ fontSize: '1.15rem', fontWeight: 800 }}
+                                    style={{ fontSize: '1.1rem', fontWeight: 800 }}
                                 />
                             </div>
-
                             <div>
-                                <label className="mezgeb-field-label">
-                                    {isAmharic ? 'ምክንያት / መግለጫ *' : 'Reason / Description *'}
-                                </label>
+                                <label className="mezgeb-field-label">{isAmharic ? 'ምክንያት *' : 'Description *'}</label>
                                 <input
                                     type="text"
                                     required
@@ -576,18 +740,14 @@ const VoiceAssistant = () => {
 
                             {parsedData.actionType === 'expense' && (
                                 <div>
-                                    <label className="mezgeb-field-label">
-                                        {isAmharic ? 'የወጪ ምድብ' : 'Category'}
-                                    </label>
+                                    <label className="mezgeb-field-label">{isAmharic ? 'ምድብ' : 'Category'}</label>
                                     <select
                                         value={parsedData.categoryName}
                                         onChange={(e) => setParsedData({ ...parsedData, categoryName: e.target.value })}
                                         className="mezgeb-input"
                                     >
                                         {EXPENSE_CATEGORIES.map((cat) => (
-                                            <option key={cat} value={cat}>
-                                                {cat}
-                                            </option>
+                                            <option key={cat} value={cat}>{cat}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -596,9 +756,7 @@ const VoiceAssistant = () => {
                             {(parsedData.actionType === 'debt_receivable' || parsedData.actionType === 'debt_payable') && (
                                 <>
                                     <div>
-                                        <label className="mezgeb-field-label">
-                                            {isAmharic ? 'የሰው / የአቅራቢ ስም *' : 'Person / Supplier Name *'}
-                                        </label>
+                                        <label className="mezgeb-field-label">{isAmharic ? 'ስም *' : 'Person Name *'}</label>
                                         <input
                                             type="text"
                                             required
@@ -608,9 +766,7 @@ const VoiceAssistant = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mezgeb-field-label">
-                                            {isAmharic ? 'ስልክ ቁጥር' : 'Phone Number'}
-                                        </label>
+                                        <label className="mezgeb-field-label">{isAmharic ? 'ስልክ' : 'Phone'}</label>
                                         <input
                                             type="text"
                                             placeholder="09..."
@@ -623,9 +779,7 @@ const VoiceAssistant = () => {
                             )}
 
                             <div>
-                                <label className="mezgeb-field-label">
-                                    {isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}
-                                </label>
+                                <label className="mezgeb-field-label">{isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}</label>
                                 <select
                                     value={parsedData.paymentMethod}
                                     onChange={(e) => setParsedData({ ...parsedData, paymentMethod: e.target.value })}
@@ -640,190 +794,29 @@ const VoiceAssistant = () => {
                             </div>
 
                             <div>
-                                <label className="mezgeb-field-label">
-                                    {isAmharic ? 'ቀን' : 'Date'}
-                                </label>
+                                <label className="mezgeb-field-label">{isAmharic ? 'ቀን' : 'Date'}</label>
                                 <input
                                     type="date"
                                     value={parsedData.date}
                                     onChange={(e) => setParsedData({ ...parsedData, date: e.target.value })}
                                     className="mezgeb-input"
                                 />
-                                <div style={{ fontSize: '0.76rem', color: '#06b6d4', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <Calendar size={12} />
-                                    <span>{toEthiopianDate(parsedData.date, true)}</span>
-                                </div>
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                            <button type="submit" disabled={isSaving} className="voice-save-btn">
-                                {isSaving ? <Loader2 size={18} className="spinning-refresh-icon" /> : <Save size={18} />}
-                                <span>
-                                    {isSaving
-                                        ? isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...'
-                                        : isAmharic ? 'አረጋግጥና ወደ ሱቅ አስቀምጥ' : 'Confirm & Save To Shop'}
-                                </span>
+                        <div className="vai-confirm-footer">
+                            <span style={{ fontSize: '0.78rem', color: '#06b6d4', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                                <Calendar size={13} />
+                                <span>{toEthiopianDate(parsedData.date, true)}</span>
+                            </span>
+                            <button type="submit" disabled={isSaving} className="vai-save-cta">
+                                {isSaving ? <Loader2 size={17} className="spinning-refresh-icon" /> : <Save size={17} />}
+                                <span>{isSaving ? (isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...') : isAmharic ? 'አስቀምጥ' : 'Save To Shop'}</span>
                             </button>
                         </div>
                     </form>
                 </div>
             )}
-
-            {/* 3. TWO-COLUMN INPUT WORKSPACE (VOICE + RECEIPT PHOTO) */}
-            <div className="voice-grid">
-                {/* LEFT: AMHARIC VOICE & TEXT INPUT */}
-                <div className="voice-card">
-                    <div className="voice-card-title">
-                        <h2>
-                            <Mic size={19} color="#06b6d4" />
-                            <span>{isAmharic ? '1. በድምፅ ይናገሩ (አማርኛ / English)' : '1. Speak In Amharic or English'}</span>
-                        </h2>
-                        <div className="voice-lang-switch">
-                            <button
-                                type="button"
-                                onClick={() => setSpokenLang('am-ET')}
-                                className={`voice-lang-btn ${spokenLang === 'am-ET' ? 'active' : ''}`}
-                            >
-                                አማርኛ
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setSpokenLang('en-US')}
-                                className={`voice-lang-btn ${spokenLang === 'en-US' ? 'active' : ''}`}
-                            >
-                                English
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="voice-mic-zone">
-                        <button
-                            type="button"
-                            onClick={handleToggleRecording}
-                            className={`voice-mic-btn ${isRecording ? 'recording' : ''}`}
-                            title={isRecording ? 'Stop Recording' : 'Tap to Speak'}
-                        >
-                            {isRecording ? <Square size={32} fill="#ffffff" /> : <Mic size={38} />}
-                        </button>
-                        <div className="voice-mic-status">
-                            {isRecording
-                                ? isAmharic
-                                    ? `እያዳመጥኩ ነው (${Math.floor(recordingSeconds / 60)}:${String(recordingSeconds % 60).padStart(2, '0')})... ሲጨርሱ ይጫኑ`
-                                    : `Recording (${Math.floor(recordingSeconds / 60)}:${String(recordingSeconds % 60).padStart(2, '0')})... Tap square to finish`
-                                : isAnalyzing
-                                    ? isAmharic
-                                        ? 'እያንዳንዱን የአማርኛ ቃል በትክክል በመተርጎም ላይ...'
-                                        : 'Listening carefully to every Amharic word...'
-                                    : isAmharic
-                                        ? 'ለመናገር ማይክሮፎኑን ይጫኑ'
-                                        : 'Tap microphone and speak naturally'}
-                        </div>
-                        <div className="voice-mic-hint">
-                            {isAmharic
-                                ? 'ለምሳሌ፡ "ዛሬ ለሱቅ ኪራይ 5000 ብር በቴሌብር ከፈልኩ"'
-                                : 'Example: "ዛሬ ለፌስታል 300 ብር በካሽ ከፈልኩ" or "Abebe took 1200 birr credit"'}
-                        </div>
-                    </div>
-
-                    <textarea
-                        className="voice-textarea"
-                        placeholder={
-                            isAmharic
-                                ? 'የተናገሩት እዚህ ይታያል (ወይም እዚህ መጻፍ ይችላሉ)...'
-                                : 'Your spoken Amharic/English appears here (or you can type directly)...'
-                        }
-                        value={transcript}
-                        onChange={(e) => setTranscript(e.target.value)}
-                    />
-
-                    {/* One-Tap Examples */}
-                    <div className="voice-examples">
-                        {QUICK_EXAMPLES.map((ex) => (
-                            <button
-                                key={ex}
-                                type="button"
-                                className="voice-example-chip"
-                                onClick={() => {
-                                    setTranscript(ex);
-                                    analyzeInput({ transcript: ex });
-                                }}
-                            >
-                                {ex}
-                            </button>
-                        ))}
-                    </div>
-
-                    <button
-                        type="button"
-                        disabled={!transcript.trim() || isAnalyzing}
-                        onClick={() => analyzeInput({ transcript: transcript.trim() })}
-                        className="voice-analyze-btn"
-                    >
-                        {isAnalyzing ? <Loader2 size={18} className="spinning-refresh-icon" /> : <Sparkles size={18} />}
-                        <span>
-                            {isAnalyzing
-                                ? isAmharic ? 'በመተርጎም ላይ...' : 'Reading & Translating...'
-                                : isAmharic ? 'ወደ መረጃ ቀይር (Analyze)' : 'Turn Into Shop Record'}
-                        </span>
-                    </button>
-                </div>
-
-                {/* RIGHT: RECEIPT PHOTO SCANNER */}
-                <div className="voice-card">
-                    <div className="voice-card-title">
-                        <h2>
-                            <Camera size={19} color="#10b981" />
-                            <span>{isAmharic ? '2. የደረሰኝ ፎቶ አንብብ' : '2. Scan Paper Receipt'}</span>
-                        </h2>
-                    </div>
-
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        style={{ display: 'none' }}
-                        onChange={handleReceiptFileChange}
-                    />
-
-                    <div
-                        className="receipt-dropzone"
-                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                    >
-                        {receiptPreview ? (
-                            <img src={receiptPreview} alt="Receipt Preview" className="receipt-preview-img" />
-                        ) : (
-                            <div
-                                style={{
-                                    width: '62px',
-                                    height: '62px',
-                                    borderRadius: '18px',
-                                    background: 'rgba(16, 185, 129, 0.14)',
-                                    color: '#10b981',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginBottom: '0.9rem',
-                                }}
-                            >
-                                <Camera size={30} />
-                            </div>
-                        )}
-
-                        <div style={{ fontWeight: 800, fontSize: '0.96rem', color: 'var(--admin-text, #0f172a)' }}>
-                            {isScanningReceipt
-                                ? isAmharic ? 'ደረሰኙን በማንበብ ላይ...' : 'Reading receipt photo...'
-                                : isAmharic ? 'የደረሰኝ ፎቶ ለማንሳት ወይም ለመምረጥ ይጫኑ' : 'Tap to snap or upload a receipt photo'}
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #64748b)', marginTop: '0.35rem', maxWidth: '280px' }}>
-                            {isAmharic
-                                ? 'AI የደረሰኙን ብር፣ ቀን እና ምክንያት በራስ-ሰር ያነብልዎታል።'
-                                : 'AI automatically reads the total ETB, date, and reason from the paper receipt.'}
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };

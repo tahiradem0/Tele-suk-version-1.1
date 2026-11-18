@@ -168,29 +168,33 @@ const parseWithLocalRules = (rawText = '') => {
     };
 };
 
-// Helper: Call Gemini REST API (Free Tier friendly — gemini-2.5-flash with fallbacks)
+// Helper: Call Gemini REST API (Ultra-fast low-latency mode with thinkingBudget: 0)
 const callGemini = async (apiKey, parts) => {
-    const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
+    const models = ['gemini-2.5-flash', 'gemini-3.5-flash-lite'];
     let lastError = null;
 
     for (const model of models) {
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+            const generationConfig = {
+                temperature: 0.1,
+                maxOutputTokens: 350,
+                responseMimeType: 'application/json',
+                ...(model.startsWith('gemini-2.5') ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+            };
+
             const response = await axios.post(
                 url,
                 {
                     contents: [{ parts }],
-                    generationConfig: {
-                        temperature: 0.1,
-                        responseMimeType: 'application/json',
-                    },
+                    generationConfig,
                 },
                 {
                     headers: {
                         'Content-Type': 'application/json',
                         'x-goog-api-key': apiKey,
                     },
-                    timeout: 30000,
+                    timeout: 20000,
                 }
             );
 
