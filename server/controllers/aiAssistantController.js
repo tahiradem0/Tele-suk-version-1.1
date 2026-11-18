@@ -80,18 +80,23 @@ const parseSpokenAmount = (rawText = '') => {
 
     const HALF_WORDS = new Set(['ተኩል', 'ግማሽ', 'half']);
     const CONNECTORS = new Set(['ከ', 'እና', 'and', 'with']);
+    const CURRENCY_WORDS = new Set(['ብር', 'birr', 'etb', 'ብርን', 'ብሩን']);
 
     const tokens = withoutPhones.toLowerCase().split(/\s+/).filter(Boolean);
 
-    let bestAmount = 0;
+    let currencyBest = 0;
+    let fallbackBest = 0;
     let total = 0;
     let current = 0;
     let lastMultiplier = 0;
     let inNumber = false;
 
-    const flush = () => {
+    const flush = (isCurrency = false) => {
         const candidate = total + current;
-        if (candidate > bestAmount) bestAmount = candidate;
+        if (candidate > 0) {
+            if (isCurrency && candidate > currencyBest) currencyBest = candidate;
+            if (candidate > fallbackBest) fallbackBest = candidate;
+        }
         total = 0;
         current = 0;
         lastMultiplier = 0;
@@ -99,11 +104,14 @@ const parseSpokenAmount = (rawText = '') => {
     };
 
     for (let i = 0; i < tokens.length; i++) {
-        // Strip leading "ከ" (e.g. "ከአምስት" -> "አምስት") or trailing "ብር" punctuation
+        // Strip punctuation and leading Amharic prepositions ("በ500", "ከአምስት", "የ2000", "ለ300")
         let tok = tokens[i].replace(/[^\p{L}\p{N}.]/gu, '');
         if (!tok) continue;
-        if (tok.startsWith('ከ') && tok.length > 2 && (WORD_VALUES[tok.slice(1)] || MULTIPLIERS[tok.slice(1)])) {
-            tok = tok.slice(1);
+        if (/^[በየለከ]/.test(tok) && tok.length > 1) {
+            const stripped = tok.slice(1);
+            if (/^\d+(?:\.\d+)?$/.test(stripped) || WORD_VALUES[stripped] !== undefined || MULTIPLIERS[stripped] !== undefined) {
+                tok = stripped;
+            }
         }
 
         // Pure numeric token (e.g. "2500", "2000", "500")
@@ -150,12 +158,13 @@ const parseSpokenAmount = (rawText = '') => {
         }
 
         if (inNumber) {
-            flush();
+            flush(CURRENCY_WORDS.has(tok));
         }
     }
 
-    if (inNumber) flush();
-    return Math.round(bestAmount * 100) / 100;
+    if (inNumber) flush(false);
+    const chosen = currencyBest > 0 ? currencyBest : fallbackBest;
+    return Math.round(chosen * 100) / 100;
 };
 
 // Helper: Built-in Zero-Cost Amharic + English Smart Parser (works offline with $0 API keys!)
@@ -322,7 +331,7 @@ const callGemini = async (apiKey, parts, { isAudio = false } = {}) => {
                         'Content-Type': 'application/json',
                         'x-goog-api-key': apiKey,
                     },
-                    timeout: 25000,
+                    timeout: isAudio ? 18000 : 9000,
                 }
             );
 
@@ -524,9 +533,14 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
             const parts = [{ text: buildStructuredPrompt() }];
             const sendingAudio = Boolean(audioBase64 && !addisUsed);
 
+            const preVerifiedAmount = workingTranscript ? parseSpokenAmount(workingTranscript) : 0;
+            const amountAnchorNote = preVerifiedAmount > 0
+                ? ` MATHEMATICALLY VERIFIED EXACT AMOUNT FROM AMHARIC NUMBERS: ${preVerifiedAmount} (Note: ሰላሳ=30, አርባ=40, ሀምሳ=50, ስልሳ=60, ሰባ=70, ሰማንያ=80, ዘጠና=90. You MUST use ${preVerifiedAmount} in "amount" and in your English translation!).`
+                : '';
+
             if (addisUsed && workingTranscript) {
                 parts.push({
-                    text: `Native Ethiopian Amharic ASR (Addis AI Scribe) heard: "${workingTranscript}". Fix any minor Amharic spacing or Ethiopian name homophone (e.g. ሃምሳ->ሃምዛ if it's a person's name, ለሱ ኪራይ->ለሱቅ ኪራይ), write exact Amharic Ge'ez + faithful English translation + structured JSON.`,
+                    text: `Native Ethiopian Amharic ASR (Addis AI Scribe) heard: "${workingTranscript}".${amountAnchorNote} Fix any minor Amharic spacing or Ethiopian name homophone (e.g. ሃምሳ->ሃምዛ if it's a person's name, ለሱ ኪራይ->ለሱቅ ኪራይ), write exact Amharic Ge'ez + faithful English translation + structured JSON.`,
                 });
             } else if (sendingAudio) {
                 parts.push({
@@ -536,19 +550,20 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
                     },
                 });
                 parts.push({
-                    text: 'Listen VERY carefully syllable by syllable to this Ethiopian Amharic/English audio. Write the exact word-for-word Amharic Ge\'ez in originalText, exact English translation in englishTranslation, and return the structured JSON.',
+                    text: 'Listen VERY carefully syllable by syllable to this Ethiopian Amharic/English audio. Remember: ሰላሳ=30, አርባ=40, ሀምሳ=50, ስልሳ=60, ሰባ=70, ሰማንያ=80, ዘጠና=90. Write the exact word-for-word Amharic Ge\'ez in originalText, exact English translation in englishTranslation, and return the structured JSON.',
                 });
             } else if (workingTranscript) {
-                parts.push({ text: `Merchant typed message: "${workingTranscript}"` });
+                parts.push({ text: `Merchant typed message: "${workingTranscript}".${amountAnchorNote}` });
             } else {
                 res.status(400);
                 throw new Error('Please speak or type a message first.');
             }
 
             const { parsed, model } = await callGemini(geminiApiKey, parts, { isAudio: sendingAudio });
+            // Always prioritize our exact deterministic Amharic/English number parser over LLM guesswork!
             const exactParsedAmount = parseSpokenAmount(workingTranscript || parsed.originalText || '');
             const geminiAmount = Number(parsed.amount) || 0;
-            const finalAmount = geminiAmount > 0 ? geminiAmount : exactParsedAmount;
+            const finalAmount = exactParsedAmount > 0 ? exactParsedAmount : geminiAmount;
 
             const resultPayload = {
                 ...parsed,
