@@ -1,350 +1,85 @@
-# Deployment Guide
+# Production Deployment Guide (Render + Vercel)
 
-## Prerequisites
-
-1. **MongoDB Atlas Account** - [Sign up](https://www.mongodb.com/cloud/atlas)
-2. **Render Account** - [Sign up](https://render.com)
-3. **Vercel Account** - [Sign up](https://vercel.com)
-4. **GitHub Repository** - Push your code to GitHub
+This project is pre-configured for zero-friction production deployment:
+- **Backend API**: Deployed on **Render** (Node.js + Express + MongoDB Atlas + Cloudinary + Chapa)
+- **Frontend SPA / PWA**: Deployed on **Vercel** (React + Vite)
 
 ---
 
-## Step 1: Setup MongoDB Atlas
+## Step 1: MongoDB Atlas Setup
 
-### Create Cluster
-1. Login to MongoDB Atlas
-2. Create a new project: "Gondar ሱቅ"
-3. Build a cluster (Free M0 tier)
-4. Choose your region (closest to your users)
-5. Click "Create Cluster"
-
-### Configure Database Access
-1. Go to "Database Access"
-2. Add new database user
-   - Username: `gondar-suk-admin`
-   - Password: Generate secure password (save it!)
-   - Database User Privileges: "Atlas admin"
-3. Click "Add User"
-
-### Configure Network Access
-1. Go to "Network Access"
-2. Click "Add IP Address"
-3. Select "Allow Access from Anywhere" (0.0.0.0/0)
-4. Click "Confirm"
-
-### Get Connection String
-1. Click "Connect" on your cluster
-2. Choose "Connect your application"
-3. Copy the connection string:
-   ```
-   mongodb+srv://gondar-suk-admin:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
-   ```
-4. Replace `<password>` with your actual password
-5. Add database name: `/Gondar ሱቅ` before the `?`
-   ```
-   mongodb+srv://gondar-suk-admin:yourpassword@cluster0.xxxxx.mongodb.net/Gondar ሱቅ?retryWrites=true&w=majority
+1. Create or open your cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Under **Network Access**, allow access from anywhere (`0.0.0.0/0`) so Render's dynamic IPs can connect.
+3. Copy your connection string (`MONGO_URI`), e.g.:
+   ```text
+   mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/tele-suk?retryWrites=true&w=majority
    ```
 
 ---
 
 ## Step 2: Deploy Backend to Render
 
-### Prepare Repository
-1. Ensure `render.yaml` exists in `/server` directory
-2. Commit and push all changes to GitHub
+### Option A: One-Click Blueprint (Recommended)
+A root `render.yaml` Blueprint is already included in the repository.
+1. Go to [Render Dashboard](https://dashboard.render.com) → **New +** → **Blueprint**.
+2. Connect your GitHub repo `tahiradem0/Tele-suk-version-1.1`.
+3. Render automatically reads `render.yaml` (`rootDir: server`, `buildCommand: npm install`, `startCommand: npm start`, `healthCheckPath: /api/health`).
+4. Fill in the prompted secret environment variables and click **Apply**.
 
-### Create Web Service
-1. Login to [Render Dashboard](https://dashboard.render.com)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository
-4. Configure service:
-   - **Name**: `Gondar ሱቅ-api`
-   - **Region**: Choose closest to your users
+### Option B: Manual Web Service
+1. Click **New +** → **Web Service** → select your GitHub repo.
+2. Configure:
+   - **Name**: `gondar-suk-api`
    - **Branch**: `main`
    - **Root Directory**: `server`
    - **Runtime**: `Node`
    - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
-   - **Plan**: Free
+   - **Start Command**: `npm start`
+   - **Health Check Path**: `/api/health`
 
-### Set Environment Variables
-Click "Advanced" → "Add Environment Variable" and add:
+### Required Render Environment Variables
+| Key | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `MONGO_URI` | Your MongoDB Atlas connection string |
+| `JWT_SECRET` | Strong random secret (min 32 chars) |
+| `FRONTEND_URL` | Your Vercel URL (e.g. `https://tele-suk.vercel.app`) |
+| `CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Your Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Your Cloudinary API secret |
+| `CHAPA_LIVE_SECRET_KEY` | Your Chapa live secret key (`CHASECK-...`) |
+| `CHAPA_LIVE_PUBLIC_KEY` | Your Chapa live public key (`CHAPUBK-...`) |
+| `CHAPA_TEST_SECRET_KEY` | Your Chapa test secret key (`CHASECK_TEST-...`) |
+| `CHAPA_TEST_PUBLIC_KEY` | Your Chapa test public key (`CHAPUBK_TEST-...`) |
+| `ALLOWED_ORIGINS` | *(Optional)* Comma-separated custom domains (all `*.vercel.app` origins are allowed automatically) |
 
-```
-NODE_ENV=production
-PORT=5000
-MONGO_URI=<your MongoDB Atlas connection string>
-JWT_SECRET=<generate a strong random string - min 32 characters>
-CHAPA_SECRET_KEY=<your Chapa secret key>
-CLOUDINARY_CLOUD_NAME=<your Cloudinary cloud name>
-CLOUDINARY_API_KEY=<your Cloudinary API key>
-CLOUDINARY_API_SECRET=<your Cloudinary API secret>
-FRONTEND_URL=https://Gondar ሱቅ.vercel.app/
-```
-
-**Generate JWT Secret:**
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-### Deploy
-1. Click "Create Web Service"
-2. Wait for deployment (5-10 minutes)
-3. Copy your backend URL: `https://Gondar ሱቅ-api.onrender.com`
+3. Once deployed, verify your backend is live by visiting:
+   `https://<your-render-service>.onrender.com/api/health`
+   You should see `{ "status": "ok", "database": "connected", ... }`.
 
 ---
 
 ## Step 3: Deploy Frontend to Vercel
 
-### Prepare Repository
-1. Ensure `vercel.json` exists in `/client` directory
-2. Update `package.json` in client folder to include build script:
-   ```json
-   {
-     "scripts": {
-       "build": "vite build",
-       "preview": "vite preview"
-     }
-   }
-   ```
-
-### Import Project
-1. Login to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click "Add New..." → "Project"
-3. Import your GitHub repository
-4. Configure project:
-   - **Framework Preset**: Vite
-   - **Root Directory**: Click "Edit" next to Root Directory and select `client`
-   - **Build Command**: `npm run build` (This should be auto-detected after setting Root Directory)
-   - **Output Directory**: `dist` (This should be auto-detected)
-
-### Set Environment Variables
-Add environment variable:
-```
-VITE_API_URL=https://Gondar ሱቅ-api.onrender.com/api
-```
-
-### Deploy
-1. Click "Deploy"
-2. Wait for deployment (2-3 minutes)
-3. Copy your frontend URL: `https://Gondar ሱቅ.vercel.app`
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard) → **Add New...** → **Project**.
+2. Import your GitHub repository `tahiradem0/Tele-suk-version-1.1`.
+3. Configure Project Settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `client` (Click **Edit** and select `client`)
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Add Environment Variable:
+   - **Key**: `VITE_API_URL`
+   - **Value**: `https://<your-render-service>.onrender.com/api`
+   *(Note: Trailing slashes and `/api` are automatically normalized by the client.)*
+5. Click **Deploy**.
+6. After Vercel finishes deploying, copy your live Vercel URL (e.g. `https://your-app.vercel.app`) and set it as `FRONTEND_URL` in Render's Environment Variables.
 
 ---
 
-## Step 4: Update Backend CORS
+## Step 4: Post-Deployment Security Checklist
 
-1. Go back to Render dashboard
-2. Open your backend service
-3. Go to "Environment"
-4. Update `FRONTEND_URL` variable:
-   ```
-   FRONTEND_URL=https://Gondar ሱቅ.vercel.app
-   ```
-5. Save changes (service will auto-redeploy)
-
----
-
-## Step 5: Create Admin User
-
-### Option 1: Using MongoDB Compass
-1. Download [MongoDB Compass](https://www.mongodb.com/products/compass)
-2. Connect using your Atlas connection string
-3. Find the `users` collection
-4. Find your user document
-5. Edit and set `isAdmin: true`
-6. Save
-
-### Option 2: Using MongoDB Atlas UI
-1. Go to MongoDB Atlas
-2. Click "Browse Collections"
-3. Navigate to `Gondar ሱቅ` → `users`
-4. Find your user
-5. Click "Edit Document"
-6. Change `isAdmin` from `false` to `true`
-7. Click "Update"
-
-### Option 3: Create Script (Temporary)
-1. Temporarily add this to your backend:
-   ```javascript
-   // makeAdminRoute.js - DELETE AFTER USE!
-   app.get('/make-admin/:phone', async (req, res) => {
-     const user = await User.findOne({ phone: req.params.phone });
-     if (user) {
-       user.isAdmin = true;
-       await user.save();
-       res.json({ message: 'User is now admin' });
-     }
-   });
-   ```
-2. Visit: `https://Gondar ሱቅ-api.onrender.com/make-admin/YOUR_PHONE`
-3. **DELETE THIS ROUTE IMMEDIATELY AFTER USE**
-
----
-
-## Step 6: Test Production Deployment
-
-### Frontend Tests
-- [ ] Visit your Vercel URL
-- [ ] Browse products
-- [ ] Add items to cart
-- [ ] Refresh page (cart should persist)
-- [ ] Register new account
-- [ ] Login
-
-### Admin Tests
-- [ ] Login with admin account
-- [ ] Access `/admin/dashboard`
-- [ ] Check statistics are loading
-- [ ] Create a test product
-- [ ] Upload an image
-- [ ] Create a banner
-- [ ] View orders
-
-### Payment Test
-- [ ] Add item to cart
-- [ ] Proceed to checkout
-- [ ] Enter delivery address
-- [ ] Click "Pay with Chapa"
-- [ ] Complete test payment
-- [ ] Verify order appears in admin panel
-
----
-
-## Troubleshooting
-
-### Backend Issues
-
-**Service won't start:**
-- Check Render logs for errors
-- Verify all environment variables are set
-- Ensure MongoDB connection string is correct
-
-**CORS errors:**
-- Verify `FRONTEND_URL` matches your Vercel domain exactly
-- Check for trailing slashes
-
-**Database connection timeout:**
-- Verify MongoDB Atlas IP whitelist includes `0.0.0.0/0`
-- Check connection string format
-
-### Frontend Issues
-
-**API calls failing:**
-- Verify `VITE_API_URL` is set correctly
-- Check browser console for errors
-- Ensure backend is running
-
-**Build failures:**
-- Check Vercel build logs
-- Verify all dependencies are in `package.json`
-- Test build locally: `npm run build`
-
-**Images not loading:**
-- Verify Cloudinary credentials
-- Check image URLs in database
-- Test Cloudinary upload manually
-
----
-
-## Performance Optimization
-
-### Render Free Tier
-- Service sleeps after 15 minutes of inactivity
-- First request after sleep takes ~30 seconds (cold start)
-- Consider upgrading to paid plan for production
-
-### Solutions:
-1. **Keep-alive service**: Ping your API every 10 minutes
-2. **Upgrade to paid plan**: $7/month for always-on service
-3. **Use cron job**: External service to ping your API
-
-### Vercel
-- Automatic CDN caching
-- Edge network for fast global delivery
-- No cold starts
-
----
-
-## Monitoring
-
-### Render
-- View logs: Dashboard → Service → Logs
-- Monitor metrics: CPU, Memory usage
-- Set up alerts for downtime
-
-### Vercel
-- Analytics: Dashboard → Project → Analytics
-- View deployment logs
-- Monitor bandwidth usage
-
-### MongoDB Atlas
-- Monitor database size
-- Check connection count
-- Review slow queries
-
----
-
-## Backup Strategy
-
-### Database Backups
-1. MongoDB Atlas automatic backups (Free tier: 2 days retention)
-2. Manual export:
-   ```bash
-   mongodump --uri="your-connection-string"
-   ```
-
-### Code Backups
-- GitHub repository (primary)
-- Local copies
-- Regular commits
-
----
-
-## Security Checklist
-
-- [ ] Strong JWT secret (32+ characters)
-- [ ] HTTPS only (automatic on Render/Vercel)
-- [ ] Environment variables secured
-- [ ] MongoDB user has minimal required permissions
-- [ ] CORS configured correctly
-- [ ] No sensitive data in code
-- [ ] `.env` files in `.gitignore`
-- [ ] Admin routes protected
-- [ ] Rate limiting enabled (optional)
-
----
-
-## Cost Summary (Free Tier)
-
-| Service | Free Tier Limits | Upgrade Cost |
-|---------|------------------|--------------|
-| MongoDB Atlas | 512MB storage | $9/month (2GB) |
-| Render | 750 hours/month, sleeps after 15min | $7/month (always-on) |
-| Vercel | 100GB bandwidth | $20/month (Pro) |
-| Cloudinary | 25GB storage, 25GB bandwidth | $89/month |
-
-**Total Free**: $0/month  
-**Recommended Paid**: ~$16/month (Render + MongoDB)
-
----
-
-## Next Steps
-
-1. Set up custom domain (optional)
-2. Configure email notifications
-3. Add analytics (Google Analytics)
-4. Set up error tracking (Sentry)
-5. Implement backup automation
-6. Add monitoring/uptime checks
-
----
-
-## Support
-
-If you encounter issues:
-1. Check Render/Vercel logs
-2. Review MongoDB Atlas metrics
-3. Test API endpoints with Postman
-4. Check browser console for errors
-
-For persistent issues, review the troubleshooting section or check service status pages.
+1. **Admin Login**: Visit `https://<your-vercel-domain>/admin/login` and log in with your admin password.
+2. **Change Admin Password**: Immediately go to **Admin → Settings → Admin Security** and set a strong production password.
+3. **Switch Chapa Mode**: In **Admin → Settings → Payment Gateway**, toggle to **Live Mode** when ready to accept real ETB payments (and disable Mock Checkout).
+4. **Verify Health**: Confirm `GET /api/health` returns `"database": "connected"` and `GET /api/settings` (unauthenticated) does **not** expose `chapaLiveSecretKey`.

@@ -1,9 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Normalize VITE_API_URL so both "https://app.onrender.com" and "https://app.onrender.com/api/" work seamlessly
+const rawApiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
+const API_BASE_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
+    timeout: 60000, // 60s timeout to accommodate Render cold starts
     headers: {
         'Content-Type': 'application/json',
     },
@@ -14,9 +17,13 @@ api.interceptors.request.use(
     (config) => {
         const user = localStorage.getItem('user');
         if (user) {
-            const token = JSON.parse(user).token;
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+            try {
+                const token = JSON.parse(user)?.token;
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+            } catch {
+                localStorage.removeItem('user');
             }
         }
         return config;
@@ -26,14 +33,24 @@ api.interceptors.request.use(
     }
 );
 
-// Add a response interceptor to handle 401 (Unauthorized) and 403 (Forbidden) errors globally
+// Add a response interceptor for Render cold-start retry + 401/403 recovery
 api.interceptors.response.use(
     (response) => {
         return response;
     },
-    (error) => {
+    async (error) => {
+        const config = error.config;
+        const status = error.response?.status;
+
+        // Auto-retry idempotent GET requests once if Render is waking up (502/503/504 or transient network error)
+        const isTransientColdStart = !error.response || [502, 503, 504].includes(status);
+        if (config && config.method?.toLowerCase() === 'get' && isTransientColdStart && !config._retried) {
+            config._retried = true;
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+            return api(config);
+        }
+
         if (error.response) {
-            const status = error.response.status;
             const isOnAdminRoute = window.location.pathname.startsWith('/admin');
             const isOnAdminLogin = window.location.pathname === '/admin/login';
 

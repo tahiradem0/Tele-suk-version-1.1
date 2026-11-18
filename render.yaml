@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: gondar-suk-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: CHAPA_SECRET_KEY
+        sync: false
+      - key: CHAPA_LIVE_SECRET_KEY
+        sync: false
+      - key: CHAPA_LIVE_PUBLIC_KEY
+        sync: false
+      - key: CHAPA_TEST_SECRET_KEY
+        sync: false
+      - key: CHAPA_TEST_PUBLIC_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

@@ -28,8 +28,8 @@ const getChapaConfig = async () => {
             secretKey = settings.chapaLiveSecretKey;
         } else if (process.env.CHAPA_LIVE_SECRET_KEY && !process.env.CHAPA_LIVE_SECRET_KEY.includes('_TEST')) {
             secretKey = process.env.CHAPA_LIVE_SECRET_KEY;
-        } else {
-            secretKey = 'CHASECK-zUKTw15FI5pNaH1MEntujn63Mmw5IgXR';
+        } else if (process.env.CHAPA_SECRET_KEY && !process.env.CHAPA_SECRET_KEY.includes('_TEST')) {
+            secretKey = process.env.CHAPA_SECRET_KEY;
         }
     } else {
         // Test mode: MUST start with CHASECK_TEST-
@@ -37,8 +37,8 @@ const getChapaConfig = async () => {
             secretKey = settings.chapaTestSecretKey;
         } else if (process.env.CHAPA_TEST_SECRET_KEY && process.env.CHAPA_TEST_SECRET_KEY.startsWith('CHASECK_TEST-')) {
             secretKey = process.env.CHAPA_TEST_SECRET_KEY;
-        } else {
-            secretKey = 'CHASECK_TEST-IXvdkCmyuUbnyrFMtC2K6y8maSbXgrV5';
+        } else if (process.env.CHAPA_SECRET_KEY && process.env.CHAPA_SECRET_KEY.startsWith('CHASECK_TEST-')) {
+            secretKey = process.env.CHAPA_SECRET_KEY;
         }
     }
 
@@ -200,8 +200,8 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
         let isSuccess = false;
 
-        // If in test mode and simulated tx_ref
-        if (paymentMode === 'test' || tx_ref.includes('TEST') || allowMockCheckout) {
+        // Only allow test-mode fallback when explicitly in test mode (NEVER in live mode)
+        if (paymentMode === 'test' && (tx_ref.includes('TEST') || allowMockCheckout)) {
             try {
                 const response = await axios.get(
                     `https://api.chapa.co/v1/transaction/verify/${tx_ref}`,
@@ -213,12 +213,13 @@ const verifyPayment = asyncHandler(async (req, res) => {
                 );
                 isSuccess = response.data.status === 'success';
             } catch (apiErr) {
-                // If Chapa test verification returns error in test mode, allow test order to proceed
-                console.log(`[TEST MODE] Auto-verifying test transaction: ${tx_ref}`);
-                isSuccess = true;
+                if (allowMockCheckout) {
+                    console.log(`[TEST MODE] Auto-verifying test transaction: ${tx_ref}`);
+                    isSuccess = true;
+                }
             }
         } else {
-            // Live verification with Chapa
+            // Strict live verification with Chapa
             const response = await axios.get(
                 `https://api.chapa.co/v1/transaction/verify/${tx_ref}`,
                 {
@@ -227,7 +228,8 @@ const verifyPayment = asyncHandler(async (req, res) => {
                     },
                 }
             );
-            isSuccess = response.data.status === 'success';
+            const txStatus = response.data?.data?.status;
+            isSuccess = response.data?.status === 'success' && (!txStatus || txStatus === 'success');
         }
 
         if (isSuccess) {
