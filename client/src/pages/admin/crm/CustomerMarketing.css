@@ -1,0 +1,383 @@
+/* ==========================================================================
+   SMART CUSTOMER MANAGEMENT (CRM) & BULK SMS PROMOS - SIMPLE MERCHANT UI
+   ========================================================================== */
+
+.crm-page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0.25rem 0.25rem 3.5rem;
+}
+
+.crm-hero {
+    border-radius: 22px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 1.4rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 14px 32px -12px rgba(15, 23, 42, 0.42);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.crm-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.crm-hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(14, 165, 233, 0.35);
+    flex-shrink: 0;
+}
+
+.crm-hero-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.crm-hero-sub {
+    margin: 4px 0 0;
+    font-size: 0.87rem;
+    color: rgba(226, 232, 240, 0.88);
+}
+
+.crm-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+/* 4 Clickable Customer Group Tiles */
+.crm-groups-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .crm-groups-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .crm-groups-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.crm-group-tile {
+    text-align: left;
+    background: var(--admin-card-bg, #ffffff);
+    border: 2px solid var(--admin-border, #e2e8f0);
+    border-radius: 18px;
+    padding: 1.2rem 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
+}
+
+.crm-group-tile:hover {
+    transform: translateY(-2px);
+    border-color: #06b6d4;
+}
+
+.crm-group-tile.active {
+    border-color: #06b6d4;
+    background: linear-gradient(135deg, var(--admin-card-bg, #ffffff) 0%, rgba(6, 182, 212, 0.1) 100%);
+    box-shadow: 0 8px 22px -6px rgba(6, 182, 212, 0.25);
+}
+
+.crm-tile-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.crm-tile-icon.cyan { background: rgba(6, 182, 212, 0.14); color: #06b6d4; }
+.crm-tile-icon.amber { background: rgba(245, 158, 11, 0.14); color: #f59e0b; }
+.crm-tile-icon.indigo { background: rgba(99, 102, 241, 0.14); color: #6366f1; }
+.crm-tile-icon.rose { background: rgba(244, 63, 94, 0.14); color: #f43f5e; }
+
+.crm-tile-num {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--admin-text, #0f172a);
+    line-height: 1.1;
+}
+
+.crm-tile-label {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--admin-text, #1e293b);
+    margin-top: 2px;
+}
+
+.crm-tile-hint {
+    font-size: 0.75rem;
+    color: var(--admin-subtext, #64748b);
+    margin-top: 2px;
+}
+
+/* Tabs */
+.crm-tabs {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.35rem;
+    border-bottom: 2px solid var(--admin-border, #e2e8f0);
+    flex-wrap: wrap;
+}
+
+.crm-tab-btn {
+    padding: 0.78rem 1.35rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--admin-subtext, #64748b);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+}
+
+.crm-tab-btn.active {
+    color: #0284c7;
+    border-bottom-color: #06b6d4;
+}
+
+.admin-layout.dark .crm-tab-btn.active {
+    color: #38bdf8;
+}
+
+/* Customer Cards Grid */
+.crm-customers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 1rem;
+}
+
+.crm-customer-card {
+    background: var(--admin-card-bg, #ffffff);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 18px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.9rem;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.crm-customer-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(6, 182, 212, 0.35);
+}
+
+.crm-cust-top {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.crm-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.crm-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.crm-badge.amber { background: rgba(245, 158, 11, 0.14); color: #d97706; }
+.crm-badge.rose { background: rgba(244, 63, 94, 0.14); color: #f43f5e; }
+.crm-badge.indigo { background: rgba(99, 102, 241, 0.14); color: #6366f1; }
+.crm-badge.emerald { background: rgba(16, 185, 129, 0.14); color: #10b981; }
+.crm-badge.cyan { background: rgba(6, 182, 212, 0.14); color: #0284c7; }
+
+.crm-stats-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    background: var(--admin-inner-bg, #f8fafc);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+}
+
+.crm-cust-actions {
+    display: flex;
+    gap: 0.55rem;
+}
+
+.crm-call-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0.52rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid var(--admin-border, #cbd5e1);
+    background: var(--admin-inner-bg, #f8fafc);
+    color: var(--admin-text, #0f172a);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.crm-sms-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0.52rem 0.8rem;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* SMS Composer Layout */
+.crm-sms-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 1.25rem;
+}
+
+@media (max-width: 920px) {
+    .crm-sms-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.crm-panel {
+    background: var(--admin-card-bg, #ffffff);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.05);
+}
+
+.crm-audience-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 1.1rem;
+}
+
+@media (max-width: 560px) {
+    .crm-audience-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.crm-audience-pill {
+    padding: 0.72rem 0.9rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--admin-border, #e2e8f0);
+    background: var(--admin-inner-bg, #f8fafc);
+    color: var(--admin-text, #1e293b);
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.15s ease;
+}
+
+.crm-audience-pill.active {
+    border-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.12);
+    color: #0284c7;
+}
+
+.admin-layout.dark .crm-audience-pill.active {
+    color: #38bdf8;
+}
+
+.crm-ai-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.crm-ai-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.admin-layout.dark .crm-ai-btn {
+    color: #c4b5fd;
+}
+
+.crm-ai-btn:hover:not(:disabled) {
+    background: #8b5cf6;
+    color: #ffffff;
+}
+
+.crm-history-item {
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    background: var(--admin-inner-bg, #f8fafc);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    margin-bottom: 0.75rem;
+}

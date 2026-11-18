@@ -28,7 +28,10 @@ const AdminSettings = () => {
         deliveryFee: 5.00,
         allowMockCheckout: true,
         geminiApiKey: '',
-        addisAiApiKey: ''
+        addisAiApiKey: '',
+        smsProvider: 'simulation',
+        smsApiKey: '',
+        smsSenderId: ''
     });
 
     const [loading, setLoading] = useState(true);
@@ -86,7 +89,10 @@ const AdminSettings = () => {
                     deliveryFee: data.deliveryFee !== undefined ? data.deliveryFee : 5.00,
                     allowMockCheckout: data.allowMockCheckout !== false,
                     geminiApiKey: data.geminiApiKey || '',
-                    addisAiApiKey: data.addisAiApiKey || ''
+                    addisAiApiKey: data.addisAiApiKey || '',
+                    smsProvider: data.smsProvider || 'simulation',
+                    smsApiKey: data.smsApiKey || '',
+                    smsSenderId: data.smsSenderId || ''
                 });
             }
         } catch (error) {
@@ -1046,6 +1052,99 @@ const AdminSettings = () => {
                                 value={settings.addisAiApiKey}
                                 onChange={handleChange}
                                 placeholder="sk_addis_..."
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)'
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Ethiopian SMS Marketing Gateway Setup Card */}
+                <div style={{
+                    background: 'var(--admin-card-bg, white)',
+                    padding: '1.8rem',
+                    borderRadius: '20px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                    border: '1px solid var(--admin-border, #f1f3f5)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <div style={{ background: 'rgba(16, 185, 129, 0.14)', padding: '8px', borderRadius: '10px', color: '#10b981' }}>
+                            <Phone size={22} />
+                        </div>
+                        <div>
+                            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0, color: 'var(--admin-text, #1a1b1e)' }}>
+                                {isAmharic ? 'የSMS ማስታወቂያ መላኪያ (AfroMessage / GeezSMS)' : 'Bulk SMS Marketing Gateway (Ethiopia)'}
+                            </h2>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: 'var(--admin-subtext, #868e96)' }}>
+                                {isAmharic
+                                    ? 'ለደንበኞች የቅናሽ SMS ለመላክ AfroMessage ወይም GeezSMS ይምረጡ (ወይም ነፃ የሙከራ ሞድ ይጠቀሙ)።'
+                                    : 'Connect AfroMessage or GeezSMS to send live SMS promos & debt reminders across Ethio Telecom & Safaricom.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginTop: '1.2rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                {isAmharic ? 'የSMS አቅራቢ' : 'SMS Provider'}
+                            </label>
+                            <select
+                                name="smsProvider"
+                                value={settings.smsProvider}
+                                onChange={handleChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                <option value="simulation">Free Preview Mode (No Charge)</option>
+                                <option value="afromessage">AfroMessage (Ethiopia)</option>
+                                <option value="geezsms">GeezSMS (Ethiopia)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                {isAmharic ? 'API ቁልፍ (Token)' : 'SMS API Token / Key'}
+                            </label>
+                            <input
+                                type={showKeys ? 'text' : 'password'}
+                                name="smsApiKey"
+                                value={settings.smsApiKey}
+                                onChange={handleChange}
+                                placeholder="Paste AfroMessage or GeezSMS key..."
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)'
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                {isAmharic ? 'የላኪ ስም (Sender ID)' : 'Sender ID / Shortcode (Optional)'}
+                            </label>
+                            <input
+                                type="text"
+                                name="smsSenderId"
+                                value={settings.smsSenderId}
+                                onChange={handleChange}
+                                placeholder="e.g. GondarSuk"
                                 style={{
                                     width: '100%',
                                     padding: '0.75rem',

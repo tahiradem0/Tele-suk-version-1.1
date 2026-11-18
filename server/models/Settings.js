@@ -59,6 +59,20 @@ const settingsSchema = new mongoose.Schema({
     addisAiApiKey: {
         type: String,
         default: ''
+    },
+    // Ethiopian SMS Gateway (AfroMessage / GeezSMS / Free Preview Mode)
+    smsProvider: {
+        type: String,
+        enum: ['simulation', 'afromessage', 'geezsms'],
+        default: 'simulation'
+    },
+    smsApiKey: {
+        type: String,
+        default: ''
+    },
+    smsSenderId: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true

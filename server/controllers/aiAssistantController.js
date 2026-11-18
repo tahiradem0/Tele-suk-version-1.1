@@ -69,6 +69,9 @@ const parseWithLocalRules = (rawText = '') => {
         lower.includes('owe') ||
         lower.includes('borrow') ||
         text.includes('ብድር') ||
+        text.includes('ድድር') ||
+        text.includes('ያለበት') ||
+        text.includes('ያለባት') ||
         text.includes('እዳ') ||
         text.includes('ዕዳ') ||
         text.includes('አበደር') ||
@@ -165,14 +168,14 @@ const parseWithLocalRules = (rawText = '') => {
     };
 };
 
-// Helper: Call Gemini REST API (Free Tier friendly — gemini-2.5-flash with fallback to gemini-2.0-flash)
+// Helper: Call Gemini REST API (Free Tier friendly — gemini-2.5-flash with fallbacks)
 const callGemini = async (apiKey, parts) => {
-    const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
     let lastError = null;
 
     for (const model of models) {
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
             const response = await axios.post(
                 url,
                 {
@@ -182,7 +185,13 @@ const callGemini = async (apiKey, parts) => {
                         responseMimeType: 'application/json',
                     },
                 },
-                { timeout: 30000 }
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey,
+                    },
+                    timeout: 30000,
+                }
             );
 
             const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -294,15 +303,22 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
     if (geminiApiKey) {
         try {
             const parts = [{ text: STRUCTURED_PROMPT }];
-            if (workingTranscript) {
-                parts.push({ text: `Merchant message: "${workingTranscript}"` });
+            if (addisUsed && workingTranscript) {
+                // Addis AI already gave us ultra-accurate Amharic text
+                parts.push({ text: `Merchant message (Amharic): "${workingTranscript}"` });
             } else if (audioBase64) {
+                // Let Gemini listen directly to the raw Amharic voice for highest accuracy!
                 parts.push({
                     inline_data: {
                         mime_type: audioMimeType || 'audio/webm',
                         data: audioBase64,
                     },
                 });
+                if (workingTranscript) {
+                    parts.push({ text: `Rough browser speech hint (may have typos, trust the audio first): "${workingTranscript}"` });
+                }
+            } else if (workingTranscript) {
+                parts.push({ text: `Merchant message: "${workingTranscript}"` });
             } else {
                 res.status(400);
                 throw new Error('Please speak or type a message first.');

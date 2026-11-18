@@ -55,12 +55,16 @@ const getSettings = asyncHandler(async (req, res) => {
         result.chapaLivePublicKey = result.chapaLivePublicKey || process.env.CHAPA_LIVE_PUBLIC_KEY || process.env.CHAPA_PUBLIC_KEY || '';
         result.geminiApiKey = result.geminiApiKey || process.env.GEMINI_API_KEY || '';
         result.addisAiApiKey = result.addisAiApiKey || process.env.ADDIS_AI_API_KEY || '';
+        result.smsProvider = result.smsProvider || process.env.SMS_PROVIDER || 'simulation';
+        result.smsApiKey = result.smsApiKey || process.env.SMS_API_KEY || '';
+        result.smsSenderId = result.smsSenderId || process.env.SMS_SENDER_ID || '';
     } else {
         // Never expose secret keys to unauthenticated storefront clients
         delete result.chapaTestSecretKey;
         delete result.chapaLiveSecretKey;
         delete result.geminiApiKey;
         delete result.addisAiApiKey;
+        delete result.smsApiKey;
     }
 
     res.json(result);
@@ -83,7 +87,10 @@ const updateSettings = asyncHandler(async (req, res) => {
         storeEmail,
         allowMockCheckout,
         geminiApiKey,
-        addisAiApiKey
+        addisAiApiKey,
+        smsProvider,
+        smsApiKey,
+        smsSenderId
     } = req.body;
 
     let settings = await Settings.findOne();
@@ -121,6 +128,9 @@ const updateSettings = asyncHandler(async (req, res) => {
     if (allowMockCheckout !== undefined) settings.allowMockCheckout = Boolean(allowMockCheckout);
     if (geminiApiKey !== undefined) settings.geminiApiKey = geminiApiKey.trim();
     if (addisAiApiKey !== undefined) settings.addisAiApiKey = addisAiApiKey.trim();
+    if (smsProvider !== undefined) settings.smsProvider = smsProvider;
+    if (smsApiKey !== undefined) settings.smsApiKey = smsApiKey.trim();
+    if (smsSenderId !== undefined) settings.smsSenderId = smsSenderId.trim();
 
     const updatedSettings = await settings.save();
     res.json(updatedSettings);

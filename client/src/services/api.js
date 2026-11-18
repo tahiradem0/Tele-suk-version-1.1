@@ -189,4 +189,10 @@ export const aiService = {
     commitAction: (data) => api.post('/ai/commit', data),
 };
 
+export const crmService = {
+    getOverview: () => api.get('/crm/overview'),
+    aiWriteSms: (data) => api.post('/crm/ai-write-sms', data),
+    sendSms: (data) => api.post('/crm/send-sms', data),
+};
+
 export default api;
