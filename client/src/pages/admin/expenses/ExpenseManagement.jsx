@@ -5,13 +5,10 @@ import {
     Plus,
     Search,
     Calendar,
-    Users,
     Store,
     TrendingUp,
     TrendingDown,
     CheckCircle2,
-    Copy,
-    Check,
     Image as ImageIcon,
     Trash2,
     Edit2,
@@ -65,10 +62,8 @@ const ExpenseManagement = () => {
     // Modals
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
-    const [partnerModalOpen, setPartnerModalOpen] = useState(false);
     const [budgetModalOpen, setBudgetModalOpen] = useState(false);
     const [receiptPreviewUrl, setReceiptPreviewUrl] = useState(null);
-    const [copied, setCopied] = useState(false);
 
     // Form States
     const [expenseForm, setExpenseForm] = useState({
@@ -82,7 +77,6 @@ const ExpenseManagement = () => {
         notes: '',
     });
 
-    const [joinConnectionId, setJoinConnectionId] = useState('');
     const [budgetLimitInput, setBudgetLimitInput] = useState('');
 
     useEffect(() => {
@@ -226,20 +220,6 @@ const ExpenseManagement = () => {
         });
     };
 
-    const handleJoinGroup = async (e) => {
-        e.preventDefault();
-        if (!joinConnectionId.trim()) return;
-        try {
-            const res = await groupService.join({ connectionId: joinConnectionId.trim() });
-            alert(res.data.message || 'Connected successfully!');
-            setJoinConnectionId('');
-            setPartnerModalOpen(false);
-            loadInitialData();
-        } catch (error) {
-            alert(error.response?.data?.message || 'Failed to connect to partner');
-        }
-    };
-
     const handleUpdateBudget = async (e) => {
         e.preventDefault();
         if (!activeGroupId || activeGroupId === 'personal') return;
@@ -253,13 +233,6 @@ const ExpenseManagement = () => {
         } catch (error) {
             alert('Failed to update budget limit');
         }
-    };
-
-    const copyCode = (code) => {
-        if (!code) return;
-        navigator.clipboard.writeText(code);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
     };
 
     const activeGroup = groups.find((g) => g._id === activeGroupId);
@@ -306,13 +279,9 @@ const ExpenseManagement = () => {
                         </div>
                         <div className="mezgeb-subtitle-row">
                             <span>
-                                {activeGroup?.members?.length > 1
-                                    ? isAmharic
-                                        ? `ከ ${activeGroup.members.length} የንግድ አጋሮች ጋር የተገናኘ`
-                                        : `Connected with ${activeGroup.members.length} business partners`
-                                    : isAmharic
-                                        ? 'የጋራ ሱቅ ወጪዎችና ገቢ መቆጣጠሪያ'
-                                        : 'Shared store overheads & revenue tracking'}
+                                {isAmharic
+                                    ? 'የሱቅ ወጪዎች እና ወርሃዊ በጀት መዝገብ'
+                                    : 'Shop expenses & monthly spending book'}
                             </span>
                             <span className="mezgeb-eth-today">
                                 <Calendar size={12} />
@@ -341,23 +310,6 @@ const ExpenseManagement = () => {
                                 <span>{isRefreshing ? (isAmharic ? 'በማደስ ላይ...' : 'Refreshing...') : t('refresh', 'Refresh')}</span>
                             </>
                         )}
-                    </button>
-
-                    {activeGroup?.connectionId && (
-                        <button
-                            onClick={() => copyCode(activeGroup.connectionId)}
-                            title={isAmharic ? 'የአጋር ኮድ ቅዳ' : 'Copy partner connection code'}
-                            className={`mezgeb-glass-btn ${copied ? 'copied' : ''}`}
-                        >
-                            <Users size={14} color="#67e8f9" />
-                            <span className="mezgeb-code-text">{activeGroup.connectionId}</span>
-                            {copied ? <Check size={14} /> : <Copy size={13} style={{ opacity: 0.75 }} />}
-                        </button>
-                    )}
-
-                    <button onClick={() => setPartnerModalOpen(true)} className="mezgeb-glass-btn">
-                        <Users size={15} />
-                        <span>{isAmharic ? 'አጋር አገናኝ' : 'Connect Partner'}</span>
                     </button>
 
                     <Link to="/admin/ai-assistant" className="mezgeb-glass-btn" style={{ textDecoration: 'none' }}>
@@ -951,82 +903,6 @@ const ExpenseManagement = () => {
                                 </button>
                                 <button type="submit" className="mezgeb-primary-btn" style={{ flex: 1, justifyContent: 'center' }}>
                                     {editingExpense ? (isAmharic ? 'አስተካክል' : 'Update Expense') : isAmharic ? 'መዝግብ' : 'Save Expense'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* PARTNER CONNECTION MODAL */}
-            {partnerModalOpen && (
-                <div
-                    className="mezgeb-modal-backdrop"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) setPartnerModalOpen(false);
-                    }}
-                >
-                    <div className="mezgeb-modal" style={{ maxWidth: '470px' }}>
-                        <div className="mezgeb-modal-header">
-                            <h2 className="mezgeb-modal-title">
-                                <Users size={20} color="#06b6d4" />
-                                {isAmharic ? 'የንግድ አጋር ማገናኛ' : 'Shop Partner Connections'}
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={() => setPartnerModalOpen(false)}
-                                className="mezgeb-modal-close"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        <div
-                            style={{
-                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(14, 116, 144, 0.92))',
-                                color: '#ffffff',
-                                padding: '1.35rem',
-                                borderRadius: '16px',
-                                textAlign: 'center',
-                                marginBottom: '1.4rem',
-                            }}
-                        >
-                            <div style={{ fontSize: '0.82rem', color: 'rgba(226, 232, 240, 0.85)', marginBottom: '0.45rem' }}>
-                                {isAmharic ? 'ለአጋርዎ የሚሰጡት የሱቅ መለያ ኮድ' : 'Share this code with your business partner'}
-                            </div>
-                            <div
-                                className="mezgeb-code-text"
-                                style={{ fontSize: '1.75rem', letterSpacing: '3px', color: '#67e8f9', marginBottom: '0.75rem' }}
-                            >
-                                {activeGroup?.connectionId || 'CONN-4821'}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => copyCode(activeGroup?.connectionId)}
-                                className={`mezgeb-glass-btn ${copied ? 'copied' : ''}`}
-                                style={{ margin: '0 auto' }}
-                            >
-                                {copied ? <Check size={15} /> : <Copy size={15} />}
-                                <span>{copied ? (isAmharic ? 'ተቀድቷል!' : 'Copied!') : isAmharic ? 'ኮዱን ቅዳ' : 'Copy Code'}</span>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleJoinGroup}>
-                            <label className="mezgeb-field-label">
-                                {isAmharic ? 'ከሌላ አጋር ሱቅ ጋር ተገናኝ' : 'Connect to another Partner Shop'}
-                            </label>
-                            <div style={{ display: 'flex', gap: '0.6rem' }}>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="e.g. CONN-1234"
-                                    value={joinConnectionId}
-                                    onChange={(e) => setJoinConnectionId(e.target.value.toUpperCase())}
-                                    className="mezgeb-input"
-                                    style={{ fontWeight: 700, letterSpacing: '1px' }}
-                                />
-                                <button type="submit" className="mezgeb-primary-btn">
-                                    {isAmharic ? 'ተገናኝ' : 'Join'}
                                 </button>
                             </div>
                         </form>
