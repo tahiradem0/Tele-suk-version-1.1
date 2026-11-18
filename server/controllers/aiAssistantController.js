@@ -206,58 +206,97 @@ const callGemini = async (apiKey, parts) => {
     throw lastError || new Error('Gemini API call failed');
 };
 
-// Helper: Optional Addis AI Amharic Audio Transcription
-const transcribeWithAddisAi = async (apiKey, audioBase64, mimeType = 'audio/webm') => {
+// Helper: Official Addis AI Amharic Speech-to-Text (Addis Scribe + v2/stt fallback)
+const transcribeWithAddisAi = async (apiKey, audioBase64, rawMimeType = 'audio/wav') => {
+    const cleanMime = String(rawMimeType || 'audio/wav').split(';')[0].trim();
     const buffer = Buffer.from(audioBase64, 'base64');
-    // Uses native global FormData & Blob built into Node 18+
-    const form = new global.FormData();
-    const ext = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('wav') ? 'wav' : 'webm';
-    const blob = new Blob([buffer], { type: mimeType });
-    form.append('chat_audio_input', blob, `voice.${ext}`);
-    form.append(
-        'request_data',
-        JSON.stringify({
-            prompt: 'Transcribe this Amharic merchant voice note accurately word for word. Return only the exact Amharic transcript.',
-            target_language: 'am',
-        })
-    );
+    const ext = cleanMime.includes('wav') ? 'wav' : cleanMime.includes('mp4') ? 'm4a' : 'webm';
+    const blob = new Blob([buffer], { type: cleanMime });
 
-    const res = await fetch('https://api.addisassistant.com/api/v1/chat_generate', {
+    // 1. Try Addis Scribe API (Recommended fast & accurate Amharic ASR)
+    try {
+        const scribeForm = new global.FormData();
+        scribeForm.append('file', blob, `voice.${ext}`);
+        const reqId = `shop-${Date.now()}`;
+        const res = await fetch(
+            `https://api.addisassistant.com/api/v1/scribe/transcribe?backend=turbo&request_id=${reqId}`,
+            {
+                method: 'POST',
+                headers: { 'x-api-key': apiKey },
+                body: scribeForm,
+            }
+        );
+        if (res.ok) {
+            const data = await res.json();
+            const text = data?.text || data?.transcript || data?.transcription || data?.data?.text || data?.data?.transcription || '';
+            if (text && text.trim()) return text.trim();
+        }
+    } catch (err) {
+        console.warn('[AI] Addis Scribe failed, trying Addis v2/stt:', err.message);
+    }
+
+    // 2. Fallback to Addis AI Standard STT v2
+    const sttForm = new global.FormData();
+    sttForm.append('audio', blob, `voice.${ext}`);
+    sttForm.append('request_data', JSON.stringify({ language_code: 'am' }));
+
+    const res2 = await fetch('https://api.addisassistant.com/api/v2/stt', {
         method: 'POST',
-        headers: { 'X-API-Key': apiKey },
-        body: form,
+        headers: { 'x-api-key': apiKey },
+        body: sttForm,
     });
 
-    if (!res.ok) {
-        throw new Error(`Addis AI HTTP ${res.status}`);
+    if (!res2.ok) {
+        throw new Error(`Addis AI HTTP ${res2.status}`);
     }
-    const data = await res.json();
-    return data?.data?.response_text || data?.response_text || data?.transcription || '';
+    const data2 = await res2.json();
+    return (
+        data2?.text ||
+        data2?.transcript ||
+        data2?.transcription ||
+        data2?.data?.text ||
+        data2?.data?.response_text ||
+        ''
+    ).trim();
 };
 
-const STRUCTURED_PROMPT = `You are a simple Ethiopian shopkeeper bookkeeping assistant.
-Analyze the merchant's spoken Amharic/English message (or audio) and convert it into clean structured JSON so it can be saved straight into their shop database.
+const buildStructuredPrompt = () => {
+    const todayIso = new Date().toISOString().split('T')[0];
+    return `You are a native Ethiopian Amharic linguist AND a simple Ethiopian shopkeeper bookkeeping assistant.
+
+CRITICAL ACCURACY RULES FOR AMHARIC AUDIO & TEXT:
+1. Listen to EVERY SINGLE WORD and syllable of the Amharic speech carefully. Do NOT guess random nonsense words.
+2. Recognize real Ethiopian names accurately (for example: ሃምዛ / Hamza, መሀመድ / Muhammed, ታሂር / Tahir, አበበ / Abebe, ከበደ / Kebede, አህመድ / Ahmed, አሊ / Ali, ፋጡማ / Fatuma, አልማዝ / Almaz, ዳዊት / Dawit, ዮናስ / Yonas, ብርሃኑ / Birhanu, ሳራ / Sara, ሄለን / Helen, ገብሬ / Gebre). Never distort "ሃምዛ (Hamza)" into "Lamza" or "ብድር (credit)" into "ድድር".
+3. Recognize Ethiopian shop vocabulary and numbers accurately:
+   - Currency: ብር (Birr / ETB). Numbers: አስር=10, ሃያ=20, ሰላሳ=30, አርባ=40, ሀምሳ=50, መቶ=100, ሁለት መቶ=200, አምስት መቶ=500, ሺህ=1000.
+   - Verbs: ሰጥቼዋለሁ / ሰጠሁት (I gave him), ወሰደ / ወሰደች (he/she took), በብድር (on credit), ያለበት / አለበት (he owes), ከፈልኩ (I paid), ገዛሁ (I bought), አስገባሁ (I deposited/added).
+   - Categories: ኪራይ (Shop Rent), ፌስታል/ማሸጊያ (Packaging & Bags), መብራት/ውሃ/ኢንተርኔት (Electricity & Water), ታክሲ/ባጃጅ/ነዳጅ/ትራንስፖርት (Transport & Delivery), ደመወዝ/ሰራተኛ (Staff & Salary), ማስታወቂያ (Marketing & Ads).
+   - Payment methods: ቴሌብር (Telebirr), ሲቢኢ ብር (CBEBirr), ባንክ (Bank Transfer), ካሽ/በእጅ (Cash).
+4. Write the EXACT word-for-word Amharic Ge'ez script in "originalText" (if spoken in Amharic) and a crystal-clear, faithful word-for-word English translation in "englishTranslation".
+5. Also write a clean 1-sentence confirmation in natural Amharic in "amharicSummary".
 
 Return ONLY valid JSON with these exact keys:
 {
-  "originalText": "Exact Amharic or spoken transcript",
-  "englishTranslation": "Simple clear 1-sentence English translation",
+  "originalText": "Exact word-for-word Amharic Ge'ez transcript (or English if spoken in English)",
+  "englishTranslation": "Exact, natural word-for-word English translation of everything spoken",
+  "amharicSummary": "Clear 1-sentence confirmation in natural Amharic",
   "actionType": "expense" | "debt_receivable" | "debt_payable" | "capital_inflow",
   "amount": number (in ETB, 0 if not mentioned),
-  "reason": "Short clear English description (e.g. Shop Rent, 200 Delivery Bags, Customer Credit)",
+  "reason": "Short clear English description (e.g. Shop Rent, Credit to Hamza, 200 Delivery Bags)",
   "categoryName": "Shop Rent" | "Packaging & Bags" | "Electricity & Water" | "Transport & Delivery" | "Staff & Salary" | "Marketing & Ads" | "General Overhead",
   "paymentMethod": "Cash" | "Telebirr" | "CBEBirr" | "Bank Transfer" | "Other",
-  "personName": "Person name if debt/credit, else empty string",
+  "personName": "Cleanly spelled person name if ANY person is mentioned (e.g. Hamza, Abebe), else empty string",
   "phone": "Phone number if mentioned, else empty string",
-  "date": "YYYY-MM-DD (use today's date ${new Date().toISOString().split('T')[0]} unless yesterday/specific date mentioned)",
-  "notes": "Any extra details"
+  "date": "YYYY-MM-DD (default ${todayIso}; adjust if 'ትናንት/yesterday' was said)",
+  "notes": "Any extra details from the voice note"
 }
 
-Rules:
-- If someone borrowed/took credit from the shop ("ብድር ወሰደ", "owes me") -> actionType = "debt_receivable".
-- If shop owes a supplier ("ለአቅራቢ እዳ", "I owe supplier") -> actionType = "debt_payable".
-- If merchant added cash/capital to treasury ("ካፒታል አስገባሁ", "deposited cash") -> actionType = "capital_inflow".
-- Otherwise -> actionType = "expense".`;
+Action Classification Rules:
+- If someone took credit, borrowed money, or owes the shop ("ብድር ወሰደ", "ያለበት", "አበደርኩ", "owes me") -> actionType = "debt_receivable".
+- If the shop owes a supplier or borrowed from someone ("ለአቅራቢ እዳ", "ተበደርኩ", "I owe") -> actionType = "debt_payable".
+- If the merchant added cash/capital into the shop ("ካፒታል አስገባሁ", "deposited cash") -> actionType = "capital_inflow".
+- If the merchant paid a person, worker, rent, or bought supplies ("ከፈልኩ", "ሰጥቼዋለሁ", "ገዛሁ", "paid") -> actionType = "expense" (and still fill "personName" if a person was named, so the merchant can easily switch to Customer Debt in 1 tap if it was a loan!).`;
+};
 
 // @desc    Get AI Assistant availability & active engines
 // @route   GET /api/ai/status
@@ -280,45 +319,46 @@ const getAiStatus = asyncHandler(async (req, res) => {
 // @route   POST /api/ai/parse-voice
 // @access  Private/Admin
 const parseVoiceCommand = asyncHandler(async (req, res) => {
-    const { transcript = '', audioBase64 = '', audioMimeType = 'audio/webm' } = req.body;
+    const { transcript = '', audioBase64 = '', audioMimeType = 'audio/wav' } = req.body;
     const { geminiApiKey, addisAiApiKey } = await getAiKeys();
 
+    const cleanMime = String(audioMimeType || 'audio/wav').split(';')[0].trim() || 'audio/wav';
     let workingTranscript = String(transcript || '').trim();
     let addisUsed = false;
 
-    // Step 1: If audio provided & Addis AI key is configured, transcribe Amharic with Addis AI first
+    // Step 1: If audio provided & Addis AI key is configured, transcribe Amharic with Addis Scribe first
     if (audioBase64 && addisAiApiKey) {
         try {
-            const addisText = await transcribeWithAddisAi(addisAiApiKey, audioBase64, audioMimeType);
+            const addisText = await transcribeWithAddisAi(addisAiApiKey, audioBase64, cleanMime);
             if (addisText) {
                 workingTranscript = addisText.trim();
                 addisUsed = true;
             }
         } catch (err) {
-            console.warn('[AI] Addis AI transcription failed, falling back:', err.message);
+            console.warn('[AI] Addis AI transcription failed, falling back to Gemini audio:', err.message);
         }
     }
 
-    // Step 2: If Gemini API key is configured, use Gemini Free Tier for Audio/Text -> English + Structured JSON
+    // Step 2: If Gemini API key is configured, listen directly to PURE audio (never poisoned by Chrome's rough speech guess!)
     if (geminiApiKey) {
         try {
-            const parts = [{ text: STRUCTURED_PROMPT }];
+            const parts = [{ text: buildStructuredPrompt() }];
             if (addisUsed && workingTranscript) {
-                // Addis AI already gave us ultra-accurate Amharic text
-                parts.push({ text: `Merchant message (Amharic): "${workingTranscript}"` });
+                // Addis AI Scribe already produced high-precision Amharic Ge'ez transcript
+                parts.push({ text: `Exact Amharic transcript from Addis AI Scribe: "${workingTranscript}"` });
             } else if (audioBase64) {
-                // Let Gemini listen directly to the raw Amharic voice for highest accuracy!
+                // Send ONLY pure lossless WAV audio so Gemini hears every Amharic syllable cleanly without browser-typo bias
                 parts.push({
                     inline_data: {
-                        mime_type: audioMimeType || 'audio/webm',
+                        mime_type: cleanMime,
                         data: audioBase64,
                     },
                 });
-                if (workingTranscript) {
-                    parts.push({ text: `Rough browser speech hint (may have typos, trust the audio first): "${workingTranscript}"` });
-                }
+                parts.push({
+                    text: 'Transcribe every single spoken word of this Ethiopian Amharic/English audio carefully and return the structured JSON.',
+                });
             } else if (workingTranscript) {
-                parts.push({ text: `Merchant message: "${workingTranscript}"` });
+                parts.push({ text: `Merchant typed message: "${workingTranscript}"` });
             } else {
                 res.status(400);
                 throw new Error('Please speak or type a message first.');
@@ -329,7 +369,8 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
                 ...parsed,
                 amount: Number(parsed.amount) || 0,
                 originalText: parsed.originalText || workingTranscript,
-                engineUsed: addisUsed ? `addis_ai + ${model}` : model,
+                amharicSummary: parsed.amharicSummary || '',
+                engineUsed: addisUsed ? `addis_scribe + ${model}` : model,
             });
         } catch (err) {
             console.warn('[AI] Gemini parse failed, falling back to local smart parser:', err.message);
@@ -345,7 +386,7 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
     }
 
     const localResult = parseWithLocalRules(workingTranscript);
-    if (addisUsed) localResult.engineUsed = 'addis_ai + builtin_smart_parser';
+    if (addisUsed) localResult.engineUsed = 'addis_scribe + builtin_smart_parser';
     res.json(localResult);
 });
 

@@ -17,6 +17,7 @@ import {
 import { aiService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
+import { convertBlobToCleanWavBase64 } from '../../../utils/audioWavEncoder';
 import './VoiceAssistant.css';
 
 const QUICK_EXAMPLES = [
@@ -49,6 +50,8 @@ const VoiceAssistant = () => {
     const [spokenLang, setSpokenLang] = useState('am-ET');
     const [transcript, setTranscript] = useState('');
     const [isRecording, setIsRecording] = useState(false);
+    const [recordingSeconds, setRecordingSeconds] = useState(0);
+    const [recordedAudioUrl, setRecordedAudioUrl] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isScanningReceipt, setIsScanningReceipt] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -63,12 +66,14 @@ const VoiceAssistant = () => {
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const liveTranscriptRef = useRef('');
+    const timerRef = useRef(null);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
         loadStatus();
         return () => {
             stopRecordingCleanup();
+            if (timerRef.current) clearInterval(timerRef.current);
         };
     }, []);
 
@@ -111,8 +116,12 @@ const VoiceAssistant = () => {
         setSavedFeedback(null);
 
         if (isRecording) {
-            // Stop recording -> triggers mediaRecorder.onstop to analyze!
+            // Stop recording -> triggers mediaRecorder.onstop to encode clean WAV & analyze!
             setIsRecording(false);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
             if (recognitionRef.current) {
                 try {
                     recognitionRef.current.stop();
@@ -126,15 +135,23 @@ const VoiceAssistant = () => {
             return;
         }
 
-        // Start recording!
+        // Start fresh recording
         liveTranscriptRef.current = '';
         setTranscript('');
         setParsedData(null);
+        setRecordingSeconds(0);
+        if (recordedAudioUrl) {
+            URL.revokeObjectURL(recordedAudioUrl);
+            setRecordedAudioUrl(null);
+        }
         audioChunksRef.current = [];
 
-        // 1. Start Browser Web Speech API (instant free live preview for Amharic & English)
+        const hasCloudAudioAi = Boolean(aiStatus.geminiEnabled || aiStatus.addisAiEnabled);
+
+        // Only use browser Web Speech API when in offline free mode (no Gemini/Addis AI),
+        // because Chrome's Web Speech often mishears Amharic consonants.
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
+        if (!hasCloudAudioAi && SpeechRecognition) {
             try {
                 const recognition = new SpeechRecognition();
                 recognition.lang = spokenLang;
@@ -148,20 +165,23 @@ const VoiceAssistant = () => {
                     liveTranscriptRef.current = combined.trim();
                     setTranscript(combined.trim());
                 };
-                recognition.onerror = () => {
-                    // Silent fallback to audio blob if speech API unavailable
-                };
+                recognition.onerror = () => {};
                 recognition.start();
                 recognitionRef.current = recognition;
-            } catch {
-                // Continue with MediaRecorder
-            }
+            } catch {}
         }
 
-        // 2. Start MediaRecorder so Addis AI / Gemini Audio also get raw audio when enabled
+        // Capture crystal-clear speech microphone audio -> encode to lossless 16kHz PCM WAV
         try {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        channelCount: 1,
+                    },
+                });
                 const recorder = new MediaRecorder(stream);
                 mediaRecorderRef.current = recorder;
 
@@ -173,22 +193,37 @@ const VoiceAssistant = () => {
 
                 recorder.onstop = async () => {
                     stream.getTracks().forEach((track) => track.stop());
-                    const mimeType = recorder.mimeType || 'audio/webm';
-                    const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+                    const rawMime = (recorder.mimeType || 'audio/webm').split(';')[0].trim();
+                    const audioBlob = new Blob(audioChunksRef.current, { type: rawMime });
                     const finalTranscript = liveTranscriptRef.current.trim();
 
-                    let audioBase64 = '';
-                    if ((aiStatus.geminiEnabled || aiStatus.addisAiEnabled) && audioBlob.size > 0) {
-                        try {
-                            audioBase64 = await blobToBase64(audioBlob);
-                        } catch {}
+                    if (audioBlob.size > 0) {
+                        setRecordedAudioUrl(URL.createObjectURL(audioBlob));
                     }
 
-                    if (finalTranscript || audioBase64) {
+                    let audioBase64 = '';
+                    let audioMimeType = rawMime;
+
+                    if (hasCloudAudioAi && audioBlob.size > 0) {
+                        try {
+                            // Convert to lossless 16kHz Mono PCM WAV for highest Amharic accuracy!
+                            const wav = await convertBlobToCleanWavBase64(audioBlob);
+                            audioBase64 = wav.base64;
+                            audioMimeType = wav.mimeType;
+                        } catch {
+                            try {
+                                audioBase64 = await blobToBase64(audioBlob);
+                                audioMimeType = rawMime;
+                            } catch {}
+                        }
+                    }
+
+                    if (audioBase64 || finalTranscript) {
                         await analyzeInput({
-                            transcript: finalTranscript,
+                            // Send ONLY clean audio when Cloud AI is active so Chrome typos never bias AI
+                            transcript: hasCloudAudioAi ? '' : finalTranscript,
                             audioBase64,
-                            audioMimeType: mimeType,
+                            audioMimeType,
                         });
                     } else {
                         setErrorMsg(
@@ -201,6 +236,9 @@ const VoiceAssistant = () => {
 
                 recorder.start();
                 setIsRecording(true);
+                timerRef.current = setInterval(() => {
+                    setRecordingSeconds((s) => s + 1);
+                }, 1000);
             } else if (SpeechRecognition) {
                 setIsRecording(true);
             } else {
@@ -219,7 +257,7 @@ const VoiceAssistant = () => {
         }
     };
 
-    const analyzeInput = async ({ transcript: textToParse, audioBase64 = '', audioMimeType = 'audio/webm' }) => {
+    const analyzeInput = async ({ transcript: textToParse, audioBase64 = '', audioMimeType = 'audio/wav' }) => {
         setErrorMsg('');
         setSavedFeedback(null);
         setIsAnalyzing(true);
@@ -229,9 +267,14 @@ const VoiceAssistant = () => {
                 audioBase64,
                 audioMimeType,
             });
+            const cleanAmharic = data.originalText || textToParse || '';
+            if (cleanAmharic) {
+                setTranscript(cleanAmharic);
+            }
             setParsedData({
-                originalText: data.originalText || textToParse,
+                originalText: cleanAmharic,
                 englishTranslation: data.englishTranslation || '',
+                amharicSummary: data.amharicSummary || '',
                 actionType: data.actionType || 'expense',
                 amount: data.amount ? String(data.amount) : '',
                 reason: data.reason || '',
@@ -453,14 +496,32 @@ const VoiceAssistant = () => {
 
                     {/* Amharic -> English Translation Display */}
                     <div className="voice-translation-box">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0284c7' }}>
+                                {isAmharic ? 'ትክክለኛ የአማርኛ እና እንግሊዝኛ ትርጉም' : 'Word-for-Word Amharic & English'}
+                            </span>
+                            {parsedData.engineUsed && (
+                                <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: 'rgba(6, 182, 212, 0.14)', color: '#0284c7' }}>
+                                    {parsedData.engineUsed}
+                                </span>
+                            )}
+                        </div>
                         {parsedData.originalText && (
-                            <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #475569)', marginBottom: '4px' }}>
-                                <strong>{isAmharic ? 'የተናገሩት:' : 'Heard:'}</strong> "{parsedData.originalText}"
+                            <div style={{ fontSize: '0.96rem', fontWeight: 700, color: 'var(--admin-text, #0f172a)', marginBottom: '6px' }}>
+                                🇪🇹 <span>"{parsedData.originalText}"</span>
                             </div>
                         )}
-                        <div style={{ fontSize: '0.96rem', fontWeight: 800, color: 'var(--admin-text, #0f172a)' }}>
-                            ✨ {parsedData.englishTranslation}
+                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#059669' }}>
+                            🇬🇧 {parsedData.englishTranslation}
                         </div>
+                        {parsedData.amharicSummary && (
+                            <div style={{ fontSize: '0.84rem', color: 'var(--admin-subtext, #475569)', marginTop: '5px', fontWeight: 600 }}>
+                                ✨ {parsedData.amharicSummary}
+                            </div>
+                        )}
+                        {recordedAudioUrl && (
+                            <audio controls src={recordedAudioUrl} style={{ width: '100%', height: '34px', marginTop: '0.7rem' }} />
+                        )}
                     </div>
 
                     {/* Choose Where To Save */}
@@ -647,8 +708,16 @@ const VoiceAssistant = () => {
                         </button>
                         <div className="voice-mic-status">
                             {isRecording
-                                ? isAmharic ? 'እያዳመጥኩ ነው... ሲጨርሱ ይጫኑ' : 'Listening... Tap square to finish'
-                                : isAmharic ? 'ለመናገር ማይክሮፎኑን ይጫኑ' : 'Tap microphone and speak naturally'}
+                                ? isAmharic
+                                    ? `እያዳመጥኩ ነው (${Math.floor(recordingSeconds / 60)}:${String(recordingSeconds % 60).padStart(2, '0')})... ሲጨርሱ ይጫኑ`
+                                    : `Recording (${Math.floor(recordingSeconds / 60)}:${String(recordingSeconds % 60).padStart(2, '0')})... Tap square to finish`
+                                : isAnalyzing
+                                    ? isAmharic
+                                        ? 'እያንዳንዱን የአማርኛ ቃል በትክክል በመተርጎም ላይ...'
+                                        : 'Listening carefully to every Amharic word...'
+                                    : isAmharic
+                                        ? 'ለመናገር ማይክሮፎኑን ይጫኑ'
+                                        : 'Tap microphone and speak naturally'}
                         </div>
                         <div className="voice-mic-hint">
                             {isAmharic
