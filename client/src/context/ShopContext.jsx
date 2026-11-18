@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService, productService, categoryService, orderService, bannerService, settingsService, deliveryLocationService } from '../services/api';
+import { authService, productService, categoryService, orderService, bannerService, settingsService, deliveryLocationService, affiliateService } from '../services/api';
 
 const ShopContext = createContext();
 
@@ -58,6 +58,18 @@ export const ShopProvider = ({ children }) => {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
+                // Capture affiliate referral code from URL (?ref=CODE) once per session
+                const urlParams = new URLSearchParams(window.location.search);
+                const refParam = (urlParams.get('ref') || '').trim().toUpperCase();
+                if (refParam) {
+                    localStorage.setItem('ref_code', refParam);
+                    const trackedKey = `ref_tracked_${refParam}`;
+                    if (!sessionStorage.getItem(trackedKey)) {
+                        sessionStorage.setItem(trackedKey, '1');
+                        affiliateService.trackClick(refParam).catch(() => {});
+                    }
+                }
+
                 // Check for logged in user
                 const storedUser = localStorage.getItem('user');
                 if (storedUser) {

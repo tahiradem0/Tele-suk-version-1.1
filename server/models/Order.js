@@ -80,6 +80,20 @@ const orderSchema = new mongoose.Schema({
         type: String,
         default: 'Unassigned',
     },
+    referralCode: {
+        type: String,
+        default: '',
+        uppercase: true,
+        trim: true,
+    },
+    affiliateCommission: {
+        type: Number,
+        default: 0,
+    },
+    affiliateCredited: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const StockMovement = require('../models/StockMovement');
 const CapitalTransaction = require('../models/CapitalTransaction');
 const { deductOrderStock, restoreOrderStock } = require('../utils/stockHelper');
+const { creditAffiliateForOrder } = require('../utils/affiliateHelper');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -16,6 +17,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
         itemsPrice,
         shippingPrice,
         totalPrice,
+        referralCode,
     } = req.body;
 
     if (orderItems && orderItems.length === 0) {
@@ -53,6 +55,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
         totalPrice,
         status: 'Pending',
         stockDeducted: false,
+        referralCode: referralCode ? String(referralCode).trim().toUpperCase() : '',
     });
 
     const createdOrder = await order.save();
@@ -60,6 +63,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     // If order paymentMethod is Cash / COD (non-Chapa), deduct stock immediately upon order placement
     if (paymentMethod === 'Cash' || paymentMethod === 'COD') {
         await deductOrderStock(createdOrder, req.user._id, 'Cash Order');
+        await creditAffiliateForOrder(createdOrder);
     }
 
     res.status(201).json(createdOrder);

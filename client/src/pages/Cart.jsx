@@ -102,7 +102,10 @@ const Cart = () => {
                 orderItems,
                 shippingAddress: { address },
                 paymentMethod: 'Chapa',
-                totalPrice: total
+                itemsPrice: subtotal,
+                shippingPrice: deliveryFee,
+                totalPrice: total,
+                referralCode: localStorage.getItem('ref_code') || ''
             };
 
             const { data: order } = await orderService.create(orderData);

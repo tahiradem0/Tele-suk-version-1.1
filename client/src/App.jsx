@@ -25,6 +25,7 @@ import ExpenseManagement from './pages/admin/expenses/ExpenseManagement'
 import FinancialReport from './pages/admin/reports/FinancialReport'
 import VoiceAssistant from './pages/admin/ai/VoiceAssistant'
 import CustomerMarketing from './pages/admin/crm/CustomerMarketing'
+import AffiliateManager from './pages/admin/affiliates/AffiliateManager'
 import AdminSettings from './pages/admin/settings/AdminSettings'
 
 // User Pages
@@ -72,6 +73,7 @@ function App() {
                                 <Route path="reports" element={<FinancialReport />} />
                                 <Route path="ai-assistant" element={<VoiceAssistant />} />
                                 <Route path="crm" element={<CustomerMarketing />} />
+                                <Route path="affiliates" element={<AffiliateManager />} />
                                 <Route path="store" element={<StoreManagement />} />
                                 <Route path="capital" element={<CapitalManagement />} />
                                 <Route path="debt-credit" element={<DebtCreditManagement />} />

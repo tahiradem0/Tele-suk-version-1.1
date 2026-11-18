@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const CapitalTransaction = require('../models/CapitalTransaction');
 const Settings = require('../models/Settings');
 const { deductOrderStock } = require('../utils/stockHelper');
+const { creditAffiliateForOrder } = require('../utils/affiliateHelper');
 
 // Helper to get active Chapa secret key and mode from Settings
 const getChapaConfig = async () => {
@@ -271,6 +272,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
                 } catch (stockErr) {
                     console.error('Failed to deduct stock on Chapa verify:', stockErr);
                 }
+
+                // Automatically credit affiliate promoter if order came from a referral link
+                await creditAffiliateForOrder(order);
 
                 res.json({ status: 'success', order, mode: paymentMode });
             } else {

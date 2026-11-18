@@ -195,4 +195,13 @@ export const crmService = {
     sendSms: (data) => api.post('/crm/send-sms', data),
 };
 
+export const affiliateService = {
+    trackClick: (code) => api.post('/affiliates/track-click', { code }),
+    getAll: () => api.get('/affiliates'),
+    create: (data) => api.post('/affiliates', data),
+    update: (id, data) => api.put(`/affiliates/${id}`, data),
+    payout: (id, data) => api.post(`/affiliates/${id}/payout`, data),
+    delete: (id) => api.delete(`/affiliates/${id}`),
+};
+
 export default api;
