@@ -20,6 +20,7 @@ import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import { convertBlobToCleanWavBase64 } from '../../../utils/audioWavEncoder';
 import CoolSelect from '../../../components/ui/CoolSelect';
+import CoolDatePicker from '../../../components/ui/CoolDatePicker';
 import './VoiceAssistant.css';
 
 const QUICK_EXAMPLES = [
@@ -794,11 +795,9 @@ const VoiceAssistant = () => {
 
                             <div>
                                 <label className="mezgeb-field-label">{isAmharic ? 'ቀን' : 'Date'}</label>
-                                <input
-                                    type="date"
+                                <CoolDatePicker
                                     value={parsedData.date}
                                     onChange={(e) => setParsedData({ ...parsedData, date: e.target.value })}
-                                    className="mezgeb-input"
                                 />
                             </div>
                         </div>

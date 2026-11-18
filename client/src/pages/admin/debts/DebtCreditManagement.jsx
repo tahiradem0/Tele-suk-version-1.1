@@ -8,6 +8,7 @@ import { debtService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import CoolSelect from '../../../components/ui/CoolSelect';
 import VoiceInput from '../../../components/ui/VoiceInput';
+import CoolDatePicker from '../../../components/ui/CoolDatePicker';
 
 const DebtCreditManagement = () => {
     const { isAmharic } = useAdminLanguage();
@@ -699,11 +700,12 @@ const DebtCreditManagement = () => {
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                         {isAmharic ? 'የመክፈያ ቀን (አማራጭ)' : 'Due Date (Optional)'}
                                     </label>
-                                    <input
-                                        type="date"
+                                    <CoolDatePicker
                                         value={newDebtForm.dueDate}
                                         onChange={(e) => setNewDebtForm({ ...newDebtForm, dueDate: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
+                                        presetMode="future"
+                                        allowClear
+                                        placeholder={isAmharic ? 'የመክፈያ ቀን ይምረጡ' : 'Pick due date'}
                                     />
                                 </div>
                             </div>

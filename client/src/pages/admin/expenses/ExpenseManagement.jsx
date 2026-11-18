@@ -26,6 +26,7 @@ import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import CoolSelect from '../../../components/ui/CoolSelect';
 import VoiceInput from '../../../components/ui/VoiceInput';
+import CoolDatePicker from '../../../components/ui/CoolDatePicker';
 import './ExpenseManagement.css';
 
 const CATEGORY_PALETTE = [
@@ -808,11 +809,9 @@ const ExpenseManagement = () => {
                                 <label className="mezgeb-field-label">
                                     {isAmharic ? 'የወጣበት ቀን (Date)' : 'Expense Date'}
                                 </label>
-                                <input
-                                    type="date"
+                                <CoolDatePicker
                                     value={expenseForm.date}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
-                                    className="mezgeb-input"
                                 />
                                 <div className="mezgeb-date-eth" style={{ marginTop: '6px' }}>
                                     <Calendar size={12} />

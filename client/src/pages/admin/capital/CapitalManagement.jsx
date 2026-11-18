@@ -7,6 +7,7 @@ import { capitalService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import CoolSelect from '../../../components/ui/CoolSelect';
 import VoiceInput from '../../../components/ui/VoiceInput';
+import CoolDatePicker from '../../../components/ui/CoolDatePicker';
 
 const categoryLabels = {
     sale: 'Sales Revenue',
@@ -582,11 +583,9 @@ const CapitalManagement = () => {
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
                                         {isAmharic ? 'ቀን' : 'Date'}
                                     </label>
-                                    <input
-                                        type="date"
+                                    <CoolDatePicker
                                         value={formData.date}
                                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da' }}
                                     />
                                 </div>
                             </div>
