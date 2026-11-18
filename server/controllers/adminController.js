@@ -11,8 +11,8 @@ const Settings = require('../models/Settings');
 // @route   GET /api/admin/stats
 // @access  Private/Admin
 const getStats = asyncHandler(async (req, res) => {
-    // 1. Total Users
-    const usersCount = await User.countDocuments();
+    // 1. Total Registered Customers (excluding admin account so it matches Customers & SMS)
+    const usersCount = await User.countDocuments({ isAdmin: { $ne: true } });
 
     // 2. Total Products
     const products = await Product.find({});
@@ -39,8 +39,8 @@ const getStats = asyncHandler(async (req, res) => {
         }
     });
 
-    // 3. Total Orders & Revenue
-    const orders = await Order.find({});
+    // 3. Total Active Orders & Revenue (exclude Cancelled so it matches Money Report)
+    const orders = await Order.find({ status: { $ne: 'Cancelled' } });
     const ordersCount = orders.length;
     const totalRevenue = orders.reduce((acc, order) => acc + (order.totalPrice || 0), 0);
 
@@ -170,11 +170,17 @@ const getFinancialReport = asyncHandler(async (req, res) => {
 
     for (const tx of periodCapitalTxs) {
         const amt = Number(tx.amount) || 0;
+        const desc = String(tx.description || '');
+        const isSyncedExpense =
+            tx.category === 'expense' ||
+            desc.startsWith('[Mezgeb Expense]') ||
+            desc.startsWith('[AI Voice]');
+
         if (tx.type === 'outflow') {
             if (tx.category === 'stock_purchase') {
                 stockPurchasesTotal += amt;
-            } else if (tx.category !== 'expense') {
-                // Avoid double-counting Mezgeb expenses already synced to Capital
+            } else if (!isSyncedExpense) {
+                // Avoid double-counting Mezgeb/AI expenses already counted in shopExpensesTotal
                 otherCapitalOutflow += amt;
             }
         } else if (tx.type === 'inflow' && tx.category !== 'sale') {
