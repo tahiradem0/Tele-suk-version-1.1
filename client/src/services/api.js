@@ -131,6 +131,7 @@ export const userService = {
 
 export const adminService = {
     getStats: () => api.get('/admin/stats'),
+    getFinancialReport: (period = 'month') => api.get('/admin/financial-report', { params: { period } }),
 };
 
 export const capitalService = {

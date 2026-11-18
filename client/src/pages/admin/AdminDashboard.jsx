@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     TrendingUp, Users, ShoppingBag, DollarSign, Settings as SettingsIcon,
     Warehouse, Coins, Receipt, AlertTriangle, ArrowRight, Wallet, UserPlus, UserMinus,
-    Sparkles, Flame, Moon, CheckCircle2
+    Sparkles, Flame, Moon, CheckCircle2, FileBarChart2
 } from 'lucide-react';
 import { settingsService, adminService, storeService } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
@@ -122,15 +122,36 @@ const AdminDashboard = () => {
 
     return (
         <div style={{ padding: '1.5rem', maxWidth: '1240px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '800' }}>
-                    {isAmharic ? 'የንግድ ስራ መቆጣጠሪያ ማዕከል' : 'Business Control Center'}
-                </h1>
-                <p style={{ color: '#868e96' }}>
-                    {isAmharic
-                        ? 'የመደብር ክምችት፣ የካፒታል ፍሰት፣ ትዕዛዞች እና የብድር እዳዎች አጠቃላይ ማጠቃለያ።'
-                        : 'Comprehensive overview of store inventory, capital cash flow, orders, and credit debts.'}
-                </p>
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', margin: 0 }}>
+                        {isAmharic ? 'የንግድ ስራ መቆጣጠሪያ ማዕከል' : 'Business Control Center'}
+                    </h1>
+                    <p style={{ color: '#868e96', margin: '4px 0 0' }}>
+                        {isAmharic
+                            ? 'የመደብር ክምችት፣ የካፒታል ፍሰት፣ ትዕዛዞች እና የብድር እዳዎች አጠቃላይ ማጠቃለያ።'
+                            : 'Comprehensive overview of store inventory, capital cash flow, orders, and credit debts.'}
+                    </p>
+                </div>
+                <Link
+                    to="/admin/reports"
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '0.7rem 1.25rem',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+                        color: '#ffffff',
+                        textDecoration: 'none',
+                        fontWeight: '700',
+                        fontSize: '0.9rem',
+                        boxShadow: '0 6px 16px rgba(16, 185, 129, 0.28)'
+                    }}
+                >
+                    <FileBarChart2 size={18} />
+                    <span>{isAmharic ? 'ቀላል የገንዘብ ሪፖርት ክፈት' : 'One-Click Money Report'}</span>
+                </Link>
             </header>
 
             {/* Simple Merchant Advice Card ("What To Do Today") */}

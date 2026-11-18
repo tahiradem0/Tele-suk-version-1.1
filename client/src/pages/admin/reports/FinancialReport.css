@@ -1,0 +1,464 @@
+/* ==========================================================================
+   ONE-CLICK SIMPLE MONEY REPORT (MERCHANT-FRIENDLY + PRINT/PDF READY)
+   ========================================================================== */
+
+.report-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0.25rem 0.25rem 3.5rem;
+    font-feature-settings: "tnum" on, "lnum" on;
+}
+
+/* 1. HERO HEADER */
+.report-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #065f46 100%);
+    color: #ffffff;
+    box-shadow: 0 14px 32px -12px rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+}
+
+.report-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.report-hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+    flex-shrink: 0;
+}
+
+.report-hero-title {
+    margin: 0;
+    font-size: 1.38rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+}
+
+.report-hero-sub {
+    margin: 4px 0 0;
+    font-size: 0.86rem;
+    color: rgba(226, 232, 240, 0.88);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.report-date-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fde68a;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.report-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.report-print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.62rem 1.2rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s ease;
+}
+
+.report-print-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+}
+
+/* Period Switcher Bar */
+.report-period-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.report-period-pills {
+    display: inline-flex;
+    background: var(--admin-card-bg, #ffffff);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.report-period-pill {
+    padding: 0.52rem 1.05rem;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--admin-subtext, #64748b);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.report-period-pill:hover {
+    color: var(--admin-text, #0f172a);
+}
+
+.report-period-pill.active {
+    background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+/* 2. BIG 3 MONEY CARDS (IN / OUT / PROFIT LEFT) */
+.report-big3-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .report-big3-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.report-big-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--admin-card-bg, #ffffff);
+    border: 1.5px solid var(--admin-border, #e2e8f0);
+    border-radius: 20px;
+    padding: 1.45rem 1.55rem;
+    box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.05);
+}
+
+.report-big-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.report-big-card.money-in::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.report-big-card.money-out::before { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+.report-big-card.profit-pos::before { background: linear-gradient(90deg, #0284c7, #06b6d4); }
+.report-big-card.profit-neg::before { background: linear-gradient(90deg, #f59e0b, #f43f5e); }
+
+.report-big-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.report-big-label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--admin-subtext, #64748b);
+}
+
+.report-big-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-big-icon.in { background: rgba(16, 185, 129, 0.14); color: #10b981; }
+.report-big-icon.out { background: rgba(244, 63, 94, 0.14); color: #f43f5e; }
+.report-big-icon.profit { background: rgba(6, 182, 212, 0.14); color: #06b6d4; }
+.report-big-icon.loss { background: rgba(245, 158, 11, 0.14); color: #f59e0b; }
+
+.report-big-amount {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--admin-text, #0f172a);
+    line-height: 1.15;
+}
+
+.report-big-amount.green { color: #10b981; }
+.report-big-amount.red { color: #f43f5e; }
+.report-big-amount.cyan { color: #0284c7; }
+
+.admin-layout.dark .report-big-amount.cyan { color: #38bdf8; }
+
+.report-big-sub {
+    margin-top: 0.55rem;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--admin-subtext, #64748b);
+}
+
+/* 3. PLAIN-LANGUAGE STORY CARD */
+.report-story-card {
+    background: var(--admin-card-bg, #ffffff);
+    border: 1.5px solid rgba(6, 182, 212, 0.3);
+    border-radius: 20px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 6px 20px -6px rgba(6, 182, 212, 0.12);
+}
+
+.report-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--admin-text, #0f172a);
+    margin: 0 0 1rem;
+}
+
+.report-story-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.report-story-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    background: var(--admin-inner-bg, #f8fafc);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    font-size: 0.94rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--admin-text, #1e293b);
+}
+
+.report-story-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+
+.report-story-dot.good { background: #10b981; }
+.report-story-dot.warning { background: #f59e0b; }
+.report-story-dot.info { background: #06b6d4; }
+
+/* 4. SHOP RIGHT NOW (4 SNAPSHOT TILES) */
+.report-snapshot-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .report-snapshot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .report-snapshot-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.report-snap-tile {
+    background: var(--admin-card-bg, #ffffff);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 18px;
+    padding: 1.2rem 1.3rem;
+}
+
+.report-snap-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--admin-subtext, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.report-snap-val {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--admin-text, #0f172a);
+    margin-top: 0.45rem;
+}
+
+.report-snap-sub {
+    font-size: 0.77rem;
+    color: var(--admin-subtext, #64748b);
+    margin-top: 0.25rem;
+}
+
+/* 5. TWO-COLUMN BREAKDOWNS */
+.report-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .report-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+.report-panel {
+    background: var(--admin-card-bg, #ffffff);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    border-radius: 20px;
+    padding: 1.35rem 1.5rem;
+}
+
+.report-bar-row {
+    margin-bottom: 0.9rem;
+}
+
+.report-bar-row:last-child {
+    margin-bottom: 0;
+}
+
+.report-bar-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--admin-text, #0f172a);
+    margin-bottom: 5px;
+}
+
+.report-bar-track {
+    height: 9px;
+    border-radius: 999px;
+    background: var(--admin-inner-bg, #f1f5f9);
+    overflow: hidden;
+}
+
+.report-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f43f5e, #fb923c);
+}
+
+.report-bar-fill.sales {
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+}
+
+.report-person-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    background: var(--admin-inner-bg, #f8fafc);
+    border: 1px solid var(--admin-border, #e2e8f0);
+    margin-bottom: 0.6rem;
+}
+
+.report-person-row:last-child {
+    margin-bottom: 0;
+}
+
+.report-empty-note {
+    padding: 1.4rem;
+    text-align: center;
+    color: var(--admin-subtext, #64748b);
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: var(--admin-inner-bg, #f8fafc);
+    border-radius: 12px;
+}
+
+/* PRINT / SAVE AS PDF CLEAN FORMATTING */
+.print-only-header {
+    display: none;
+}
+
+@media print {
+    .admin-sidebar,
+    .admin-topbar,
+    .no-print {
+        display: none !important;
+    }
+
+    .admin-layout,
+    .admin-content,
+    .admin-page-container {
+        display: block !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        color: #000000 !important;
+    }
+
+    .report-page {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .print-only-header {
+        display: block !important;
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .report-hero,
+    .report-period-bar {
+        display: none !important;
+    }
+
+    .report-big-card,
+    .report-story-card,
+    .report-snap-tile,
+    .report-panel {
+        box-shadow: none !important;
+        break-inside: avoid;
+        border: 1px solid #cbd5e1 !important;
+    }
+}
