@@ -53,10 +53,14 @@ const getSettings = asyncHandler(async (req, res) => {
             result.chapaLiveSecretKey = process.env.CHAPA_LIVE_SECRET_KEY || '';
         }
         result.chapaLivePublicKey = result.chapaLivePublicKey || process.env.CHAPA_LIVE_PUBLIC_KEY || process.env.CHAPA_PUBLIC_KEY || '';
+        result.geminiApiKey = result.geminiApiKey || process.env.GEMINI_API_KEY || '';
+        result.addisAiApiKey = result.addisAiApiKey || process.env.ADDIS_AI_API_KEY || '';
     } else {
-        // Never expose payment gateway secret keys to unauthenticated storefront clients
+        // Never expose secret keys to unauthenticated storefront clients
         delete result.chapaTestSecretKey;
         delete result.chapaLiveSecretKey;
+        delete result.geminiApiKey;
+        delete result.addisAiApiKey;
     }
 
     res.json(result);
@@ -77,7 +81,9 @@ const updateSettings = asyncHandler(async (req, res) => {
         storeName,
         storePhone,
         storeEmail,
-        allowMockCheckout
+        allowMockCheckout,
+        geminiApiKey,
+        addisAiApiKey
     } = req.body;
 
     let settings = await Settings.findOne();
@@ -113,6 +119,8 @@ const updateSettings = asyncHandler(async (req, res) => {
     if (storePhone !== undefined) settings.storePhone = storePhone;
     if (storeEmail !== undefined) settings.storeEmail = storeEmail;
     if (allowMockCheckout !== undefined) settings.allowMockCheckout = Boolean(allowMockCheckout);
+    if (geminiApiKey !== undefined) settings.geminiApiKey = geminiApiKey.trim();
+    if (addisAiApiKey !== undefined) settings.addisAiApiKey = addisAiApiKey.trim();
 
     const updatedSettings = await settings.save();
     res.json(updatedSettings);

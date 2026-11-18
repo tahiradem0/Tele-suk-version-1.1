@@ -26,7 +26,9 @@ const AdminSettings = () => {
         storePhone: '0978787960',
         storeEmail: 'admin@gondarsuk.com',
         deliveryFee: 5.00,
-        allowMockCheckout: true
+        allowMockCheckout: true,
+        geminiApiKey: '',
+        addisAiApiKey: ''
     });
 
     const [loading, setLoading] = useState(true);
@@ -82,7 +84,9 @@ const AdminSettings = () => {
                     storePhone: data.storePhone || '0978787960',
                     storeEmail: data.storeEmail || 'admin@gondarsuk.com',
                     deliveryFee: data.deliveryFee !== undefined ? data.deliveryFee : 5.00,
-                    allowMockCheckout: data.allowMockCheckout !== false
+                    allowMockCheckout: data.allowMockCheckout !== false,
+                    geminiApiKey: data.geminiApiKey || '',
+                    addisAiApiKey: data.addisAiApiKey || ''
                 });
             }
         } catch (error) {
@@ -982,6 +986,75 @@ const AdminSettings = () => {
                                 <Lock size={16} />
                                 {updatingPassword ? (isAmharic ? 'በመቀየር ላይ...' : 'Updating...') : (isAmharic ? 'የይለፍ ቃል ቀይር' : 'Update Password')}
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* AI Voice & Receipt Scanner API Keys Card */}
+                <div style={{
+                    background: 'var(--admin-card-bg, white)',
+                    padding: '1.8rem',
+                    borderRadius: '20px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                    border: '1px solid var(--admin-border, #f1f3f5)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <div style={{ background: 'rgba(6, 182, 212, 0.14)', padding: '8px', borderRadius: '10px', color: '#06b6d4' }}>
+                            <Key size={22} />
+                        </div>
+                        <div>
+                            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0, color: 'var(--admin-text, #1a1b1e)' }}>
+                                {isAmharic ? 'የአማርኛ ድምፅ እና ደረሰኝ ፎቶ AI ቁልፎች' : 'AI Voice & Receipt Scanner Setup (Optional / Free)'}
+                            </h2>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: 'var(--admin-subtext, #868e96)' }}>
+                                {isAmharic
+                                    ? 'ነፃ Google Gemini API Key ወይም Addis AI Key እዚህ ያስገቡ (በነፃ ለመጠቀም ባዶ መተውም ይችላሉ)።'
+                                    : 'Paste a free Google Gemini API key (for receipt scanning + Amharic AI) and/or Addis AI key (for pro Amharic speech).'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginTop: '1.2rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                Google Gemini API Key (Free at aistudio.google.com)
+                            </label>
+                            <input
+                                type={showKeys ? 'text' : 'password'}
+                                name="geminiApiKey"
+                                value={settings.geminiApiKey}
+                                onChange={handleChange}
+                                placeholder="AIzaSy..."
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)'
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
+                                Addis AI API Key (Optional — Best Amharic Voice)
+                            </label>
+                            <input
+                                type={showKeys ? 'text' : 'password'}
+                                name="addisAiApiKey"
+                                value={settings.addisAiApiKey}
+                                onChange={handleChange}
+                                placeholder="sk_addis_..."
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border, #ced4da)',
+                                    background: 'var(--admin-input-bg, #f8f9fc)',
+                                    color: 'var(--admin-text, #1a1b1e)'
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
     Receipt,
     Plus,
@@ -20,7 +21,8 @@ import {
     X,
     Sparkles,
     CreditCard,
-    SlidersHorizontal
+    SlidersHorizontal,
+    Mic
 } from 'lucide-react';
 import { expenseService, groupService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
@@ -356,6 +358,11 @@ const ExpenseManagement = () => {
                         <Users size={15} />
                         <span>{isAmharic ? 'አጋር አገናኝ' : 'Connect Partner'}</span>
                     </button>
+
+                    <Link to="/admin/ai-assistant" className="mezgeb-glass-btn" style={{ textDecoration: 'none' }}>
+                        <Mic size={15} color="#67e8f9" />
+                        <span>{isAmharic ? 'በድምፅ / ደረሰኝ' : 'Voice / Receipt'}</span>
+                    </Link>
 
                     <button
                         onClick={() => {

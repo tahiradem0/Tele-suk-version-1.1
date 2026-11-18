@@ -50,6 +50,15 @@ const settingsSchema = new mongoose.Schema({
     allowMockCheckout: {
         type: Boolean,
         default: true
+    },
+    // AI Assistant Keys (Optional - Free Gemini API & Addis AI Amharic Voice)
+    geminiApiKey: {
+        type: String,
+        default: ''
+    },
+    addisAiApiKey: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true

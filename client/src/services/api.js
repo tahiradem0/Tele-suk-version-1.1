@@ -182,4 +182,11 @@ export const groupService = {
     updateBudget: (id, data) => api.put(`/groups/${id}/budget`, data),
 };
 
+export const aiService = {
+    getStatus: () => api.get('/ai/status'),
+    parseVoice: (data) => api.post('/ai/parse-voice', data),
+    scanReceipt: (data) => api.post('/ai/scan-receipt', data),
+    commitAction: (data) => api.post('/ai/commit', data),
+};
+
 export default api;

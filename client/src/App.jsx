@@ -23,6 +23,7 @@ import CapitalManagement from './pages/admin/capital/CapitalManagement'
 import DebtCreditManagement from './pages/admin/debts/DebtCreditManagement'
 import ExpenseManagement from './pages/admin/expenses/ExpenseManagement'
 import FinancialReport from './pages/admin/reports/FinancialReport'
+import VoiceAssistant from './pages/admin/ai/VoiceAssistant'
 import AdminSettings from './pages/admin/settings/AdminSettings'
 
 // User Pages
@@ -68,6 +69,7 @@ function App() {
 
                                 {/* Store, Capital & Debt Management */}
                                 <Route path="reports" element={<FinancialReport />} />
+                                <Route path="ai-assistant" element={<VoiceAssistant />} />
                                 <Route path="store" element={<StoreManagement />} />
                                 <Route path="capital" element={<CapitalManagement />} />
                                 <Route path="debt-credit" element={<DebtCreditManagement />} />

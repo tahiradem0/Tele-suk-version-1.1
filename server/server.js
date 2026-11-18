@@ -94,6 +94,7 @@ app.use('/api/store', require('./routes/storeRoutes'));
 app.use('/api/delivery-locations', require('./routes/deliveryLocationRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
+app.use('/api/ai', require('./routes/aiAssistantRoutes'));
 
 // Health Check Endpoint (for Render & Uptime Monitors)
 app.get('/api/health', (req, res) => {

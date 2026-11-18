@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, ShoppingBag, FolderTree, ShoppingCart,
     CreditCard, Users, Truck, Image, Settings, LogOut, X,
-    Warehouse, Coins, Receipt, Sun, Moon, MapPin, Languages, BookOpen, FileBarChart2
+    Warehouse, Coins, Receipt, Sun, Moon, MapPin, Languages, BookOpen, FileBarChart2, Mic
 } from 'lucide-react';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
@@ -17,6 +17,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
     const menuItems = [
         { icon: LayoutDashboard, label: t('dashboard', 'Dashboard'), path: '/admin/dashboard' },
         { icon: FileBarChart2, label: isAmharic ? 'ቀላል የገንዘብ ሪፖርት' : 'Money Report', path: '/admin/reports' },
+        { icon: Mic, label: isAmharic ? 'በድምፅ እና ደረሰኝ መመዝገቢያ' : 'Voice & Receipt AI', path: '/admin/ai-assistant' },
         { icon: Warehouse, label: t('storeAndStock', 'Store & Stock'), path: '/admin/store' },
         { icon: Coins, label: t('capitalTreasury', 'Capital Treasury'), path: '/admin/capital' },
         { icon: Receipt, label: t('debtAndCredit', 'Debt & Credit'), path: '/admin/debt-credit' },
