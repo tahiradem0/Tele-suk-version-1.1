@@ -40,7 +40,7 @@ const PAYMENT_OPTIONS = [
     { value: 'Bank Transfer', en: 'Bank', am: 'በባንክ', icon: Landmark },
 ];
 
-const StoreManagement = () => {
+const StoreManagement = ({ initialTab } = {}) => {
     const { isAmharic } = useAdminLanguage();
     const { refreshProducts } = useShop();
     const [searchParams] = useSearchParams();
@@ -50,7 +50,7 @@ const StoreManagement = () => {
     const [movements, setMovements] = useState([]);
     const [categories, setCategories] = useState([]);
     const [activeTab, setActiveTab] = useState(
-        searchParams.get('tab') === 'advisor' ? 'advisor' : 'inventory'
+        initialTab || (searchParams.get('view') === 'advisor' || searchParams.get('tab') === 'advisor' ? 'advisor' : 'inventory')
     );
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');

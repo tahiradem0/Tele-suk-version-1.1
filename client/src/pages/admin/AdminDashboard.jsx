@@ -1,526 +1,254 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-    TrendingUp, Users, ShoppingBag, DollarSign, Settings as SettingsIcon,
-    Warehouse, Coins, Receipt, AlertTriangle, ArrowRight, Wallet, UserPlus, UserMinus,
-    Sparkles, Flame, Moon, CheckCircle2, FileBarChart2
+    Users,
+    DollarSign,
+    Warehouse,
+    AlertTriangle,
+    ArrowRight,
+    Wallet,
+    UserPlus,
+    UserMinus,
+    Sparkles,
+    Flame,
+    Moon,
+    CheckCircle2,
+    FileBarChart2,
+    Mic,
+    Plus,
+    Receipt,
+    Send,
 } from 'lucide-react';
-import { settingsService, adminService, storeService } from '../../services/api';
-import { useShop } from '../../context/ShopContext';
+import { adminService, storeService } from '../../services/api';
 import { useAdminLanguage } from '../../context/AdminLanguageContext';
-
-const StatCard = ({ title, value, change, icon: Icon, color, linkTo }) => {
-    const cardContent = (
-        <div style={{
-            background: 'white',
-            padding: '1.5rem',
-            borderRadius: '16px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            height: '100%',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: linkTo ? 'pointer' : 'default'
-        }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#868e96', fontSize: '0.9rem' }}>{title}</span>
-                <div style={{
-                    padding: '8px',
-                    borderRadius: '10px',
-                    background: `${color}15`,
-                    color: color
-                }}>
-                    <Icon size={20} />
-                </div>
-            </div>
-            <h3 style={{ fontSize: '1.7rem', fontWeight: '700', color: '#1a1b1e' }}>{value}</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                <span style={{ color: color, fontWeight: '600' }}>{change}</span>
-                {linkTo && <ArrowRight size={14} color="#868e96" />}
-            </div>
-        </div>
-    );
-
-    if (linkTo) {
-        return (
-            <Link to={linkTo} style={{ textDecoration: 'none', color: 'inherit' }}>
-                {cardContent}
-            </Link>
-        );
-    }
-    return cardContent;
-};
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-    const { refreshSettings } = useShop();
-    const { t, isAmharic } = useAdminLanguage();
+    const { isAmharic } = useAdminLanguage();
     const [stats, setStats] = useState({
         totalRevenue: 0,
         ordersCount: 0,
         usersCount: 0,
         productsCount: 0,
         netCapital: 0,
-        totalInflow: 0,
-        totalOutflow: 0,
         totalReceivables: 0,
         totalPayables: 0,
         totalStockUnits: 0,
         totalInventoryCost: 0,
         lowStockCount: 0,
     });
-    const [deliveryFee, setDeliveryFee] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
     const [stockInsights, setStockInsights] = useState(null);
 
     useEffect(() => {
-        loadStats();
-        loadSettings();
-        loadStockInsights();
+        Promise.all([
+            adminService.getStats().then((r) => setStats(r.data)).catch(() => {}),
+            storeService.getInsights().then((r) => setStockInsights(r.data)).catch(() => {}),
+        ]);
     }, []);
 
-    const loadStockInsights = async () => {
-        try {
-            const { data } = await storeService.getInsights();
-            setStockInsights(data);
-        } catch (error) {
-            console.error("Failed to load stock insights", error);
-        }
-    };
-
-    const loadSettings = async () => {
-        try {
-            const { data } = await settingsService.getSettings();
-            if (data) setDeliveryFee(data.deliveryFee.toString());
-        } catch (error) {
-            console.error("Failed to load settings", error);
-        }
-    };
-
-    const handleSaveSettings = async () => {
-        try {
-            setIsSaving(true);
-            await settingsService.updateSettings({ deliveryFee: Number(deliveryFee) });
-            if (refreshSettings) await refreshSettings();
-            alert(isAmharic ? 'ቅንብሩ በተሳካ ሁኔታ ተቀምጧል!' : 'Settings saved successfully!');
-        } catch (error) {
-            console.error('Failed to save settings', error);
-            alert(isAmharic ? 'ቅንብሩን ማስቀመጥ አልተቻለም' : 'Error saving settings');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const loadStats = async () => {
-        try {
-            const { data } = await adminService.getStats();
-            setStats(data);
-        } catch (error) {
-            console.error("Failed to load stats", error);
-        }
-    };
+    const statCards = [
+        {
+            title: isAmharic ? 'በእጅ ያለ የሱቅ ካሽ' : 'Shop Cash Now',
+            value: `ETB ${(stats.netCapital || 0).toLocaleString()}`,
+            sub: isAmharic ? 'የተጣራ ገንዘብ' : 'Available cash in shop',
+            icon: Wallet,
+            color: '#10b981',
+            to: '/admin/finance?tab=cash',
+        },
+        {
+            title: isAmharic ? 'ጠቅላላ ሽያጭ' : 'Total Sales',
+            value: `ETB ${(stats.totalRevenue || 0).toLocaleString()}`,
+            sub: isAmharic ? `${stats.ordersCount || 0} ትዕዛዞች` : `${stats.ordersCount || 0} customer orders`,
+            icon: DollarSign,
+            color: '#06b6d4',
+            to: '/admin/sales?tab=orders',
+        },
+        {
+            title: isAmharic ? 'በሱቅ ውስጥ ያለ እቃ' : 'Stock In Shop',
+            value: `ETB ${(stats.totalInventoryCost || 0).toLocaleString()}`,
+            sub: isAmharic
+                ? `${(stats.totalStockUnits || 0).toLocaleString()} ፍሬ • ${stats.productsCount || 0} ምርቶች`
+                : `${(stats.totalStockUnits || 0).toLocaleString()} items • ${stats.productsCount || 0} products`,
+            icon: Warehouse,
+            color: '#f59e0b',
+            to: '/admin/catalog?tab=stock',
+        },
+        {
+            title: isAmharic ? 'ደንበኞች የሚከፍሉኝ' : 'Customers Owe Me',
+            value: `ETB ${(stats.totalReceivables || 0).toLocaleString()}`,
+            sub: isAmharic ? 'የደንበኛ ብድር' : 'Unpaid customer credit',
+            icon: UserPlus,
+            color: '#3b82f6',
+            to: '/admin/finance?tab=debts',
+        },
+        {
+            title: isAmharic ? 'ለአቅራቢ የምከፍለው' : 'I Owe Suppliers',
+            value: `ETB ${(stats.totalPayables || 0).toLocaleString()}`,
+            sub: isAmharic ? 'የአቅራቢ እዳ' : 'Remaining supplier bills',
+            icon: UserMinus,
+            color: '#f43f5e',
+            to: '/admin/finance?tab=debts',
+        },
+        {
+            title: isAmharic ? 'ደንበኞች' : 'Customers',
+            value: (stats.usersCount || 0).toLocaleString(),
+            sub: isAmharic ? 'የተመዘገቡ ደንበኞች እና SMS' : 'View profiles & send SMS',
+            icon: Users,
+            color: '#8b5cf6',
+            to: '/admin/customers?tab=sms',
+        },
+    ];
 
     return (
-        <div style={{ padding: '1.5rem', maxWidth: '1240px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className="dash-page">
+            {/* Clean Header */}
+            <header className="dash-header">
                 <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', margin: 0 }}>
-                        {isAmharic ? 'የንግድ ስራ መቆጣጠሪያ ማዕከል' : 'Business Control Center'}
+                    <h1 className="dash-title">
+                        {isAmharic ? 'የሱቄ ጠቅላላ እይታ' : 'My Shop Overview'}
                     </h1>
-                    <p style={{ color: '#868e96', margin: '4px 0 0' }}>
+                    <p className="dash-subtitle">
                         {isAmharic
-                            ? 'የመደብር ክምችት፣ የካፒታል ፍሰት፣ ትዕዛዞች እና የብድር እዳዎች አጠቃላይ ማጠቃለያ።'
-                            : 'Comprehensive overview of store inventory, capital cash flow, orders, and credit debts.'}
+                            ? 'ገንዘብዎን፣ እቃዎን እና ትዕዛዞችዎን በአንድ ገጽ ይቆጣጠሩ።'
+                            : 'Everything in your shop at a glance — tap any card to open.'}
                     </p>
                 </div>
-                <Link
-                    to="/admin/reports"
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '0.7rem 1.25rem',
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-                        color: '#ffffff',
-                        textDecoration: 'none',
-                        fontWeight: '700',
-                        fontSize: '0.9rem',
-                        boxShadow: '0 6px 16px rgba(16, 185, 129, 0.28)'
-                    }}
-                >
-                    <FileBarChart2 size={18} />
-                    <span>{isAmharic ? 'ቀላል የገንዘብ ሪፖርት ክፈት' : 'One-Click Money Report'}</span>
-                </Link>
+
+                <div className="dash-header-actions">
+                    <Link to="/admin/ai-assistant" className="dash-cta-primary">
+                        <Mic size={17} />
+                        <span>{isAmharic ? 'በድምፅ መዝግብ' : 'Voice Record'}</span>
+                    </Link>
+                    <Link to="/admin/finance?tab=report" className="dash-cta-secondary">
+                        <FileBarChart2 size={17} />
+                        <span>{isAmharic ? 'የገንዘብ ሪፖርት' : 'Money Report'}</span>
+                    </Link>
+                </div>
             </header>
 
-            {/* Simple Merchant Advice Card ("What To Do Today") */}
+            {/* 1-Tap Everyday Shortcuts */}
+            <div className="dash-quick-bar">
+                <Link to="/admin/catalog?tab=stock" className="dash-quick-chip">
+                    <div className="dash-quick-icon cyan">
+                        <Plus size={17} />
+                    </div>
+                    <span>{isAmharic ? 'ክምችት ጨምር' : 'Add Stock'}</span>
+                </Link>
+
+                <Link to="/admin/finance?tab=expenses" className="dash-quick-chip">
+                    <div className="dash-quick-icon amber">
+                        <Receipt size={17} />
+                    </div>
+                    <span>{isAmharic ? 'ወጪ መዝግብ' : 'Record Expense'}</span>
+                </Link>
+
+                <Link to="/admin/products/new" className="dash-quick-chip">
+                    <div className="dash-quick-icon emerald">
+                        <Plus size={17} />
+                    </div>
+                    <span>{isAmharic ? 'አዲስ ምርት ጨምር' : 'New Product'}</span>
+                </Link>
+
+                <Link to="/admin/customers?tab=sms" className="dash-quick-chip">
+                    <div className="dash-quick-icon violet">
+                        <Send size={16} />
+                    </div>
+                    <span>{isAmharic ? 'SMS ላክ' : 'Send SMS Promo'}</span>
+                </Link>
+            </div>
+
+            {/* Single Unified Shop Advice Strip */}
             {stockInsights && (
-                <div style={{
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0e7490 100%)',
-                    color: '#ffffff',
-                    borderRadius: '20px',
-                    padding: '1.35rem 1.6rem',
-                    marginBottom: '1.8rem',
-                    boxShadow: '0 12px 28px -10px rgba(15, 23, 42, 0.35)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            <Sparkles size={20} color="#67e8f9" />
-                            <div>
-                                <h2 style={{ margin: 0, fontSize: '1.12rem', fontWeight: '800', color: '#ffffff' }}>
-                                    {isAmharic ? 'ዛሬ ምን ማድረግ አለብዎት? (ቀላል የሱቅ ምክር)' : 'What To Do Today — Simple Shop Advice'}
-                                </h2>
-                            </div>
-                        </div>
-                        <Link
-                            to="/admin/store?tab=advisor"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                background: 'linear-gradient(135deg, #06b6d4 0%, #10b981 100%)',
-                                color: '#ffffff',
-                                padding: '0.52rem 1rem',
-                                borderRadius: '10px',
-                                textDecoration: 'none',
-                                fontWeight: '700',
-                                fontSize: '0.84rem',
-                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                            }}
-                        >
-                            <span>{isAmharic ? 'ሙሉውን የክምችት አማካሪ ክፈት' : 'Open Stock Advisor'}</span>
-                            <ArrowRight size={15} />
+                <section className="dash-advice">
+                    <div className="dash-advice-top">
+                        <h2 className="dash-advice-title">
+                            <Sparkles size={18} color="#67e8f9" />
+                            <span>
+                                {isAmharic ? 'ዛሬ ምን ማድረግ አለብዎት?' : 'What To Do Today'}
+                            </span>
+                        </h2>
+                        <Link to="/admin/catalog?tab=stock&view=advisor" className="dash-advice-link">
+                            <span>{isAmharic ? 'ሙሉ ምክር ክፈት' : 'Open Stock Advice'}</span>
+                            <ArrowRight size={14} />
                         </Link>
                     </div>
 
-                    {/* Plain-Language Status Pills (Zero Math Jargon) */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '0.95rem' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(244, 63, 94, 0.2)', border: '1px solid rgba(251, 113, 133, 0.4)', color: '#fecdd3', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
-                            <AlertTriangle size={14} />
-                            {isAmharic ? `በቅርቡ ይግዙ: ${stockInsights.summary?.buySoonCount || 0}` : `Buy Soon: ${stockInsights.summary?.buySoonCount || 0}`}
-                        </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.2)', border: '1px solid rgba(251, 191, 36, 0.4)', color: '#fde68a', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
-                            <Flame size={14} />
-                            {isAmharic ? `በፍጥነት የሚሸጡ: ${stockInsights.summary?.hotSellersCount || 0}` : `Selling Fast: ${stockInsights.summary?.hotSellersCount || 0}`}
-                        </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(129, 140, 248, 0.22)', border: '1px solid rgba(165, 180, 252, 0.4)', color: '#e0e7ff', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
-                            <Moon size={14} />
+                    <div className="dash-advice-pills">
+                        <span className="dash-advice-pill urgent">
+                            <AlertTriangle size={13} />
                             {isAmharic
-                                ? `ሳይሸጡ የቆሙ: ${stockInsights.summary?.notSellingCount || 0}${(stockInsights.summary?.moneyStuckOnShelf || 0) > 0 ? ` (ETB ${stockInsights.summary.moneyStuckOnShelf.toLocaleString()})` : ''}`
-                                : `Not Selling: ${stockInsights.summary?.notSellingCount || 0}${(stockInsights.summary?.moneyStuckOnShelf || 0) > 0 ? ` (ETB ${stockInsights.summary.moneyStuckOnShelf.toLocaleString()})` : ''}`}
+                                ? `በቅርቡ ይግዙ: ${stockInsights.summary?.buySoonCount || 0}`
+                                : `Buy Soon: ${stockInsights.summary?.buySoonCount || 0}`}
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(52, 211, 153, 0.4)', color: '#a7f3d0', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
-                            <CheckCircle2 size={14} />
-                            {isAmharic ? `በቂ ክምችት: ${stockInsights.summary?.goodStockCount || 0}` : `Good Stock: ${stockInsights.summary?.goodStockCount || 0}`}
+                        <span className="dash-advice-pill hot">
+                            <Flame size={13} />
+                            {isAmharic
+                                ? `በፍጥነት የሚሸጡ: ${stockInsights.summary?.hotSellersCount || 0}`
+                                : `Selling Fast: ${stockInsights.summary?.hotSellersCount || 0}`}
+                        </span>
+                        <span className="dash-advice-pill idle">
+                            <Moon size={13} />
+                            {isAmharic
+                                ? `ሳይሸጡ የቆሙ: ${stockInsights.summary?.notSellingCount || 0}`
+                                : `Not Selling: ${stockInsights.summary?.notSellingCount || 0}`}
+                        </span>
+                        <span className="dash-advice-pill good">
+                            <CheckCircle2 size={13} />
+                            {isAmharic
+                                ? `ጥሩ ክምችት: ${stockInsights.summary?.goodStockCount || 0}`
+                                : `Good Stock: ${stockInsights.summary?.goodStockCount || 0}`}
                         </span>
                     </div>
 
-                    {/* Top 3 Simple Plain-Text Recommendations */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {(stockInsights.todayActions || []).slice(0, 3).map((act, idx) => (
-                            <div key={idx} style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.6rem',
-                                background: 'rgba(255, 255, 255, 0.09)',
-                                border: '1px solid rgba(255, 255, 255, 0.12)',
-                                borderRadius: '10px',
-                                padding: '0.62rem 0.9rem',
-                                fontSize: '0.88rem',
-                                fontWeight: '600',
-                                color: '#f8fafc'
-                            }}>
-                                <span style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    flexShrink: 0,
-                                    background: act.priority === 'urgent' ? '#fb7185' : act.priority === 'warning' ? '#fbbf24' : act.priority === 'good' ? '#34d399' : '#818cf8'
-                                }} />
+                    <div className="dash-advice-list">
+                        {(stockInsights.todayActions || []).slice(0, 2).map((act, idx) => (
+                            <div key={idx} className="dash-advice-item">
+                                <span
+                                    style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        flexShrink: 0,
+                                        background:
+                                            act.priority === 'urgent'
+                                                ? '#fb7185'
+                                                : act.priority === 'warning'
+                                                    ? '#fbbf24'
+                                                    : act.priority === 'good'
+                                                        ? '#34d399'
+                                                        : '#818cf8',
+                                    }}
+                                />
                                 <span>{isAmharic ? act.textAm : act.textEn}</span>
                             </div>
                         ))}
                     </div>
-                </div>
+                </section>
             )}
 
-            {/* Low Stock Warning Banner */}
-            {stats.lowStockCount > 0 && (
-                <div style={{
-                    background: '#fff9db',
-                    border: '1px solid #ffe066',
-                    borderRadius: '14px',
-                    padding: '1rem 1.4rem',
-                    marginBottom: '2rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '1rem'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <AlertTriangle size={24} color="#f08c00" />
-                        <div>
-                            <strong style={{ color: '#d9480f', fontSize: '0.95rem' }}>
-                                {isAmharic ? 'የክምችት ማስጠንቀቂያ:' : 'Inventory Stock Alert:'}
-                            </strong>{' '}
-                            <span style={{ color: '#495057', fontSize: '0.9rem' }}>
-                                <strong>{stats.lowStockCount}</strong>{' '}
-                                {isAmharic
-                                    ? 'ምርት(ቶች) ዝቅተኛ ደረጃ ላይ ደርሰዋል ወይም ሙሉ በሙሉ አልቀዋል።'
-                                    : 'product(s) have reached low stock or are completely out of stock.'}
-                            </span>
-                        </div>
-                    </div>
-                    <Link
-                        to="/admin/store"
-                        style={{
-                            background: '#f08c00',
-                            color: 'white',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '8px',
-                            textDecoration: 'none',
-                            fontWeight: '600',
-                            fontSize: '0.85rem'
-                        }}
-                    >
-                        {isAmharic ? 'ክምችት ሙላ →' : 'Restock Inventory →'}
-                    </Link>
-                </div>
-            )}
-
-            {/* Top Stats Grid */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '1.2rem',
-                marginBottom: '2rem'
-            }}>
-                <StatCard
-                    title={isAmharic ? "የካፒታል ግምጃ ቤት" : "Available Capital Treasury"}
-                    value={`ETB ${(stats.netCapital || 0).toLocaleString()}`}
-                    change={isAmharic ? "የተጣራ ጥሬ ገንዘብ" : "Net Liquid Cash"}
-                    icon={Wallet}
-                    color="#10b981"
-                    linkTo="/admin/capital"
-                />
-                <StatCard
-                    title={isAmharic ? "የደንበኞች እዳ (የሚሰበሰብ)" : "Customer Credit (Receivable)"}
-                    value={`ETB ${(stats.totalReceivables || 0).toLocaleString()}`}
-                    change={isAmharic ? "ለሱቁ የሚገባ" : "Owed To Store"}
-                    icon={UserPlus}
-                    color="#228be6"
-                    linkTo="/admin/debt-credit"
-                />
-                <StatCard
-                    title={isAmharic ? "የሱቁ እዳ (የሚከፈል)" : "Store Liabilities (Payable)"}
-                    value={`ETB ${(stats.totalPayables || 0).toLocaleString()}`}
-                    change={isAmharic ? "ለአቅራቢዎች የሚከፈል" : "Store Owes Suppliers"}
-                    icon={UserMinus}
-                    color="#fa5252"
-                    linkTo="/admin/debt-credit"
-                />
-                <StatCard
-                    title={isAmharic ? "የእቃ ክምችት ግምት" : "Store Stock Valuation"}
-                    value={`ETB ${(stats.totalInventoryCost || 0).toLocaleString()}`}
-                    change={isAmharic ? `${(stats.totalStockUnits || 0).toLocaleString()} እቃዎች በመደብር` : `${(stats.totalStockUnits || 0).toLocaleString()} units in store`}
-                    icon={Warehouse}
-                    color="#f59f00"
-                    linkTo="/admin/store"
-                />
-            </div>
-
-            {/* Sales & Activity Stats */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '1.2rem',
-                marginBottom: '2.5rem'
-            }}>
-                <StatCard
-                    title={isAmharic ? "ጠቅላላ የሽያጭ ገቢ" : "Total Sales Revenue"}
-                    value={`ETB ${(stats.totalRevenue || 0).toLocaleString()}`}
-                    change={isAmharic ? "የትዕዛዞች ገቢ" : "Orders Revenue"}
-                    icon={DollarSign}
-                    color="#10b981"
-                    linkTo="/admin/orders"
-                />
-                <StatCard
-                    title={isAmharic ? "ጠቅላላ ትዕዛዞች" : "Total Orders"}
-                    value={stats.ordersCount || 0}
-                    change={isAmharic ? "የደንበኞች ትዕዛዞች" : "Customer Orders"}
-                    icon={ShoppingBag}
-                    color="#3b82f6"
-                    linkTo="/admin/orders"
-                />
-                <StatCard
-                    title={isAmharic ? "የተመዘገቡ ተጠቃሚዎች" : "Registered Users"}
-                    value={stats.usersCount || 0}
-                    change={isAmharic ? "ንቁ ደንበኞች" : "Active Customer Base"}
-                    icon={Users}
-                    color="#8b5cf6"
-                    linkTo="/admin/users"
-                />
-                <StatCard
-                    title={isAmharic ? "ልዩ ምርቶች" : "Unique Products"}
-                    value={stats.productsCount || 0}
-                    change={isAmharic ? "የካታሎግ ዕቃዎች" : "Catalog Items"}
-                    icon={TrendingUp}
-                    color="#e8590c"
-                    linkTo="/admin/products"
-                />
-            </div>
-
-            {/* Quick Management Navigation Hub */}
-            <div style={{ marginBottom: '2.5rem' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: '#1a1b1e' }}>
-                    {isAmharic ? 'የንግድ ስራ ማኔጅመንት ማዕከል' : 'Enterprise Management Hub'}
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.2rem' }}>
-                    <Link
-                        to="/admin/store"
-                        style={{
-                            background: 'white',
-                            padding: '1.5rem',
-                            borderRadius: '16px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.6rem',
-                            border: '1px solid #eee'
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ padding: '10px', borderRadius: '10px', background: '#fff4e6', color: '#d9480f' }}>
-                                <Warehouse size={22} />
-                            </div>
-                            <div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>
-                                    {isAmharic ? 'የመደብር እና የክምችት አስተዳደር' : 'Store & Stock Management'}
-                                </h3>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
-                                    {isAmharic ? 'ክምችት መሙላት፣ መቁጠር እና የወጪ ግምት' : 'Restock, count inventory & cost valuation'}
+            {/* 6 Clean Clickable Numbers (Zero Duplicate Cards!) */}
+            <div className="dash-stats-grid">
+                {statCards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                        <Link key={card.title} to={card.to} className="dash-stat-card">
+                            <div className="dash-stat-top">
+                                <span className="dash-stat-label">{card.title}</span>
+                                <div
+                                    className="dash-stat-icon"
+                                    style={{ background: `${card.color}18`, color: card.color }}
+                                >
+                                    <Icon size={19} />
                                 </div>
                             </div>
-                        </div>
-                    </Link>
-
-                    <Link
-                        to="/admin/capital"
-                        style={{
-                            background: 'white',
-                            padding: '1.5rem',
-                            borderRadius: '16px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.6rem',
-                            border: '1px solid #eee'
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ padding: '10px', borderRadius: '10px', background: '#ebfbee', color: '#2b8a3e' }}>
-                                <Coins size={22} />
+                            <div className="dash-stat-value">{card.value}</div>
+                            <div className="dash-stat-foot">
+                                <span style={{ color: card.color }}>{card.sub}</span>
+                                <ArrowRight size={14} color="var(--admin-subtext, #94a3b8)" />
                             </div>
-                            <div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>
-                                    {isAmharic ? 'የካፒታል አስተዳደር' : 'Capital Management'}
-                                </h3>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
-                                    {isAmharic ? 'የጥሬ ገንዘብ ፍሰት እና የንግድ ወጪዎች' : 'Cash flow, owner equity & business expenses'}
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-
-                    <Link
-                        to="/admin/debt-credit"
-                        style={{
-                            background: 'white',
-                            padding: '1.5rem',
-                            borderRadius: '16px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.6rem',
-                            border: '1px solid #eee'
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ padding: '10px', borderRadius: '10px', background: '#e7f5ff', color: '#1c7ed6' }}>
-                                <Receipt size={22} />
-                            </div>
-                            <div>
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1a1b1e' }}>
-                                    {isAmharic ? 'የብድር እና እዳ መዝገብ' : 'Debt & Credit Ledger'}
-                                </h3>
-                                <div style={{ fontSize: '0.8rem', color: '#868e96' }}>
-                                    {isAmharic ? 'የደንበኞች ብድር እና ለአቅራቢዎች የሚከፈል' : 'Customer credit receivables & supplier payables'}
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-            </div>
-
-            {/* Delivery Settings Section */}
-            <div style={{
-                background: 'white',
-                padding: '1.5rem',
-                borderRadius: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                marginBottom: '2rem'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                    <SettingsIcon size={24} color="#3b82f6" />
-                    <h2 style={{ fontSize: '1.2rem', fontWeight: '700' }}>
-                        {isAmharic ? 'የመደብር ማድረሻ ዋጋ ቅንብር' : 'Store Delivery Settings'}
-                    </h2>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '400px' }}>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', color: '#495057', marginBottom: '0.5rem', fontWeight: '500' }}>
-                            {isAmharic ? 'መደበኛ የማድረሻ ክፍያ (በብር)' : 'Standard Delivery Fee (ETB)'}
-                        </label>
-                        <input
-                            type="number"
-                            value={deliveryFee}
-                            onChange={(e) => setDeliveryFee(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 14px',
-                                border: '1px solid #ced4da',
-                                borderRadius: '8px',
-                                outline: 'none',
-                                fontSize: '1rem'
-                            }}
-                        />
-                    </div>
-                    <button
-                        onClick={handleSaveSettings}
-                        disabled={isSaving}
-                        style={{
-                            background: '#212529',
-                            color: 'white',
-                            padding: '12px',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            cursor: isSaving ? 'not-allowed' : 'pointer',
-                            opacity: isSaving ? 0.7 : 1
-                        }}
-                    >
-                        {isSaving ? (isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...') : (isAmharic ? 'ቅንብሩን አስቀምጥ' : 'Save Settings')}
-                    </button>
-                </div>
+                        </Link>
+                    );
+                })}
             </div>
         </div>
     );

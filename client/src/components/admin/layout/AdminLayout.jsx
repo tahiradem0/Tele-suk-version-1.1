@@ -1,17 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link } from 'react-router-dom';
-import { Menu, Sun, Moon, ShieldAlert, ShieldCheck, Languages } from 'lucide-react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Menu, Sun, Moon, ShieldAlert, ShieldCheck } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { settingsService } from '../../../services/api';
 import './AdminLayout.css';
 
+const WORKSPACE_TITLES = [
+    { prefix: '/admin/dashboard', en: 'Home', am: 'መነሻ' },
+    { prefix: '/admin/ai-assistant', en: 'Voice & Receipt AI', am: 'ድምፅ እና ደረሰኝ AI' },
+    { prefix: '/admin/sales', en: 'Orders & Delivery', am: 'ትዕዛዞች እና ማድረስ' },
+    { prefix: '/admin/catalog', en: 'Products & Stock', am: 'ምርቶች እና ክምችት' },
+    { prefix: '/admin/products', en: 'Products & Stock', am: 'ምርቶች እና ክምችት' },
+    { prefix: '/admin/finance', en: 'Money & Books', am: 'ገንዘብ እና መዝገብ' },
+    { prefix: '/admin/customers', en: 'Customers', am: 'ደንበኞች' },
+    { prefix: '/admin/settings', en: 'Settings', am: 'ቅንብሮች' },
+];
+
 const AdminLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { theme, toggleTheme, isDark } = useAdminTheme();
-    const { language, setLanguage, toggleLanguage, isAmharic, t } = useAdminLanguage();
+    const { toggleTheme, isDark } = useAdminTheme();
+    const { language, setLanguage, isAmharic, t } = useAdminLanguage();
     const [paymentMode, setPaymentMode] = useState('test');
+    const location = useLocation();
+
+    const currentTitleObj = WORKSPACE_TITLES.find((w) => location.pathname.startsWith(w.prefix));
+    const currentPageTitle = currentTitleObj
+        ? (isAmharic ? currentTitleObj.am : currentTitleObj.en)
+        : t('adminConsole', 'Admin Console');
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -44,8 +61,8 @@ const AdminLayout = () => {
                         >
                             <Menu size={24} color="var(--admin-text, #1a1b1e)" />
                         </button>
-                        <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--admin-text, #1a1b1e)' }}>
-                            {t('adminConsole', 'Admin Console')}
+                        <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--admin-text, #1a1b1e)' }}>
+                            {currentPageTitle}
                         </span>
                     </div>
 
