@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Upload, AlertCircle } from 'lucide-react';
 import { productService, categoryService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const ProductForm = () => {
     const { isAmharic } = useAdminLanguage();
@@ -182,18 +183,17 @@ const ProductForm = () => {
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#495057' }}>
                                     {isAmharic ? 'ምድብ *' : 'Category *'}
                                 </label>
-                                <select
+                                <CoolSelect
                                     name="category"
                                     value={formData.category}
                                     onChange={handleChange}
-                                    required
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #eee', background: '#f8f9fc' }}
+                                    placeholder={isAmharic ? 'ምድብ ይምረጡ' : 'Select Category'}
                                 >
                                     <option value="">{isAmharic ? 'ምድብ ይምረጡ' : 'Select Category'}</option>
                                     {categories.map(c => (
                                         <option key={c._id} value={c.name}>{c.name}</option>
                                     ))}
-                                </select>
+                                </CoolSelect>
                             </div>
                         </div>
 

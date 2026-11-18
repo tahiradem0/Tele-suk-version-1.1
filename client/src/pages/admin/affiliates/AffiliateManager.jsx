@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { affiliateService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 import './AffiliateManager.css';
 
 const AffiliateManager = () => {
@@ -468,16 +469,15 @@ const AffiliateManager = () => {
                             </div>
                             <div>
                                 <label className="mezgeb-field-label">{isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}</label>
-                                <select
+                                <CoolSelect
                                     value={payoutForm.paymentMethod}
                                     onChange={(e) => setPayoutForm({ ...payoutForm, paymentMethod: e.target.value })}
-                                    className="mezgeb-input"
                                 >
                                     <option value="Telebirr">Telebirr</option>
                                     <option value="CBEBirr">CBEBirr</option>
                                     <option value="Cash">Cash</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
-                                </select>
+                                </CoolSelect>
                             </div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.86rem', fontWeight: 600, color: 'var(--admin-text, #0f172a)', cursor: 'pointer' }}>
                                 <input

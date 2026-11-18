@@ -9,6 +9,7 @@ import { settingsService, authService } from '../../../services/api';
 import { useAdminTheme } from '../../../context/AdminThemeContext';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const AdminSettings = () => {
     const { theme, setTheme, toggleTheme, isDark } = useAdminTheme();
@@ -938,24 +939,15 @@ const AdminSettings = () => {
                             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-text, #495057)' }}>
                                 {isAmharic ? 'የSMS አቅራቢ' : 'SMS Provider'}
                             </label>
-                            <select
+                            <CoolSelect
                                 name="smsProvider"
                                 value={settings.smsProvider}
                                 onChange={handleChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    borderRadius: '10px',
-                                    border: '1px solid var(--admin-border, #ced4da)',
-                                    background: 'var(--admin-input-bg, #f8f9fc)',
-                                    color: 'var(--admin-text, #1a1b1e)',
-                                    fontWeight: '600'
-                                }}
                             >
                                 <option value="simulation">Free Preview Mode (No Charge)</option>
                                 <option value="afromessage">AfroMessage (Ethiopia)</option>
                                 <option value="geezsms">GeezSMS (Ethiopia)</option>
-                            </select>
+                            </CoolSelect>
                         </div>
 
                         <div>

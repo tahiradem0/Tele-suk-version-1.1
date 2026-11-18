@@ -24,6 +24,7 @@ import {
 import { expenseService, groupService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
+import CoolSelect from '../../../components/ui/CoolSelect';
 import './ExpenseManagement.css';
 
 const CATEGORY_PALETTE = [
@@ -531,10 +532,10 @@ const ExpenseManagement = () => {
                 <div className="mezgeb-toolbar-right">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <SlidersHorizontal size={15} color="var(--admin-subtext, #64748b)" />
-                        <select
+                        <CoolSelect
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="mezgeb-select"
+                            style={{ width: 'auto', minWidth: '195px', minHeight: '38px', padding: '0.48rem 0.85rem', fontSize: '0.84rem' }}
                         >
                             <option value="all">
                                 {isAmharic ? 'ሁሉም የወጪ ምድቦች' : 'All Overhead Categories'}
@@ -544,7 +545,7 @@ const ExpenseManagement = () => {
                                     {isAmharic ? c.nameAmharic : c.name}
                                 </option>
                             ))}
-                        </select>
+                        </CoolSelect>
                     </div>
 
                     <div className="mezgeb-summary-chip">
@@ -775,33 +776,31 @@ const ExpenseManagement = () => {
                                     <label className="mezgeb-field-label">
                                         {isAmharic ? 'የወጪ ምድብ *' : 'Category *'}
                                     </label>
-                                    <select
+                                    <CoolSelect
                                         value={expenseForm.categoryName}
                                         onChange={(e) => setExpenseForm({ ...expenseForm, categoryName: e.target.value })}
-                                        className="mezgeb-input"
                                     >
                                         {categories.map((c) => (
                                             <option key={c._id} value={c.name}>
                                                 {isAmharic ? c.nameAmharic : c.name}
                                             </option>
                                         ))}
-                                    </select>
+                                    </CoolSelect>
                                 </div>
                                 <div>
                                     <label className="mezgeb-field-label">
                                         {isAmharic ? 'የክፍያ ዘዴ *' : 'Payment Method *'}
                                     </label>
-                                    <select
+                                    <CoolSelect
                                         value={expenseForm.paymentMethod}
                                         onChange={(e) => setExpenseForm({ ...expenseForm, paymentMethod: e.target.value })}
-                                        className="mezgeb-input"
                                     >
                                         <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ (Cash)' : 'Cash'}</option>
                                         <option value="Telebirr">Telebirr</option>
                                         <option value="CBEBirr">CBEBirr</option>
                                         <option value="Bank Transfer">{isAmharic ? 'የባንክ ማስተላለፍ' : 'Bank Transfer'}</option>
                                         <option value="Other">{isAmharic ? 'ሌላ' : 'Other'}</option>
-                                    </select>
+                                    </CoolSelect>
                                 </div>
                             </div>
 

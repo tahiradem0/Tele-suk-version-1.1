@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, ChevronDown, X } from 'lucide-react';
 import { orderService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const STATUS_COLORS = {
     'Pending': '#f59e0b',
@@ -147,26 +148,16 @@ const OrderList = () => {
                                     </span>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ position: 'relative', display: 'inline-block' }}>
-                                        <select
-                                            value=""
-                                            onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                                            style={{
-                                                padding: '6px',
-                                                borderRadius: '8px',
-                                                border: '1px solid #eee',
-                                                outline: 'none',
-                                                cursor: 'pointer',
-                                                color: '#1a1b1e',
-                                                fontSize: '0.85rem'
-                                            }}
-                                        >
-                                            <option value="" disabled>{isAmharic ? 'ሁኔታ ቀይር' : 'Update Status'}</option>
-                                            {Object.keys(STATUS_COLORS).map(s => (
-                                                <option key={s} value={s}>{getStatusLabel(s)}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    <CoolSelect
+                                        value={order.status}
+                                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                                        placeholder={isAmharic ? 'ሁኔታ ቀይር' : 'Update Status'}
+                                        style={{ width: 'auto', minWidth: '140px', minHeight: '36px', padding: '0.38rem 0.75rem', fontSize: '0.84rem' }}
+                                    >
+                                        {Object.keys(STATUS_COLORS).map(s => (
+                                            <option key={s} value={s}>{getStatusLabel(s)}</option>
+                                        ))}
+                                    </CoolSelect>
                                 </td>
                             </tr>
                         ))}
@@ -263,22 +254,15 @@ const OrderList = () => {
                                     {order.orderItems?.length || 0} {isAmharic ? 'ዕቃዎች' : 'Items'}
                                 </span>
                             </div>
-                            <select
+                            <CoolSelect
                                 value={order.status}
                                 onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                                style={{
-                                    padding: '8px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #eee',
-                                    background: '#f8f9fc',
-                                    outline: 'none',
-                                    fontSize: '0.85rem'
-                                }}
+                                style={{ width: 'auto', minWidth: '135px', minHeight: '36px', padding: '0.4rem 0.75rem', fontSize: '0.84rem' }}
                             >
                                 {Object.keys(STATUS_COLORS).map(s => (
                                     <option key={s} value={s}>{getStatusLabel(s)}</option>
                                 ))}
-                            </select>
+                            </CoolSelect>
                         </div>
                     </div>
                 ))}

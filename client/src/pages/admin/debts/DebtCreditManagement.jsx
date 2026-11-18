@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { debtService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const DebtCreditManagement = () => {
     const { isAmharic } = useAdminLanguage();
@@ -402,23 +403,16 @@ const DebtCreditManagement = () => {
                     />
                 </div>
 
-                <select
+                <CoolSelect
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border, #dee2e6)',
-                        background: 'var(--admin-input-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        fontSize: '0.95rem'
-                    }}
+                    style={{ width: 'auto', minWidth: '195px' }}
                 >
                     <option value="all">{isAmharic ? 'ሁሉም የክፍያ ሁኔታዎች' : 'All Payment Statuses'}</option>
                     <option value="pending">{isAmharic ? 'ያልተከፈለ' : 'Pending Unpaid'}</option>
                     <option value="partially_paid">{isAmharic ? 'በከፊል የተከፈለ' : 'Partially Paid'}</option>
                     <option value="settled">{isAmharic ? 'ሙሉ በሙሉ የተጠናቀቀ' : 'Fully Settled'}</option>
-                </select>
+                </CoolSelect>
             </div>
 
             {/* Debt Table */}
@@ -628,10 +622,9 @@ const DebtCreditManagement = () => {
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የመዝገብ ዓይነት *' : 'Record Type *'}
                                 </label>
-                                <select
+                                <CoolSelect
                                     value={newDebtForm.type}
                                     onChange={(e) => setNewDebtForm({ ...newDebtForm, type: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 >
                                     <option value="receivable">
                                         {isAmharic ? 'የደንበኛ ብድር (ደንበኛ ለሱቁ ያለበት)' : 'Customer Credit (Customer owes our store)'}
@@ -639,7 +632,7 @@ const DebtCreditManagement = () => {
                                     <option value="payable">
                                         {isAmharic ? 'የሱቅ ዕዳ (ሱቁ ለአቅራቢ/አበዳሪ ያለበት)' : 'Store Liability (Store owes supplier/creditor)'}
                                     </option>
-                                </select>
+                                </CoolSelect>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -798,17 +791,16 @@ const DebtCreditManagement = () => {
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
                                     {isAmharic ? 'የክፍያ ዘዴ *' : 'Payment Method *'}
                                 </label>
-                                <select
+                                <CoolSelect
                                     value={payForm.paymentMethod}
                                     onChange={(e) => setPayForm({ ...payForm, paymentMethod: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
                                 >
                                     <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ (Cash)' : 'Cash'}</option>
                                     <option value="Telebirr">Telebirr</option>
                                     <option value="CBEBirr">CBEBirr</option>
                                     <option value="Bank Transfer">{isAmharic ? 'የባንክ ሒሳብ ማስተላለፍ' : 'Bank Transfer'}</option>
                                     <option value="Other">{isAmharic ? 'ሌላ' : 'Other'}</option>
-                                </select>
+                                </CoolSelect>
                             </div>
 
                             {/* Auto Sync with Capital Treasury */}

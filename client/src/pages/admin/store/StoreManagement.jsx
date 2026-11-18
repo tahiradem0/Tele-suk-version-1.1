@@ -29,6 +29,7 @@ import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import SmartStockAdvisor from './SmartStockAdvisor';
+import CoolSelect from '../../../components/ui/CoolSelect';
 import './StoreManagement.css';
 
 const QUICK_ADD_AMOUNTS = [5, 10, 20, 50, 100];
@@ -519,10 +520,10 @@ const StoreManagement = ({ initialTab } = {}) => {
                             </button>
 
                             {categories.length > 0 && (
-                                <select
-                                    className="sm-category-select"
+                                <CoolSelect
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
+                                    style={{ width: 'auto', minWidth: '155px', minHeight: '36px', padding: '0.42rem 0.85rem', borderRadius: '999px', fontSize: '0.82rem' }}
                                 >
                                     <option value="All">{isAmharic ? 'ሁሉም ምድቦች' : 'All Categories'}</option>
                                     {categories.map((c) => (
@@ -530,7 +531,7 @@ const StoreManagement = ({ initialTab } = {}) => {
                                             {c.name}
                                         </option>
                                     ))}
-                                </select>
+                                </CoolSelect>
                             )}
                         </div>
                     </div>

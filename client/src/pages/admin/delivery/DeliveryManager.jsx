@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Truck, Edit2, Check, Search, PackageCheck, Clock, User, MapPin } from 'lucide-react';
 import { orderService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const DELIVERY_STATUSES = ['Preparing', 'On the way', 'Delivered'];
 
@@ -303,25 +304,14 @@ const DeliveryManager = () => {
                                         <label style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--admin-subtext, #868e96)', display: 'block', marginBottom: '5px' }}>
                                             {t('deliveryStatus', 'Delivery Status')}
                                         </label>
-                                        <select
+                                        <CoolSelect
                                             value={d.status}
                                             onChange={(e) => updateStatus(d._id, e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '8px 12px',
-                                                borderRadius: '8px',
-                                                border: '1.5px solid var(--admin-border, #e2e8f0)',
-                                                background: 'var(--admin-input-bg, #ffffff)',
-                                                color: 'var(--admin-text, #1a1b1e)',
-                                                outline: 'none',
-                                                fontWeight: '600',
-                                                fontSize: '0.9rem'
-                                            }}
                                         >
                                             <option value="Preparing">{t('preparing', 'Preparing')}</option>
                                             <option value="On the way">{t('onTheWay', 'On the way')}</option>
                                             <option value="Delivered">{t('delivered', 'Delivered')}</option>
-                                        </select>
+                                        </CoolSelect>
                                     </div>
 
                                     <div style={{ flex: '1 1 200px' }}>

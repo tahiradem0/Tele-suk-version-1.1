@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
 import { productService, categoryService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const ProductList = () => {
     const { isAmharic } = useAdminLanguage();
@@ -102,27 +103,16 @@ const ProductList = () => {
                     />
                 </div>
 
-                <div style={{ position: 'relative', minWidth: '150px' }}>
-                    <Filter size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#868e96' }} />
-                    <select
+                <div style={{ minWidth: '185px' }}>
+                    <CoolSelect
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.8rem 1rem 0.8rem 2.8rem',
-                            borderRadius: '12px',
-                            border: '1px solid #eee',
-                            backgroundColor: 'white',
-                            outline: 'none',
-                            fontSize: '0.95rem',
-                            cursor: 'pointer'
-                        }}
                     >
                         <option value="All">{isAmharic ? 'ሁሉም ምድቦች' : 'All Categories'}</option>
                         {categories.map(cat => (
                             <option key={cat._id} value={cat.name}>{cat.name}</option>
                         ))}
-                    </select>
+                    </CoolSelect>
                 </div>
             </div>
 

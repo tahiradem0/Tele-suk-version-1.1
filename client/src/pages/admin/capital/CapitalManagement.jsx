@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { capitalService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
+import CoolSelect from '../../../components/ui/CoolSelect';
 
 const categoryLabels = {
     sale: 'Sales Revenue',
@@ -338,34 +339,20 @@ const CapitalManagement = () => {
                     />
                 </div>
 
-                <select
+                <CoolSelect
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border, #dee2e6)',
-                        background: 'var(--admin-input-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        fontSize: '0.95rem'
-                    }}
+                    style={{ width: 'auto', minWidth: '180px' }}
                 >
                     <option value="all">{t('allTypes', 'All Types (+ & -)')}</option>
                     <option value="inflow">{t('inflowType', 'Inflows Only (+)')}</option>
                     <option value="outflow">{t('outflowType', 'Outflows Only (-)')}</option>
-                </select>
+                </CoolSelect>
 
-                <select
+                <CoolSelect
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border, #dee2e6)',
-                        background: 'var(--admin-input-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        fontSize: '0.95rem'
-                    }}
+                    style={{ width: 'auto', minWidth: '195px' }}
                 >
                     <option value="all">{t('allCategories', 'All Categories')}</option>
                     <option value="sale">{isAmharic ? 'የሽያጭ ገቢ' : 'Sales Revenue'}</option>
@@ -376,7 +363,7 @@ const CapitalManagement = () => {
                     <option value="debt_payment">{isAmharic ? 'የተከፈለ ዕዳ' : 'Debt Repayments'}</option>
                     <option value="salary">{isAmharic ? 'የሰራተኛ ደመወዝ' : 'Staff Salaries'}</option>
                     <option value="rent_utilities">{isAmharic ? 'ኪራይ እና መገልገያዎች' : 'Rent & Utilities'}</option>
-                </select>
+                </CoolSelect>
             </div>
 
             {/* Transactions Ledger Table */}
@@ -521,10 +508,9 @@ const CapitalManagement = () => {
                                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
                                     {isAmharic ? 'ምድብ *' : 'Category *'}
                                 </label>
-                                <select
+                                <CoolSelect
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
                                 >
                                     {txType === 'inflow' ? (
                                         <>
@@ -543,7 +529,7 @@ const CapitalManagement = () => {
                                             <option value="owner_withdrawal">{isAmharic ? 'የባለቤት ካፒታል ማውጣት' : 'Owner Capital Withdrawal'}</option>
                                         </>
                                     )}
-                                </select>
+                                </CoolSelect>
                             </div>
 
                             <div>
@@ -581,17 +567,16 @@ const CapitalManagement = () => {
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>
                                         {isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}
                                     </label>
-                                    <select
+                                    <CoolSelect
                                         value={formData.paymentMethod}
                                         onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #ced4da', background: 'white' }}
                                     >
                                         <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ' : 'Cash on Hand'}</option>
                                         <option value="Telebirr">Telebirr</option>
                                         <option value="CBEBirr">CBEBirr</option>
                                         <option value="Bank Transfer">{isAmharic ? 'የባንክ ማስተላለፍ (ንግድ ባንክ/አዋሽ)' : 'Bank Transfer (CBE/Awash/etc.)'}</option>
                                         <option value="Other">{isAmharic ? 'ሌላ' : 'Other'}</option>
-                                    </select>
+                                    </CoolSelect>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem' }}>

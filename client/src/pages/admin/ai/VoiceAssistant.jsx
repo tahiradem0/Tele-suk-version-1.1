@@ -19,6 +19,7 @@ import { aiService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import { convertBlobToCleanWavBase64 } from '../../../utils/audioWavEncoder';
+import CoolSelect from '../../../components/ui/CoolSelect';
 import './VoiceAssistant.css';
 
 const QUICK_EXAMPLES = [
@@ -741,15 +742,14 @@ const VoiceAssistant = () => {
                             {parsedData.actionType === 'expense' && (
                                 <div>
                                     <label className="mezgeb-field-label">{isAmharic ? 'ምድብ' : 'Category'}</label>
-                                    <select
+                                    <CoolSelect
                                         value={parsedData.categoryName}
                                         onChange={(e) => setParsedData({ ...parsedData, categoryName: e.target.value })}
-                                        className="mezgeb-input"
                                     >
                                         {EXPENSE_CATEGORIES.map((cat) => (
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
-                                    </select>
+                                    </CoolSelect>
                                 </div>
                             )}
 
@@ -780,17 +780,16 @@ const VoiceAssistant = () => {
 
                             <div>
                                 <label className="mezgeb-field-label">{isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}</label>
-                                <select
+                                <CoolSelect
                                     value={parsedData.paymentMethod}
                                     onChange={(e) => setParsedData({ ...parsedData, paymentMethod: e.target.value })}
-                                    className="mezgeb-input"
                                 >
                                     <option value="Cash">Cash</option>
                                     <option value="Telebirr">Telebirr</option>
                                     <option value="CBEBirr">CBEBirr</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                     <option value="Other">Other</option>
-                                </select>
+                                </CoolSelect>
                             </div>
 
                             <div>
