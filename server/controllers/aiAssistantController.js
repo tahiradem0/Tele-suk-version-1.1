@@ -173,6 +173,9 @@ const parseWithLocalRules = (rawText = '') => {
     };
 };
 
+// Track models that hit 429 daily quota so we skip them instantly instead of wasting seconds retrying
+const modelCooldownUntil = new Map();
+
 // Helper: Call Gemini REST API
 // - Audio listening uses thinkingBudget: 256 & temperature: 0.0 for sharp Amharic phoneme accuracy
 // - Text-only parsing uses thinkingBudget: 0 for instant response
@@ -181,6 +184,9 @@ const callGemini = async (apiKey, parts, { isAudio = false } = {}) => {
     let lastError = null;
 
     for (const model of models) {
+        const cooldownEnd = modelCooldownUntil.get(model) || 0;
+        if (Date.now() < cooldownEnd) continue;
+
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
             const generationConfig = {
@@ -212,6 +218,11 @@ const callGemini = async (apiKey, parts, { isAudio = false } = {}) => {
             if (parsed) return { parsed, model };
         } catch (err) {
             lastError = err;
+            const status = err.response?.status;
+            if (status === 429) {
+                // Cool down rate-limited model for 30 minutes so subsequent calls are instant
+                modelCooldownUntil.set(model, Date.now() + 30 * 60 * 1000);
+            }
             console.warn(`[AI] Gemini model ${model} failed:`, err.response?.data?.error?.message || err.message);
         }
     }
@@ -227,11 +238,11 @@ const transcribeWithAddisAi = async (apiKey, audioBase64, rawMimeType = 'audio/w
     const ext = cleanMime.includes('wav') ? 'wav' : cleanMime.includes('mp4') ? 'm4a' : 'webm';
     const blob = new Blob([buffer], { type: cleanMime });
 
-    // 1. Try Addis Scribe standard (highest Amharic precision) then turbo (3x speed)
-    for (const backend of ['standard', 'turbo']) {
+    // 1. Try Addis Scribe turbo (64ms compute!) first, then standard fallback
+    for (const backend of ['turbo', 'standard']) {
         try {
             const scribeForm = new global.FormData();
-            scribeForm.append('file', blob, `voice.${ext}`);
+            scribeForm.append('audio', blob, `voice.${ext}`);
             const reqId = `shop-${Date.now()}`;
             const res = await fetch(
                 `https://api.addisassistant.com/api/v1/scribe/transcribe?backend=${backend}&request_id=${reqId}`,
@@ -244,13 +255,15 @@ const transcribeWithAddisAi = async (apiKey, audioBase64, rawMimeType = 'audio/w
             if (res.ok) {
                 const data = await res.json();
                 const text =
+                    data?.data?.text ||
                     data?.text ||
                     data?.transcript ||
                     data?.transcription ||
-                    data?.data?.text ||
                     data?.data?.transcription ||
                     '';
                 if (text && text.trim()) return text.trim();
+            } else {
+                console.warn(`[AI] Addis Scribe (${backend}) HTTP ${res.status}`);
             }
         } catch (err) {
             console.warn(`[AI] Addis Scribe (${backend}) failed:`, err.message);
@@ -390,27 +403,25 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
         }
     }
 
-    // Step 2: Dual-Engine Cross-Check!
-    // Gemini hears the clean normalized WAV audio AND (when Addis AI is enabled) cross-checks Addis AI's native Amharic transcript!
+    // Step 2: Fast Hybrid Pipeline!
+    // - If Addis Scribe already heard the audio, send ONLY the clean Amharic text to Gemini (<1s!)
+    // - If Addis AI is unavailable/not configured, send the normalized WAV audio directly to Gemini as backup!
     if (geminiApiKey) {
         try {
             const parts = [{ text: buildStructuredPrompt() }];
-            const sendingAudio = Boolean(audioBase64);
+            const sendingAudio = Boolean(audioBase64 && !addisUsed);
 
-            if (sendingAudio) {
+            if (addisUsed && workingTranscript) {
+                parts.push({
+                    text: `Native Ethiopian Amharic ASR (Addis AI Scribe) heard: "${workingTranscript}". Fix any minor Amharic spacing or Ethiopian name homophone (e.g. ሃምሳ->ሃምዛ if it's a person's name, ለሱ ኪራይ->ለሱቅ ኪራይ), write exact Amharic Ge'ez + faithful English translation + structured JSON.`,
+                });
+            } else if (sendingAudio) {
                 parts.push({
                     inline_data: {
                         mime_type: cleanMime,
                         data: audioBase64,
                     },
                 });
-            }
-
-            if (addisUsed && workingTranscript) {
-                parts.push({
-                    text: `Native Ethiopian Amharic ASR (Addis AI) heard: "${workingTranscript}". Listen to the attached audio yourself, cross-check every single Amharic word and Ethiopian name against Addis AI's transcript, and return the exact Amharic Ge'ez + faithful English translation + structured JSON.`,
-                });
-            } else if (sendingAudio) {
                 parts.push({
                     text: 'Listen VERY carefully syllable by syllable to this Ethiopian Amharic/English audio. Write the exact word-for-word Amharic Ge\'ez in originalText, exact English translation in englishTranslation, and return the structured JSON.',
                 });
@@ -664,21 +675,20 @@ Return ONLY valid JSON:
   "english": "Exact, natural English translation of what was said"
 }`;
 
-            const parts = [
-                { text: prompt },
-                { inline_data: { mime_type: cleanMime, data: audioBase64 } },
-            ];
+            const sendingAudio = Boolean(!addisText);
+            const parts = [{ text: prompt }];
             if (addisText) {
                 parts.push({
-                    text: `Native Ethiopian Amharic ASR (Addis AI) heard: "${addisText}". Cross-check it with the audio above and output accurate Amharic Ge'ez and clean English JSON.`,
+                    text: `Native Ethiopian Amharic ASR (Addis AI Scribe) heard: "${addisText}". Clean up any minor spacing or Ethiopian name homophone (e.g. ሃምሳ->ሃምዛ when clearly a person name) and output accurate Amharic Ge'ez and natural English JSON.`,
                 });
             } else {
+                parts.push({ inline_data: { mime_type: cleanMime, data: audioBase64 } });
                 parts.push({
                     text: 'Transcribe every single spoken Amharic/English word from this audio carefully into clean Amharic Ge\'ez and clean English JSON.',
                 });
             }
 
-            const { parsed, model } = await callGemini(geminiApiKey, parts, { isAudio: true });
+            const { parsed, model } = await callGemini(geminiApiKey, parts, { isAudio: sendingAudio });
             const amharicText = (parsed.amharic || addisText || '').trim();
             const englishText = (parsed.english || parsed.amharic || addisText || '').trim();
             const primaryText = outputLanguage === 'am' ? (amharicText || englishText) : (englishText || amharicText);
