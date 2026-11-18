@@ -16,7 +16,7 @@ import {
     Phone,
     Building2,
 } from 'lucide-react';
-import { adminService } from '../../../services/api';
+import { adminService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import './FinancialReport.css';
@@ -57,6 +57,7 @@ const FinancialReport = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await loadReport(period);
             setJustRefreshed(true);
             setTimeout(() => setJustRefreshed(false), 2000);

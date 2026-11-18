@@ -24,7 +24,7 @@ import {
     SlidersHorizontal,
     Mic
 } from 'lucide-react';
-import { expenseService, groupService } from '../../../services/api';
+import { expenseService, groupService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
 import './ExpenseManagement.css';
@@ -147,6 +147,7 @@ const ExpenseManagement = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await Promise.all([loadExpenses(), loadOverview()]);
             setJustRefreshed(true);
             setTimeout(() => setJustRefreshed(false), 2000);

@@ -4,7 +4,7 @@ import {
     Warehouse, Search, PlusCircle, AlertTriangle, ArrowUpDown,
     CheckCircle2, XCircle, RefreshCw, Layers, DollarSign, Package, Sparkles
 } from 'lucide-react';
-import { storeService, categoryService } from '../../../services/api';
+import { storeService, categoryService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
 import SmartStockAdvisor from './SmartStockAdvisor';
@@ -76,6 +76,7 @@ const StoreManagement = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await loadData();
             if (refreshProducts) {
                 await refreshProducts();

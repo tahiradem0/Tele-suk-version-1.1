@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const connectDB = require('./config/db');
+const { apiCache, aiPhraseCache, authUserCache, cacheMiddleware } = require('./utils/memoryCache');
 
 const app = express();
 
@@ -52,7 +53,8 @@ const corsOptions = {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Bypass-Cache'],
+    exposedHeaders: ['X-Cache'],
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
@@ -77,6 +79,9 @@ app.use((req, res, next) => {
 
 // Database Connection
 connectDB();
+
+// Fast In-Memory Response Cache (auto-invalidates on writes)
+app.use('/api', cacheMiddleware);
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -108,6 +113,11 @@ app.get('/api/health', (req, res) => {
         environment: process.env.NODE_ENV || 'development',
         database: dbStatusMap[dbState] || 'unknown',
         uptimeSeconds: Math.floor(process.uptime()),
+        cache: {
+            api: apiCache.getStats(),
+            aiPhrases: aiPhraseCache.getStats(),
+            authUsers: authUserCache.getStats(),
+        },
         timestamp: new Date().toISOString(),
     });
 });

@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService, productService, categoryService, orderService, bannerService, settingsService, deliveryLocationService, affiliateService } from '../services/api';
+import { authService, productService, categoryService, orderService, bannerService, settingsService, deliveryLocationService, affiliateService, clearClientCache } from '../services/api';
+
+const SHOP_CACHE_KEY = 'shop_cache_v1';
+const SHOP_CACHE_MAX_AGE_MS = 15 * 60 * 1000; // 15 minutes
+
+const sanitizeSettingsForCache = (s) => {
+    if (!s || typeof s !== 'object') return null;
+    const { chapaTestSecretKey, chapaLiveSecretKey, geminiApiKey, addisAiApiKey, smsApiKey, ...publicSafe } = s;
+    return publicSafe;
+};
 
 const ShopContext = createContext();
 
@@ -77,7 +86,40 @@ export const ShopProvider = ({ children }) => {
                     setUser(parsedUser);
                 }
 
-                // Fetch Products, Categories, Banners, Settings & Delivery Locations
+                // Instant 0ms storefront hydration from local cache while fresh data loads in background
+                try {
+                    const rawCache = localStorage.getItem(SHOP_CACHE_KEY);
+                    if (rawCache) {
+                        const cached = JSON.parse(rawCache);
+                        if (cached && cached.savedAt && Date.now() - cached.savedAt < SHOP_CACHE_MAX_AGE_MS) {
+                            if (Array.isArray(cached.products)) setProducts(cached.products);
+                            if (Array.isArray(cached.categories)) setCategories(cached.categories);
+                            if (Array.isArray(cached.banners)) setBanners(cached.banners);
+                            if (Array.isArray(cached.deliveryLocations)) setDeliveryLocations(cached.deliveryLocations);
+                            if (cached.settings) {
+                                setSettings(cached.settings);
+                                if (cached.settings.deliveryFee !== undefined) setDeliveryFee(cached.settings.deliveryFee);
+                                if (cached.settings.storeName) document.title = `${cached.settings.storeName} | Shop Online`;
+                            }
+                            setIsLoading(false);
+                        }
+                    }
+                } catch {
+                    // Ignore malformed cache
+                }
+
+                // Load Cart immediately
+                const savedCart = localStorage.getItem('cart');
+                if (savedCart) {
+                    try {
+                        setCart(JSON.parse(savedCart));
+                    } catch (e) {
+                        console.error("Failed to parse cart", e);
+                    }
+                }
+                setIsCartLoaded(true);
+
+                // Fetch fresh Products, Categories, Banners, Settings & Delivery Locations
                 const [prodRes, catRes, banRes, setRes, locRes] = await Promise.all([
                     productService.getAll(),
                     categoryService.getAll(),
@@ -98,16 +140,22 @@ export const ShopProvider = ({ children }) => {
                     }
                 }
 
-                // Load Cart
-                const savedCart = localStorage.getItem('cart');
-                if (savedCart) {
-                    try {
-                        setCart(JSON.parse(savedCart));
-                    } catch (e) {
-                        console.error("Failed to parse cart", e);
-                    }
+                // Persist sanitized public storefront snapshot for instant next load
+                try {
+                    localStorage.setItem(
+                        SHOP_CACHE_KEY,
+                        JSON.stringify({
+                            savedAt: Date.now(),
+                            products: prodRes.data || [],
+                            categories: catRes.data || [],
+                            banners: banRes.data || [],
+                            deliveryLocations: locRes?.data || [],
+                            settings: sanitizeSettingsForCache(setRes.data),
+                        })
+                    );
+                } catch {
+                    // Ignore storage quota errors
                 }
-                setIsCartLoaded(true);
 
             } catch (error) {
                 console.error("Failed to load initial data:", error);
@@ -236,6 +284,7 @@ export const ShopProvider = ({ children }) => {
     // --- Auth Actions ---
     const login = async (phone, password) => {
         try {
+            clearClientCache();
             const payload = phone ? { phone, password } : { password };
             const { data } = await authService.login(payload);
             setUser(data);
@@ -249,6 +298,7 @@ export const ShopProvider = ({ children }) => {
 
     const register = async (userData) => {
         try {
+            clearClientCache();
             const { data } = await authService.register(userData);
             setUser(data);
             localStorage.setItem('user', JSON.stringify(data));
@@ -260,6 +310,7 @@ export const ShopProvider = ({ children }) => {
     }
 
     const logout = () => {
+        clearClientCache();
         setUser(null);
         localStorage.removeItem('user');
         // Optional: clear cart on logout

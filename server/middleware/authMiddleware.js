@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
+const { authUserCache } = require('../utils/memoryCache');
 
 const protect = asyncHandler(async (req, res, next) => {
     let token;
@@ -14,7 +15,15 @@ const protect = asyncHandler(async (req, res, next) => {
 
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            req.user = await User.findById(decoded.id).select('-password');
+            const cacheKey = `user::${decoded.id}`;
+            let userDoc = authUserCache.get(cacheKey);
+            if (!userDoc) {
+                userDoc = await User.findById(decoded.id).select('-password');
+                if (userDoc) {
+                    authUserCache.set(cacheKey, userDoc, 60000);
+                }
+            }
+            req.user = userDoc;
 
             if (!req.user) {
                 res.status(401);

@@ -15,7 +15,7 @@ import {
     PlayCircle,
     X,
 } from 'lucide-react';
-import { affiliateService } from '../../../services/api';
+import { affiliateService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import './AffiliateManager.css';
 
@@ -76,6 +76,7 @@ const AffiliateManager = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await loadData();
             setJustRefreshed(true);
             setTimeout(() => setJustRefreshed(false), 2000);

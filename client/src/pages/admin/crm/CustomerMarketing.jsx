@@ -17,7 +17,7 @@ import {
     AlertCircle,
     Clock,
 } from 'lucide-react';
-import { crmService } from '../../../services/api';
+import { crmService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import './CustomerMarketing.css';
 
@@ -65,6 +65,7 @@ const CustomerMarketing = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await loadCrm();
             setJustRefreshed(true);
             setTimeout(() => setJustRefreshed(false), 2000);

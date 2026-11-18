@@ -12,20 +12,89 @@ const api = axios.create({
     },
 });
 
-// Add a request interceptor to include the auth token in every request
+// Fast Client-Side In-Memory GET Cache (0ms instant navigation across pages, auto-cleared on any write)
+const CLIENT_GET_CACHE = new Map();
+const CLIENT_CACHE_TTL_MS = 15000;
+const CLIENT_CACHE_MAX_ENTRIES = 100;
+let bypassServerCacheUntil = 0;
+
+export const clearClientCache = () => {
+    CLIENT_GET_CACHE.clear();
+};
+
+export const forceRefreshCache = () => {
+    CLIENT_GET_CACHE.clear();
+    bypassServerCacheUntil = Date.now() + 2000;
+};
+
+const isReadOnlyAiPost = (url = '') =>
+    url.includes('/ai/parse-voice') ||
+    url.includes('/ai/scan-receipt') ||
+    url.includes('/crm/ai-write-sms');
+
+const isCacheableGet = (url = '') =>
+    !url.includes('/payment/verify') && !url.includes('/auth/me');
+
+// Add a request interceptor to include auth token + serve/invalidate fast memory cache
 api.interceptors.request.use(
     (config) => {
+        let tokenScope = 'public';
         const user = localStorage.getItem('user');
         if (user) {
             try {
                 const token = JSON.parse(user)?.token;
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
+                    tokenScope = token.length > 16 ? token.slice(-16) : token;
                 }
             } catch {
                 localStorage.removeItem('user');
             }
         }
+
+        const method = (config.method || 'get').toLowerCase();
+        const url = config.url || '';
+
+        // Any mutation immediately invalidates client cache so subsequent reads are 100% fresh
+        if (['post', 'put', 'patch', 'delete'].includes(method)) {
+            if (!isReadOnlyAiPost(url) && !url.includes('/auth/login')) {
+                clearClientCache();
+            }
+            return config;
+        }
+
+        // Serve fresh GET from RAM cache in 0ms unless explicitly bypassed
+        if (method === 'get' && isCacheableGet(url)) {
+            const isManualRefresh = Date.now() < bypassServerCacheUntil;
+            if (isManualRefresh) {
+                config.headers['X-Bypass-Cache'] = '1';
+            }
+
+            const bypass =
+                isManualRefresh ||
+                config.headers?.['X-Bypass-Cache'] === '1' ||
+                config.headers?.['x-bypass-cache'] === '1' ||
+                config.params?._nocache === '1';
+
+            if (!bypass) {
+                const paramsKey = config.params ? JSON.stringify(config.params) : '';
+                const cacheKey = `${tokenScope}::${url}::${paramsKey}`;
+                const cached = CLIENT_GET_CACHE.get(cacheKey);
+                if (cached && Date.now() < cached.expiresAt) {
+                    config.adapter = () =>
+                        Promise.resolve({
+                            data: cached.data,
+                            status: 200,
+                            statusText: 'OK',
+                            headers: { 'x-cache': 'CLIENT-HIT' },
+                            config,
+                        });
+                    return config;
+                }
+                config._clientCacheKey = cacheKey;
+            }
+        }
+
         return config;
     },
     (error) => {
@@ -33,9 +102,20 @@ api.interceptors.request.use(
     }
 );
 
-// Add a response interceptor for Render cold-start retry + 401/403 recovery
+// Add a response interceptor for fast cache storage + Render cold-start retry + 401/403 recovery
 api.interceptors.response.use(
     (response) => {
+        const cacheKey = response.config?._clientCacheKey;
+        if (cacheKey && response.status >= 200 && response.status < 300) {
+            if (CLIENT_GET_CACHE.size >= CLIENT_CACHE_MAX_ENTRIES) {
+                const oldestKey = CLIENT_GET_CACHE.keys().next().value;
+                if (oldestKey !== undefined) CLIENT_GET_CACHE.delete(oldestKey);
+            }
+            CLIENT_GET_CACHE.set(cacheKey, {
+                data: response.data,
+                expiresAt: Date.now() + CLIENT_CACHE_TTL_MS,
+            });
+        }
         return response;
     },
     async (error) => {
@@ -56,6 +136,7 @@ api.interceptors.response.use(
 
             // Auto-recover from stale tokens or revoked permissions
             if (status === 401 || (status === 403 && isOnAdminRoute)) {
+                clearClientCache();
                 localStorage.removeItem('user');
                 localStorage.removeItem('admin_session');
 

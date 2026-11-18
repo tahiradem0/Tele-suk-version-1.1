@@ -7,14 +7,19 @@ const Debt = require('../models/Debt');
 const CapitalTransaction = require('../models/CapitalTransaction');
 const Product = require('../models/Product');
 const StockMovement = require('../models/StockMovement');
+const { apiCache, aiPhraseCache } = require('../utils/memoryCache');
 
-// Helper: Fetch active AI keys (Settings DB takes priority, falls back to .env)
+// Helper: Fetch active AI keys (cached in RAM, auto-invalidated when Settings update)
 const getAiKeys = async () => {
+    const cached = apiCache.get('internal::ai_keys');
+    if (cached) return cached;
     const settings = await Settings.findOne().select('geminiApiKey addisAiApiKey');
-    return {
+    const keys = {
         geminiApiKey: (settings?.geminiApiKey || process.env.GEMINI_API_KEY || '').trim(),
         addisAiApiKey: (settings?.addisAiApiKey || process.env.ADDIS_AI_API_KEY || '').trim(),
     };
+    apiCache.set('internal::ai_keys', keys, 60000);
+    return keys;
 };
 
 // Helper: Extract JSON safely from LLM text response
@@ -324,11 +329,28 @@ const getAiStatus = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const parseVoiceCommand = asyncHandler(async (req, res) => {
     const { transcript = '', audioBase64 = '', audioMimeType = 'audio/wav' } = req.body;
-    const { geminiApiKey, addisAiApiKey } = await getAiKeys();
 
     const cleanMime = String(audioMimeType || 'audio/wav').split(';')[0].trim() || 'audio/wav';
     let workingTranscript = String(transcript || '').trim();
     let addisUsed = false;
+
+    const todayIso = new Date().toISOString().split('T')[0];
+    const normalizePhraseKey = (text) =>
+        `voice::${todayIso}::${String(text || '').trim().toLowerCase().replace(/\s+/g, ' ')}`;
+
+    // Instant <5ms RAM cache hit for repeated typed/spoken phrases (before any DB or AI call!)
+    if (workingTranscript && !audioBase64) {
+        const cachedPhrase = aiPhraseCache.get(normalizePhraseKey(workingTranscript));
+        if (cachedPhrase) {
+            res.setHeader('X-Cache', 'HIT');
+            return res.json({
+                ...cachedPhrase,
+                cached: true,
+            });
+        }
+    }
+
+    const { geminiApiKey, addisAiApiKey } = await getAiKeys();
 
     // Step 1: If audio provided & Addis AI key is configured, transcribe Amharic with Addis Scribe first
     if (audioBase64 && addisAiApiKey) {
@@ -340,6 +362,18 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
             }
         } catch (err) {
             console.warn('[AI] Addis AI transcription failed, falling back to Gemini audio:', err.message);
+        }
+    }
+
+    // Fast Cache Check after Addis AI Scribe transcription (<2ms instant response!)
+    if (workingTranscript && addisUsed) {
+        const cachedPhrase = aiPhraseCache.get(normalizePhraseKey(workingTranscript));
+        if (cachedPhrase) {
+            res.setHeader('X-Cache', 'HIT');
+            return res.json({
+                ...cachedPhrase,
+                cached: true,
+            });
         }
     }
 
@@ -369,13 +403,22 @@ const parseVoiceCommand = asyncHandler(async (req, res) => {
             }
 
             const { parsed, model } = await callGemini(geminiApiKey, parts);
-            return res.json({
+            const resultPayload = {
                 ...parsed,
                 amount: Number(parsed.amount) || 0,
                 originalText: parsed.originalText || workingTranscript,
                 amharicSummary: parsed.amharicSummary || '',
                 engineUsed: addisUsed ? `addis_scribe + ${model}` : model,
-            });
+            };
+
+            // Cache parsed phrase for 12 hours so repeated shopkeeper phrases respond instantly
+            const cacheSourceText = workingTranscript || resultPayload.originalText;
+            if (cacheSourceText) {
+                aiPhraseCache.set(normalizePhraseKey(cacheSourceText), resultPayload, 12 * 60 * 60 * 1000);
+            }
+
+            res.setHeader('X-Cache', 'MISS');
+            return res.json(resultPayload);
         } catch (err) {
             console.warn('[AI] Gemini parse failed, falling back to local smart parser:', err.message);
         }

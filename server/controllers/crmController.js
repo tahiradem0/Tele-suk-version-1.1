@@ -5,6 +5,7 @@ const Order = require('../models/Order');
 const Debt = require('../models/Debt');
 const Settings = require('../models/Settings');
 const SmsCampaign = require('../models/SmsCampaign');
+const { aiPhraseCache } = require('../utils/memoryCache');
 
 // Normalize Ethiopian phone to clean digits for matching & SMS gateways
 const normalizeEtPhone = (raw = '') => {
@@ -274,6 +275,13 @@ const aiWriteSms = asyncHandler(async (req, res) => {
         return res.json({ message: msg, source: 'template' });
     }
 
+    const smsCacheKey = `sms::${storeName}::${goal}::${language}::${String(topic || '').trim().toLowerCase()}`;
+    const cachedSms = aiPhraseCache.get(smsCacheKey);
+    if (cachedSms) {
+        res.setHeader('X-Cache', 'HIT');
+        return res.json({ ...cachedSms, cached: true });
+    }
+
     const langName = language === 'am' ? 'natural, warm Ethiopian Amharic' : 'simple, friendly English';
     const prompt = `Write ONE short, warm, clear SMS message (under 155 characters) in ${langName} for an Ethiopian shop named "${storeName}".
 Goal: ${goal === 'debt' ? 'Polite friendly reminder to pay remaining shop credit' : goal === 'comeback' ? 'Warm welcome-back message to bring back a customer who has not visited recently' : 'Exciting shop promo / discount announcement'}.
@@ -283,12 +291,18 @@ Return ONLY the SMS text itself — no quotes, no explanation.`;
     try {
         const resAi = await axios.post(
             'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-            { contents: [{ parts: [{ text: prompt }] }] },
+            {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
+            },
             { headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }, timeout: 20000 }
         );
         const generated = (resAi.data?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().replace(/^["']|["']$/g, '');
         if (generated) {
-            return res.json({ message: generated, source: 'gemini-2.5-flash' });
+            const payload = { message: generated, source: 'gemini-2.5-flash' };
+            aiPhraseCache.set(smsCacheKey, payload, 60 * 60 * 1000);
+            res.setHeader('X-Cache', 'MISS');
+            return res.json(payload);
         }
     } catch (err) {
         console.warn('[CRM AI SMS] Gemini failed, using friendly template:', err.message);

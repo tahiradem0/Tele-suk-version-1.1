@@ -3,7 +3,7 @@ import {
     Coins, ArrowDownRight, ArrowUpRight, Plus, Minus, Search,
     Filter, RefreshCw, Wallet, TrendingUp, Calendar, Trash2, CheckCircle2
 } from 'lucide-react';
-import { capitalService } from '../../../services/api';
+import { capitalService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const categoryLabels = {
@@ -85,6 +85,7 @@ const CapitalManagement = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await loadData();
             setJustRefreshed(true);
             setTimeout(() => setJustRefreshed(false), 2000);

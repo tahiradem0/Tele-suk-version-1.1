@@ -4,7 +4,7 @@ import {
     Clock, AlertCircle, RefreshCw, Calendar, Phone, DollarSign,
     History, Trash2, ArrowRight
 } from 'lucide-react';
-import { debtService } from '../../../services/api';
+import { debtService, forceRefreshCache } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 
 const DebtCreditManagement = () => {
@@ -70,6 +70,7 @@ const DebtCreditManagement = () => {
         setIsRefreshing(true);
         setJustRefreshed(false);
         try {
+            forceRefreshCache();
             await loadData();
             setJustRefreshed(true);
             setTimeout(() => setJustRefreshed(false), 2000);
