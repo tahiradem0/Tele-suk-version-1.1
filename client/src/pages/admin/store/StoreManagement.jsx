@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
     Warehouse, Search, PlusCircle, AlertTriangle, ArrowUpDown,
-    CheckCircle2, XCircle, RefreshCw, Layers, DollarSign, Package
+    CheckCircle2, XCircle, RefreshCw, Layers, DollarSign, Package, Sparkles
 } from 'lucide-react';
 import { storeService, categoryService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { useShop } from '../../../context/ShopContext';
+import SmartStockAdvisor from './SmartStockAdvisor';
 
 const StoreManagement = () => {
     const { t, isAmharic } = useAdminLanguage();
     const { refreshProducts } = useShop();
+    const [searchParams] = useSearchParams();
     const [overview, setOverview] = useState(null);
+    const [insights, setInsights] = useState(null);
     const [movements, setMovements] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'movements'
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'advisor' ? 'advisor' : 'inventory'); // 'inventory' | 'advisor' | 'movements'
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'low_stock' | 'out_of_stock' | 'in_stock'
@@ -50,14 +54,16 @@ const StoreManagement = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [overviewRes, catRes, movementsRes] = await Promise.all([
+            const [overviewRes, catRes, movementsRes, insightsRes] = await Promise.all([
                 storeService.getOverview(),
                 categoryService.getAll(),
-                storeService.getMovements({ limit: 50 })
+                storeService.getMovements({ limit: 50 }),
+                storeService.getInsights().catch(() => ({ data: null }))
             ]);
             setOverview(overviewRes.data);
             setCategories(catRes.data);
             setMovements(movementsRes.data);
+            if (insightsRes?.data) setInsights(insightsRes.data);
         } catch (error) {
             console.error("Failed to load store data", error);
         } finally {
@@ -83,10 +89,10 @@ const StoreManagement = () => {
         }
     };
 
-    const handleOpenRestock = (product) => {
+    const handleOpenRestock = (product, suggestedQty = '') => {
         setSelectedProduct(product);
         setRestockForm({
-            quantity: '',
+            quantity: suggestedQty ? String(suggestedQty) : '',
             costPrice: product.costPrice || '',
             supplier: product.supplier || '',
             note: '',
@@ -268,7 +274,39 @@ const StoreManagement = () => {
             </div>
 
             {/* Navigation Tabs */}
-            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--admin-border, #eee)', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--admin-border, #eee)', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <button
+                    onClick={() => setActiveTab('advisor')}
+                    style={{
+                        padding: '0.8rem 1.4rem',
+                        fontWeight: '700',
+                        fontSize: '0.95rem',
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        color: activeTab === 'advisor' ? '#06b6d4' : 'var(--admin-subtext, #868e96)',
+                        borderBottom: activeTab === 'advisor' ? '3px solid #06b6d4' : 'none',
+                        marginBottom: '-2px'
+                    }}
+                >
+                    <Sparkles size={16} />
+                    <span>{isAmharic ? 'ቀላል የክምችት አማካሪ' : 'Smart Stock Advisor'}</span>
+                    {(insights?.summary?.buySoonCount || 0) > 0 && (
+                        <span style={{
+                            background: '#f43f5e',
+                            color: '#ffffff',
+                            borderRadius: '999px',
+                            padding: '1px 7px',
+                            fontSize: '0.72rem',
+                            fontWeight: '800'
+                        }}>
+                            {insights.summary.buySoonCount}
+                        </span>
+                    )}
+                </button>
                 <button
                     onClick={() => setActiveTab('inventory')}
                     style={{
@@ -278,8 +316,8 @@ const StoreManagement = () => {
                         border: 'none',
                         background: 'none',
                         cursor: 'pointer',
-                        color: activeTab === 'inventory' ? '#1a1b1e' : '#868e96',
-                        borderBottom: activeTab === 'inventory' ? '3px solid #1a1b1e' : 'none',
+                        color: activeTab === 'inventory' ? 'var(--admin-text, #1a1b1e)' : 'var(--admin-subtext, #868e96)',
+                        borderBottom: activeTab === 'inventory' ? '3px solid var(--admin-text, #1a1b1e)' : 'none',
                         marginBottom: '-2px'
                     }}
                 >
@@ -294,8 +332,8 @@ const StoreManagement = () => {
                         border: 'none',
                         background: 'none',
                         cursor: 'pointer',
-                        color: activeTab === 'movements' ? '#1a1b1e' : '#868e96',
-                        borderBottom: activeTab === 'movements' ? '3px solid #1a1b1e' : 'none',
+                        color: activeTab === 'movements' ? 'var(--admin-text, #1a1b1e)' : 'var(--admin-subtext, #868e96)',
+                        borderBottom: activeTab === 'movements' ? '3px solid var(--admin-text, #1a1b1e)' : 'none',
                         marginBottom: '-2px'
                     }}
                 >
@@ -303,7 +341,13 @@ const StoreManagement = () => {
                 </button>
             </div>
 
-            {activeTab === 'inventory' ? (
+            {activeTab === 'advisor' ? (
+                <SmartStockAdvisor
+                    insights={insights}
+                    isAmharic={isAmharic}
+                    onQuickRestock={(product, suggestedQty) => handleOpenRestock(product, suggestedQty)}
+                />
+            ) : activeTab === 'inventory' ? (
                 <>
                     {/* Filters & Search */}
                     <div style={{

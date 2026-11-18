@@ -5,12 +5,14 @@ const {
     restockProduct,
     adjustStock,
     getStockMovements,
+    getSmartStockInsights,
 } = require('../controllers/storeController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.use(protect, admin);
 
 router.get('/overview', getStoreOverview);
+router.get('/insights', getSmartStockInsights);
 router.post('/restock', restockProduct);
 router.post('/adjust', adjustStock);
 router.get('/movements', getStockMovements);

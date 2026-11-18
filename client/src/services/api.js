@@ -150,6 +150,7 @@ export const debtService = {
 
 export const storeService = {
     getOverview: () => api.get('/store/overview'),
+    getInsights: () => api.get('/store/insights'),
     restock: (data) => api.post('/store/restock', data),
     adjustStock: (data) => api.post('/store/adjust', data),
     getMovements: (params) => api.get('/store/movements', { params }),

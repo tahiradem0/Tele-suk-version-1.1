@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     TrendingUp, Users, ShoppingBag, DollarSign, Settings as SettingsIcon,
-    Warehouse, Coins, Receipt, AlertTriangle, ArrowRight, Wallet, UserPlus, UserMinus
+    Warehouse, Coins, Receipt, AlertTriangle, ArrowRight, Wallet, UserPlus, UserMinus,
+    Sparkles, Flame, Moon, CheckCircle2
 } from 'lucide-react';
-import { settingsService, adminService } from '../../services/api';
+import { settingsService, adminService, storeService } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
 import { useAdminLanguage } from '../../context/AdminLanguageContext';
 
@@ -70,11 +71,22 @@ const AdminDashboard = () => {
     });
     const [deliveryFee, setDeliveryFee] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [stockInsights, setStockInsights] = useState(null);
 
     useEffect(() => {
         loadStats();
         loadSettings();
+        loadStockInsights();
     }, []);
+
+    const loadStockInsights = async () => {
+        try {
+            const { data } = await storeService.getInsights();
+            setStockInsights(data);
+        } catch (error) {
+            console.error("Failed to load stock insights", error);
+        }
+    };
 
     const loadSettings = async () => {
         try {
@@ -120,6 +132,97 @@ const AdminDashboard = () => {
                         : 'Comprehensive overview of store inventory, capital cash flow, orders, and credit debts.'}
                 </p>
             </header>
+
+            {/* Simple Merchant Advice Card ("What To Do Today") */}
+            {stockInsights && (
+                <div style={{
+                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0e7490 100%)',
+                    color: '#ffffff',
+                    borderRadius: '20px',
+                    padding: '1.35rem 1.6rem',
+                    marginBottom: '1.8rem',
+                    boxShadow: '0 12px 28px -10px rgba(15, 23, 42, 0.35)'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                            <Sparkles size={20} color="#67e8f9" />
+                            <div>
+                                <h2 style={{ margin: 0, fontSize: '1.12rem', fontWeight: '800', color: '#ffffff' }}>
+                                    {isAmharic ? 'ዛሬ ምን ማድረግ አለብዎት? (ቀላል የሱቅ ምክር)' : 'What To Do Today — Simple Shop Advice'}
+                                </h2>
+                            </div>
+                        </div>
+                        <Link
+                            to="/admin/store?tab=advisor"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                background: 'linear-gradient(135deg, #06b6d4 0%, #10b981 100%)',
+                                color: '#ffffff',
+                                padding: '0.52rem 1rem',
+                                borderRadius: '10px',
+                                textDecoration: 'none',
+                                fontWeight: '700',
+                                fontSize: '0.84rem',
+                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                            }}
+                        >
+                            <span>{isAmharic ? 'ሙሉውን የክምችት አማካሪ ክፈት' : 'Open Stock Advisor'}</span>
+                            <ArrowRight size={15} />
+                        </Link>
+                    </div>
+
+                    {/* Plain-Language Status Pills (Zero Math Jargon) */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '0.95rem' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(244, 63, 94, 0.2)', border: '1px solid rgba(251, 113, 133, 0.4)', color: '#fecdd3', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
+                            <AlertTriangle size={14} />
+                            {isAmharic ? `በቅርቡ ይግዙ: ${stockInsights.summary?.buySoonCount || 0}` : `Buy Soon: ${stockInsights.summary?.buySoonCount || 0}`}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.2)', border: '1px solid rgba(251, 191, 36, 0.4)', color: '#fde68a', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
+                            <Flame size={14} />
+                            {isAmharic ? `በፍጥነት የሚሸጡ: ${stockInsights.summary?.hotSellersCount || 0}` : `Selling Fast: ${stockInsights.summary?.hotSellersCount || 0}`}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(129, 140, 248, 0.22)', border: '1px solid rgba(165, 180, 252, 0.4)', color: '#e0e7ff', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
+                            <Moon size={14} />
+                            {isAmharic
+                                ? `ሳይሸጡ የቆሙ: ${stockInsights.summary?.notSellingCount || 0}${(stockInsights.summary?.moneyStuckOnShelf || 0) > 0 ? ` (ETB ${stockInsights.summary.moneyStuckOnShelf.toLocaleString()})` : ''}`
+                                : `Not Selling: ${stockInsights.summary?.notSellingCount || 0}${(stockInsights.summary?.moneyStuckOnShelf || 0) > 0 ? ` (ETB ${stockInsights.summary.moneyStuckOnShelf.toLocaleString()})` : ''}`}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(52, 211, 153, 0.4)', color: '#a7f3d0', padding: '5px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '700' }}>
+                            <CheckCircle2 size={14} />
+                            {isAmharic ? `በቂ ክምችት: ${stockInsights.summary?.goodStockCount || 0}` : `Good Stock: ${stockInsights.summary?.goodStockCount || 0}`}
+                        </span>
+                    </div>
+
+                    {/* Top 3 Simple Plain-Text Recommendations */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {(stockInsights.todayActions || []).slice(0, 3).map((act, idx) => (
+                            <div key={idx} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.6rem',
+                                background: 'rgba(255, 255, 255, 0.09)',
+                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                borderRadius: '10px',
+                                padding: '0.62rem 0.9rem',
+                                fontSize: '0.88rem',
+                                fontWeight: '600',
+                                color: '#f8fafc'
+                            }}>
+                                <span style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    flexShrink: 0,
+                                    background: act.priority === 'urgent' ? '#fb7185' : act.priority === 'warning' ? '#fbbf24' : act.priority === 'good' ? '#34d399' : '#818cf8'
+                                }} />
+                                <span>{isAmharic ? act.textAm : act.textEn}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Low Stock Warning Banner */}
             {stats.lowStockCount > 0 && (
