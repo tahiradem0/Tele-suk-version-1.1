@@ -6,25 +6,43 @@ import {
     Calendar,
     Users,
     Store,
-    DollarSign,
     TrendingUp,
     TrendingDown,
-    AlertTriangle,
-    CheckCircle,
+    CheckCircle2,
     Copy,
     Check,
     Image as ImageIcon,
     Trash2,
     Edit2,
     Wallet,
-    Layers,
-    Clock,
+    PieChart,
+    RefreshCw,
     X,
-    ExternalLink
+    Sparkles,
+    CreditCard,
+    SlidersHorizontal
 } from 'lucide-react';
 import { expenseService, groupService } from '../../../services/api';
 import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import { toEthiopianDate } from '../../../utils/ethiopianDate';
+import './ExpenseManagement.css';
+
+const CATEGORY_PALETTE = [
+    { color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.12)', border: 'rgba(6, 182, 212, 0.28)' },
+    { color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)', border: 'rgba(139, 92, 246, 0.28)' },
+    { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.28)' },
+    { color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.28)' },
+    { color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)', border: 'rgba(244, 63, 94, 0.28)' },
+    { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.12)', border: 'rgba(59, 130, 246, 0.28)' },
+];
+
+const getCategoryStyle = (name = '') => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
+};
 
 const ExpenseManagement = () => {
     const { t, isAmharic } = useAdminLanguage();
@@ -35,6 +53,8 @@ const ExpenseManagement = () => {
     const [groups, setGroups] = useState([]);
     const [activeGroupId, setActiveGroupId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [justRefreshed, setJustRefreshed] = useState(false);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -68,7 +88,7 @@ const ExpenseManagement = () => {
     }, []);
 
     useEffect(() => {
-        if (activeGroupId !== undefined) {
+        if (activeGroupId !== undefined && activeGroupId !== null) {
             loadExpenses();
             loadOverview();
         }
@@ -117,6 +137,21 @@ const ExpenseManagement = () => {
             setExpenses(res.data || []);
         } catch (error) {
             console.error('Error loading expenses:', error);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        setJustRefreshed(false);
+        try {
+            await Promise.all([loadExpenses(), loadOverview()]);
+            setJustRefreshed(true);
+            setTimeout(() => setJustRefreshed(false), 2000);
+        } catch (error) {
+            console.error('Failed to refresh Mezgeb data:', error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -224,565 +259,528 @@ const ExpenseManagement = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const activeGroup = groups.find(g => g._id === activeGroupId);
+    const activeGroup = groups.find((g) => g._id === activeGroupId);
 
-    const filteredExpenses = expenses.filter(exp => {
+    const filteredExpenses = expenses.filter((exp) => {
         const matchesCategory = selectedCategory === 'all' || exp.categoryName === selectedCategory;
-        const matchesSearch = !searchTerm ||
+        const matchesSearch =
+            !searchTerm ||
             exp.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             exp.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             exp.userName?.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
+    const filteredTotal = filteredExpenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+    const breakdownEntries = overview?.categoryBreakdown
+        ? Object.entries(overview.categoryBreakdown).sort((a, b) => b[1] - a[1])
+        : [];
+    const breakdownTotal = breakdownEntries.reduce((sum, [, amt]) => sum + amt, 0);
+
+    const budgetLimit = overview?.budgetLimit || 25000;
+    const thisMonthSpend = overview?.thisMonthSpend || 0;
+    const budgetRemaining = Math.max(0, budgetLimit - thisMonthSpend);
+    const netProfit = overview?.netProfitThisMonth || 0;
+    const todayEth = toEthiopianDate(new Date(), true);
+
     return (
-        <div style={{ maxWidth: '1400px', margin: '0 auto', paddingBottom: '3rem' }}>
-            {/* Top Store / Group & Partner Banner */}
-            <div style={{
-                background: 'var(--admin-card-bg, white)',
-                padding: '1.2rem 1.6rem',
-                borderRadius: '20px',
-                border: '1px solid var(--admin-border, #eee)',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '1rem'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '14px',
-                        background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        boxShadow: '0 4px 12px rgba(6, 182, 212, 0.35)'
-                    }}>
-                        <Store size={24} />
+        <div className="mezgeb-page">
+            {/* 1. HERO COMMAND BANNER */}
+            <div className="mezgeb-hero">
+                <div className="mezgeb-hero-left">
+                    <div className="mezgeb-store-badge">
+                        <Store size={26} />
                     </div>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <span style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--admin-text, #1a1b1e)' }}>
-                                {activeGroup ? activeGroup.name : (isAmharic ? 'የግል መዝገብ' : 'Personal Ledger')}
-                            </span>
-                            <span style={{
-                                padding: '2px 8px',
-                                borderRadius: '8px',
-                                fontSize: '0.72rem',
-                                fontWeight: '700',
-                                background: 'rgba(6, 182, 212, 0.15)',
-                                color: '#06b6d4',
-                                border: '1px solid rgba(6, 182, 212, 0.3)'
-                            }}>
-                                {activeGroup?.type === 'online_shop' ? 'ONLINE SHOP' : 'LEDGER'}
+                        <div className="mezgeb-title-row">
+                            <h1 className="mezgeb-title">
+                                {activeGroup ? activeGroup.name : isAmharic ? 'የግል መዝገብ' : 'Personal Ledger'}
+                            </h1>
+                            <span className="mezgeb-type-pill">
+                                {activeGroup?.type === 'online_shop' ? 'Online Shop' : 'Ledger'}
                             </span>
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', marginTop: '2px' }}>
-                            {activeGroup?.members?.length > 1
-                                ? (isAmharic ? `ከ ${activeGroup.members.length} የንግድ አጋሮች ጋር የተገናኘ` : `Connected with ${activeGroup.members.length} business partners`)
-                                : (isAmharic ? 'የጋራ ሱቅ ወጪዎችና ገቢ መቆጣጠሪያ' : 'Shared store overheads & revenue tracking')}
+                        <div className="mezgeb-subtitle-row">
+                            <span>
+                                {activeGroup?.members?.length > 1
+                                    ? isAmharic
+                                        ? `ከ ${activeGroup.members.length} የንግድ አጋሮች ጋር የተገናኘ`
+                                        : `Connected with ${activeGroup.members.length} business partners`
+                                    : isAmharic
+                                        ? 'የጋራ ሱቅ ወጪዎችና ገቢ መቆጣጠሪያ'
+                                        : 'Shared store overheads & revenue tracking'}
+                            </span>
+                            <span className="mezgeb-eth-today">
+                                <Calendar size={12} />
+                                {todayEth}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Switcher & Partner Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
-                    {/* Active Connection Code Pill */}
+                {/* Action Cluster */}
+                <div className="mezgeb-hero-actions">
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className={`mezgeb-glass-btn ${justRefreshed ? 'refreshed' : ''}`}
+                        title={isAmharic ? 'መረጃዎችን አድስ' : 'Refresh ledger data'}
+                    >
+                        {justRefreshed ? (
+                            <>
+                                <CheckCircle2 size={15} />
+                                <span>{isAmharic ? 'ተዘምኗል' : 'Updated'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw size={15} className={isRefreshing ? 'spinning-refresh-icon' : ''} />
+                                <span>{isRefreshing ? (isAmharic ? 'በማደስ ላይ...' : 'Refreshing...') : t('refresh', 'Refresh')}</span>
+                            </>
+                        )}
+                    </button>
+
                     {activeGroup?.connectionId && (
                         <button
                             onClick={() => copyCode(activeGroup.connectionId)}
-                            title="Click to copy connection code for your partner"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                background: 'var(--admin-inner-bg, #f8f9fa)',
-                                border: '1px solid var(--admin-border, #dee2e6)',
-                                padding: '7px 14px',
-                                borderRadius: '12px',
-                                fontSize: '0.82rem',
-                                fontWeight: '700',
-                                color: 'var(--admin-text, #1a1b1e)',
-                                cursor: 'pointer'
-                            }}
+                            title={isAmharic ? 'የአጋር ኮድ ቅዳ' : 'Copy partner connection code'}
+                            className={`mezgeb-glass-btn ${copied ? 'copied' : ''}`}
                         >
-                            <Users size={14} color="#06b6d4" />
-                            <span>{activeGroup.connectionId}</span>
-                            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="var(--admin-subtext, #868e96)" />}
+                            <Users size={14} color="#67e8f9" />
+                            <span className="mezgeb-code-text">{activeGroup.connectionId}</span>
+                            {copied ? <Check size={14} /> : <Copy size={13} style={{ opacity: 0.75 }} />}
                         </button>
                     )}
 
-                    {/* Partner Connection Button */}
-                    <button
-                        onClick={() => setPartnerModalOpen(true)}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            background: 'var(--admin-inner-bg, #f8f9fa)',
-                            border: '1px solid var(--admin-border, #dee2e6)',
-                            padding: '8px 14px',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            fontWeight: '600',
-                            color: 'var(--admin-text, #1a1b1e)',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <Users size={16} />
-                        <span>{isAmharic ? 'አጋር አገናኝ (Partners)' : 'Connect Partner'}</span>
+                    <button onClick={() => setPartnerModalOpen(true)} className="mezgeb-glass-btn">
+                        <Users size={15} />
+                        <span>{isAmharic ? 'አጋር አገናኝ' : 'Connect Partner'}</span>
                     </button>
 
-                    {/* Add Expense Button */}
                     <button
                         onClick={() => {
                             setEditingExpense(null);
                             resetForm();
                             setAddModalOpen(true);
                         }}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '12px',
-                            fontSize: '0.9rem',
-                            fontWeight: '700',
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 14px rgba(6, 182, 212, 0.35)'
-                        }}
+                        className="mezgeb-primary-btn"
                     >
-                        <Plus size={18} />
-                        <span>{isAmharic ? '+ አዲስ ወጪ መዝግብ' : '+ Record Expense'}</span>
+                        <Plus size={17} strokeWidth={2.6} />
+                        <span>{isAmharic ? 'አዲስ ወጪ መዝግብ' : 'Record Expense'}</span>
                     </button>
                 </div>
             </div>
 
-            {/* 4 Summary KPI Metric Cards */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '1.2rem',
-                marginBottom: '1.8rem'
-            }}>
-                {/* 1. Today's Spend */}
-                <div style={{
-                    background: 'var(--admin-card-bg, white)',
-                    padding: '1.4rem',
-                    borderRadius: '18px',
-                    border: '1px solid var(--admin-border, #eee)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
-                        <span>{isAmharic ? 'የዛሬ አጠቃላይ ወጪ' : "Today's Overhead Spend"}</span>
-                        <Receipt size={18} color="#06b6d4" />
+            {/* 2. 4 FINTECH KPI METRIC CARDS */}
+            <div className="mezgeb-kpi-grid">
+                {/* Today's Spend */}
+                <div className="mezgeb-kpi-card accent-cyan">
+                    <div className="mezgeb-kpi-top">
+                        <span className="mezgeb-kpi-label">
+                            {isAmharic ? 'የዛሬ አጠቃላይ ወጪ' : "Today's Overhead Spend"}
+                        </span>
+                        <div className="mezgeb-kpi-icon cyan">
+                            <Receipt size={19} />
+                        </div>
                     </div>
-                    <div style={{ fontSize: '1.9rem', fontWeight: '800', color: 'var(--admin-text, #1a1b1e)', marginTop: '0.4rem' }}>
+                    <div className="mezgeb-kpi-value">
                         ETB {(overview?.todaySpend || 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
-                        {isAmharic ? 'በዛሬው ዕለት የወጣ አጠቃላይ ወጪ' : 'Operational overhead today'}
+                    <div className="mezgeb-kpi-foot">
+                        <span>{isAmharic ? 'በዛሬው ዕለት የወጣ ወጪ' : 'Operational overhead today'}</span>
                     </div>
                 </div>
 
-                {/* 2. This Month Spend */}
-                <div style={{
-                    background: 'var(--admin-card-bg, white)',
-                    padding: '1.4rem',
-                    borderRadius: '18px',
-                    border: '1px solid var(--admin-border, #eee)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
-                        <span>{isAmharic ? 'የዚህ ወር አጠቃላይ ወጪ' : 'This Month Spend'}</span>
-                        <TrendingDown size={18} color="#fa5252" />
+                {/* This Month Spend */}
+                <div className="mezgeb-kpi-card accent-rose">
+                    <div className="mezgeb-kpi-top">
+                        <span className="mezgeb-kpi-label">
+                            {isAmharic ? 'የዚህ ወር አጠቃላይ ወጪ' : 'This Month Spend'}
+                        </span>
+                        <div className="mezgeb-kpi-icon rose">
+                            <TrendingDown size={19} />
+                        </div>
                     </div>
-                    <div style={{ fontSize: '1.9rem', fontWeight: '800', color: '#fa5252', marginTop: '0.4rem' }}>
-                        -ETB {(overview?.thisMonthSpend || 0).toLocaleString()}
+                    <div className="mezgeb-kpi-value negative">
+                        -ETB {thisMonthSpend.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
-                        {isAmharic
-                            ? `ያለፈው ወር: ETB ${(overview?.lastMonthSpend || 0).toLocaleString()}`
-                            : `Last month: ETB ${(overview?.lastMonthSpend || 0).toLocaleString()}`}
+                    <div className="mezgeb-kpi-foot">
+                        <span>
+                            {isAmharic
+                                ? `ያለፈው ወር: ETB ${(overview?.lastMonthSpend || 0).toLocaleString()}`
+                                : `Last month: ETB ${(overview?.lastMonthSpend || 0).toLocaleString()}`}
+                        </span>
                     </div>
                 </div>
 
-                {/* 3. Monthly Budget Limit & Gauge */}
-                <div style={{
-                    background: 'var(--admin-card-bg, white)',
-                    padding: '1.4rem',
-                    borderRadius: '18px',
-                    border: '1px solid var(--admin-border, #eee)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)' }}>
+                {/* Monthly Budget Limit */}
+                <div className="mezgeb-kpi-card accent-amber">
+                    <div className="mezgeb-kpi-top">
+                        <span className="mezgeb-kpi-label">
                             {isAmharic ? 'የወር በጀት ገደብ' : 'Monthly Budget Limit'}
                         </span>
-                        <button
-                            onClick={() => setBudgetModalOpen(true)}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#06b6d4',
-                                fontSize: '0.75rem',
-                                fontWeight: '700',
-                                cursor: 'pointer'
-                            }}
-                        >
+                        <button onClick={() => setBudgetModalOpen(true)} className="mezgeb-edit-chip">
                             {isAmharic ? 'ቀይር' : 'Edit'}
                         </button>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '0.4rem' }}>
-                        <span style={{ fontSize: '1.8rem', fontWeight: '800', color: overview?.isBudgetExceeded ? '#fa5252' : 'var(--admin-text, #1a1b1e)' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                            className={`mezgeb-kpi-value ${overview?.isBudgetExceeded ? 'negative' : ''}`}
+                        >
                             {overview?.budgetPercent || 0}%
                         </span>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--admin-subtext, #868e96)' }}>
-                            ({(overview?.thisMonthSpend || 0).toLocaleString()} / {(overview?.budgetLimit || 25000).toLocaleString()} ETB)
+                        <span style={{ fontSize: '0.78rem', color: 'var(--admin-subtext, #64748b)', fontWeight: 600 }}>
+                            {thisMonthSpend.toLocaleString()} / {budgetLimit.toLocaleString()} ETB
                         </span>
                     </div>
-
-                    {/* Progress Bar */}
-                    <div style={{
-                        width: '100%',
-                        height: '7px',
-                        background: 'var(--admin-inner-bg, #e9ecef)',
-                        borderRadius: '10px',
-                        marginTop: '0.6rem',
-                        overflow: 'hidden'
-                    }}>
-                        <div style={{
-                            width: `${Math.min(100, overview?.budgetPercent || 0)}%`,
-                            height: '100%',
-                            background: overview?.isBudgetExceeded
-                                ? '#fa5252'
-                                : overview?.isBudgetWarning
-                                    ? '#f59f00'
-                                    : 'linear-gradient(90deg, #10b981, #06b6d4)',
-                            transition: 'width 0.3s ease'
-                        }} />
+                    <div className="mezgeb-budget-track">
+                        <div
+                            className="mezgeb-budget-fill"
+                            style={{
+                                width: `${Math.min(100, overview?.budgetPercent || 0)}%`,
+                                background: overview?.isBudgetExceeded
+                                    ? 'linear-gradient(90deg, #f43f5e, #fb7185)'
+                                    : overview?.isBudgetWarning
+                                        ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                        : 'linear-gradient(90deg, #10b981, #06b6d4)',
+                            }}
+                        />
+                    </div>
+                    <div className="mezgeb-kpi-foot">
+                        <span>
+                            {isAmharic
+                                ? `ቀሪ በጀት: ETB ${budgetRemaining.toLocaleString()}`
+                                : `ETB ${budgetRemaining.toLocaleString()} remaining`}
+                        </span>
                     </div>
                 </div>
 
-                {/* 4. Live Net Store Profit */}
-                <div style={{
-                    background: 'var(--admin-card-bg, white)',
-                    padding: '1.4rem',
-                    borderRadius: '18px',
-                    border: '1px solid var(--admin-border, #eee)',
-                    borderLeft: `6px solid ${(overview?.netProfitThisMonth || 0) >= 0 ? '#10b981' : '#fa5252'}`,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--admin-subtext, #868e96)', fontSize: '0.85rem' }}>
-                        <span>{isAmharic ? 'የተጣራ የሱቅ ትርፍ (ሽያጭ - ወጪ)' : 'Net Store Profit (Sales - Expenses)'}</span>
-                        <TrendingUp size={18} color={(overview?.netProfitThisMonth || 0) >= 0 ? '#10b981' : '#fa5252'} />
+                {/* Live Net Store Profit */}
+                <div className={`mezgeb-kpi-card ${netProfit >= 0 ? 'accent-emerald' : 'accent-rose'}`}>
+                    <div className="mezgeb-kpi-top">
+                        <span className="mezgeb-kpi-label">
+                            {isAmharic ? 'የተጣራ የሱቅ ትርፍ' : 'Net Store Profit'}
+                        </span>
+                        <div className={`mezgeb-kpi-icon ${netProfit >= 0 ? 'emerald' : 'rose'}`}>
+                            <TrendingUp size={19} />
+                        </div>
                     </div>
-                    <div style={{
-                        fontSize: '1.9rem',
-                        fontWeight: '800',
-                        color: (overview?.netProfitThisMonth || 0) >= 0 ? '#10b981' : '#fa5252',
-                        marginTop: '0.4rem'
-                    }}>
-                        ETB {(overview?.netProfitThisMonth || 0).toLocaleString()}
+                    <div className={`mezgeb-kpi-value ${netProfit >= 0 ? 'positive' : 'negative'}`}>
+                        {netProfit >= 0 ? '+' : ''}ETB {netProfit.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.2rem' }}>
-                        {isAmharic
-                            ? `የመስመር ላይ ሽያጭ ገቢ: +ETB ${(overview?.storeRevenueThisMonth || 0).toLocaleString()}`
-                            : `Store online sales: +ETB ${(overview?.storeRevenueThisMonth || 0).toLocaleString()}`}
+                    <div className="mezgeb-kpi-foot">
+                        <span>
+                            {isAmharic
+                                ? `የመስመር ላይ ሽያጭ: +ETB ${(overview?.storeRevenueThisMonth || 0).toLocaleString()}`
+                                : `Online sales: +ETB ${(overview?.storeRevenueThisMonth || 0).toLocaleString()}`}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {/* Category Breakdown Pill Bar */}
-            {overview?.categoryBreakdown && Object.keys(overview.categoryBreakdown).length > 0 && (
-                <div style={{
-                    background: 'var(--admin-card-bg, white)',
-                    padding: '1.2rem 1.5rem',
-                    borderRadius: '18px',
-                    border: '1px solid var(--admin-border, #eee)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                    marginBottom: '1.8rem'
-                }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--admin-subtext, #495057)', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        {isAmharic ? 'የወጪ ክፍፍል በምድብ (Category Breakdown)' : 'Overhead Expenses By Category'}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
-                        {Object.entries(overview.categoryBreakdown).map(([cat, amt]) => (
-                            <div
-                                key={cat}
-                                onClick={() => setSelectedCategory(selectedCategory === cat ? 'all' : cat)}
-                                style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '20px',
-                                    background: selectedCategory === cat ? 'linear-gradient(135deg, #0284c7, #06b6d4)' : 'var(--admin-inner-bg, #f1f3f5)',
-                                    color: selectedCategory === cat ? 'white' : 'var(--admin-text, #1a1b1e)',
-                                    border: '1px solid var(--admin-border, #dee2e6)',
-                                    fontSize: '0.82rem',
-                                    fontWeight: '700',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s'
-                                }}
+            {/* 3. CATEGORY BREAKDOWN WITH PROPORTIONAL VISUAL BAR */}
+            {breakdownEntries.length > 0 && (
+                <div className="mezgeb-breakdown-card">
+                    <div className="mezgeb-breakdown-head">
+                        <span className="mezgeb-section-eyebrow">
+                            <PieChart size={15} color="#06b6d4" />
+                            {isAmharic ? 'የወጪ ክፍፍል በምድብ' : 'Overhead Expenses By Category'}
+                        </span>
+                        {selectedCategory !== 'all' && (
+                            <button
+                                onClick={() => setSelectedCategory('all')}
+                                className="mezgeb-edit-chip"
                             >
-                                {cat}: ETB {amt.toLocaleString()}
-                            </div>
-                        ))}
+                                {isAmharic ? 'ሁሉንም አሳይ' : 'Show All Categories'}
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Stacked Proportional Spend Bar */}
+                    <div className="mezgeb-stacked-bar">
+                        {breakdownEntries.map(([cat, amt]) => {
+                            const palette = getCategoryStyle(cat);
+                            const pct = breakdownTotal > 0 ? (amt / breakdownTotal) * 100 : 0;
+                            return (
+                                <div
+                                    key={cat}
+                                    className="mezgeb-stacked-segment"
+                                    title={`${cat}: ETB ${amt.toLocaleString()} (${Math.round(pct)}%)`}
+                                    onClick={() => setSelectedCategory(selectedCategory === cat ? 'all' : cat)}
+                                    style={{
+                                        width: `${pct}%`,
+                                        background: palette.color,
+                                        opacity: selectedCategory !== 'all' && selectedCategory !== cat ? 0.3 : 1,
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    {/* Interactive Category Filter Pills */}
+                    <div className="mezgeb-cat-pills">
+                        {breakdownEntries.map(([cat, amt]) => {
+                            const palette = getCategoryStyle(cat);
+                            const pct = breakdownTotal > 0 ? Math.round((amt / breakdownTotal) * 100) : 0;
+                            const isActive = selectedCategory === cat;
+                            return (
+                                <button
+                                    key={cat}
+                                    type="button"
+                                    onClick={() => setSelectedCategory(isActive ? 'all' : cat)}
+                                    className={`mezgeb-cat-pill ${isActive ? 'active' : ''}`}
+                                >
+                                    <span className="mezgeb-cat-dot" style={{ background: palette.color }} />
+                                    <span>{cat}</span>
+                                    <strong>ETB {amt.toLocaleString()}</strong>
+                                    <span className="mezgeb-cat-share">{pct}%</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
 
-            {/* Filters Bar */}
-            <div style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-                flexWrap: 'wrap',
-                alignItems: 'center'
-            }}>
-                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-subtext, #868e96)' }} />
+            {/* 4. FILTER & SEARCH TOOLBAR */}
+            <div className="mezgeb-toolbar">
+                <div className="mezgeb-search-wrap">
+                    <Search size={17} className="mezgeb-search-icon" />
                     <input
                         type="text"
-                        placeholder={isAmharic ? 'በምክንያት፣ በማስታወሻ ወይም በሰው ስም ፈልግ...' : 'Search expenses by reason, partner name, or notes...'}
+                        className="mezgeb-search-input"
+                        placeholder={
+                            isAmharic
+                                ? 'በምክንያት፣ በማስታወሻ ወይም በሰው ስም ፈልግ...'
+                                : 'Search expenses by reason, partner name, or notes...'
+                        }
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem 1rem 0.75rem 2.6rem',
-                            borderRadius: '12px',
-                            border: '1px solid var(--admin-border, #dee2e6)',
-                            background: 'var(--admin-input-bg, white)',
-                            color: 'var(--admin-text, #1a1b1e)',
-                            outline: 'none',
-                            fontSize: '0.95rem'
-                        }}
                     />
+                    {searchTerm && (
+                        <button
+                            type="button"
+                            className="mezgeb-clear-search"
+                            onClick={() => setSearchTerm('')}
+                            title="Clear search"
+                        >
+                            <X size={15} />
+                        </button>
+                    )}
                 </div>
 
-                <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border, #dee2e6)',
-                        background: 'var(--admin-input-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        fontSize: '0.95rem'
-                    }}
-                >
-                    <option value="all">{isAmharic ? 'ሁሉም የወጪ ምድቦች' : 'All Overhead Categories'}</option>
-                    {categories.map(c => (
-                        <option key={c._id} value={c.name}>
-                            {isAmharic ? c.nameAmharic : c.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="mezgeb-toolbar-right">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <SlidersHorizontal size={15} color="var(--admin-subtext, #64748b)" />
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="mezgeb-select"
+                        >
+                            <option value="all">
+                                {isAmharic ? 'ሁሉም የወጪ ምድቦች' : 'All Overhead Categories'}
+                            </option>
+                            {categories.map((c) => (
+                                <option key={c._id} value={c.name}>
+                                    {isAmharic ? c.nameAmharic : c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="mezgeb-summary-chip">
+                        <Wallet size={14} color="#06b6d4" />
+                        <span>
+                            {filteredExpenses.length} {isAmharic ? 'መዝገብ' : filteredExpenses.length === 1 ? 'record' : 'records'}
+                        </span>
+                        <span style={{ opacity: 0.4 }}>•</span>
+                        <span style={{ color: '#f43f5e' }}>ETB {filteredTotal.toLocaleString()}</span>
+                    </div>
+                </div>
             </div>
 
-            {/* Expense Ledger Table */}
-            <div style={{
-                background: 'var(--admin-card-bg, white)',
-                borderRadius: '16px',
-                border: '1px solid var(--admin-border, #eee)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                overflow: 'hidden',
-                overflowX: 'auto'
-            }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
-                    <thead>
-                        <tr style={{ background: 'var(--admin-inner-bg, #f8f9fc)', borderBottom: '1px solid var(--admin-border, #eee)', color: 'var(--admin-subtext, #495057)', fontSize: '0.85rem' }}>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ቀን (ግሪጎሪያን / ኢትዮጵያ)' : 'DATE (GREGORIAN / ETH)'}</th>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ምክንያት / የወጪ ርዕስ' : 'REASON / DESCRIPTION'}</th>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ምድብ' : 'CATEGORY'}</th>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'መጠን በብር' : 'AMOUNT (ETB)'}</th>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'የመዘገበው ሰው' : 'LOGGED BY'}</th>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'የክፍያ ዘዴ' : 'PAYMENT METHOD'}</th>
-                            <th style={{ padding: '1rem' }}>{isAmharic ? 'ደረሰኝ' : 'RECEIPT'}</th>
-                            <th style={{ padding: '1rem', textAlign: 'right' }}>{isAmharic ? 'እርምጃዎች' : 'ACTIONS'}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredExpenses.map(exp => (
-                            <tr key={exp._id} style={{ borderBottom: '1px solid var(--admin-border, #eee)' }}>
-                                <td style={{ padding: '1rem' }}>
-                                    <div style={{ fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', fontSize: '0.9rem' }}>
-                                        {new Date(exp.date).toLocaleDateString()}
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', color: '#06b6d4', marginTop: '2px', fontWeight: '600' }}>
-                                        🇪🇹 {exp.dateEthiopian || toEthiopianDate(exp.date, true)}
-                                    </div>
-                                </td>
-                                <td style={{ padding: '1rem', maxWidth: '240px' }}>
-                                    <div style={{ fontWeight: '600', color: 'var(--admin-text, #1a1b1e)', fontSize: '0.95rem' }}>
-                                        {exp.reason}
-                                    </div>
-                                    {exp.notes && (
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '2px' }}>
-                                            {exp.notes}
-                                        </div>
-                                    )}
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{
-                                        padding: '4px 10px',
-                                        borderRadius: '8px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '700',
-                                        background: 'rgba(6, 182, 212, 0.12)',
-                                        color: '#06b6d4',
-                                        border: '1px solid rgba(6, 182, 212, 0.25)'
-                                    }}>
-                                        {exp.categoryName}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <div style={{ fontWeight: '800', fontSize: '1.05rem', color: '#fa5252' }}>
-                                        -ETB {exp.amount.toLocaleString()}
-                                    </div>
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--admin-text, #1a1b1e)', fontWeight: '600' }}>
-                                        <Users size={14} color="#06b6d4" />
-                                        <span>{exp.userName || 'Store Partner'}</span>
-                                    </div>
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{
-                                        fontSize: '0.8rem',
-                                        fontWeight: '600',
-                                        color: 'var(--admin-subtext, #495057)',
-                                        background: 'var(--admin-inner-bg, #f1f3f5)',
-                                        padding: '3px 8px',
-                                        borderRadius: '6px'
-                                    }}>
-                                        {exp.paymentMethod || 'Cash'}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    {exp.receiptUrl ? (
-                                        <button
-                                            onClick={() => setReceiptPreviewUrl(exp.receiptUrl)}
-                                            style={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                background: 'rgba(16, 185, 129, 0.12)',
-                                                border: '1px solid rgba(16, 185, 129, 0.3)',
-                                                color: '#10b981',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontSize: '0.78rem',
-                                                fontWeight: '700',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <ImageIcon size={14} />
-                                            <span>{isAmharic ? 'ደረሰኝ' : 'View'}</span>
-                                        </button>
-                                    ) : (
-                                        <span style={{ color: 'var(--admin-subtext, #adb5bd)', fontSize: '0.8rem' }}>
-                                            —
-                                        </span>
-                                    )}
-                                </td>
-                                <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem' }}>
-                                        <button
-                                            onClick={() => handleOpenEdit(exp)}
-                                            title="Edit expense"
-                                            style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                color: 'var(--admin-subtext, #868e96)',
-                                                cursor: 'pointer',
-                                                padding: '4px'
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.color = '#06b6d4'}
-                                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--admin-subtext, #868e96)'}
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteExpense(exp._id)}
-                                            title="Delete expense"
-                                            style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                color: 'var(--admin-subtext, #ced4da)',
-                                                cursor: 'pointer',
-                                                padding: '4px'
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.color = '#fa5252'}
-                                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--admin-subtext, #ced4da)'}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        {filteredExpenses.length === 0 && (
+            {/* 5. EXPENSE LEDGER TABLE */}
+            <div className="mezgeb-table-card">
+                <div className="mezgeb-table-scroll">
+                    <table className="mezgeb-table">
+                        <thead>
                             <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--admin-subtext, #868e96)' }}>
-                                    {isAmharic ? 'ምንም የወጪ መዛግብት አልተገኙም። "+ አዲስ ወጪ መዝግብ" የሚለውን ይጫኑ!' : 'No overhead expenses found. Click "+ Record Expense" to start!'}
-                                </td>
+                                <th>{isAmharic ? 'ቀን (ግሪጎሪያን / ኢትዮጵያ)' : 'Date (Gregorian / Eth)'}</th>
+                                <th>{isAmharic ? 'ምክንያት / ርዕስ' : 'Reason / Description'}</th>
+                                <th>{isAmharic ? 'ምድብ' : 'Category'}</th>
+                                <th>{isAmharic ? 'መጠን (ብር)' : 'Amount (ETB)'}</th>
+                                <th>{isAmharic ? 'የመዘገበው' : 'Logged By'}</th>
+                                <th>{isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method'}</th>
+                                <th>{isAmharic ? 'ደረሰኝ' : 'Receipt'}</th>
+                                <th style={{ textAlign: 'right' }}>{isAmharic ? 'እርምጃዎች' : 'Actions'}</th>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredExpenses.map((exp) => {
+                                const catStyle = getCategoryStyle(exp.categoryName);
+                                const loggerName = exp.userName || 'Store Partner';
+                                const initial = loggerName.trim().charAt(0) || 'A';
+                                return (
+                                    <tr key={exp._id}>
+                                        <td>
+                                            <div className="mezgeb-date-greg">
+                                                {new Date(exp.date).toLocaleDateString()}
+                                            </div>
+                                            <div className="mezgeb-date-eth">
+                                                <Calendar size={11} />
+                                                <span>{exp.dateEthiopian || toEthiopianDate(exp.date, true)}</span>
+                                            </div>
+                                        </td>
+                                        <td style={{ maxWidth: '260px' }}>
+                                            <div className="mezgeb-reason">{exp.reason}</div>
+                                            {exp.notes && <div className="mezgeb-notes">{exp.notes}</div>}
+                                        </td>
+                                        <td>
+                                            <span
+                                                className="mezgeb-category-badge"
+                                                style={{
+                                                    background: catStyle.bg,
+                                                    color: catStyle.color,
+                                                    border: `1px solid ${catStyle.border}`,
+                                                }}
+                                            >
+                                                <span
+                                                    className="mezgeb-cat-dot"
+                                                    style={{ background: catStyle.color, width: '7px', height: '7px' }}
+                                                />
+                                                {exp.categoryName}
+                                            </span>
+                                        </td>
+                                        <td className="mezgeb-amount-cell">
+                                            -ETB {(exp.amount || 0).toLocaleString()}
+                                        </td>
+                                        <td>
+                                            <div className="mezgeb-user-cell">
+                                                <span className="mezgeb-avatar">{initial}</span>
+                                                <span>{loggerName}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className="mezgeb-method-pill">
+                                                <CreditCard size={12} color="#06b6d4" />
+                                                {exp.paymentMethod || 'Cash'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {exp.receiptUrl ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setReceiptPreviewUrl(exp.receiptUrl)}
+                                                    className="mezgeb-receipt-btn"
+                                                >
+                                                    <ImageIcon size={13} />
+                                                    <span>{isAmharic ? 'ደረሰኝ' : 'View'}</span>
+                                                </button>
+                                            ) : (
+                                                <span style={{ color: 'var(--admin-subtext, #94a3b8)', fontSize: '0.82rem' }}>
+                                                    —
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <div className="mezgeb-action-group">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleOpenEdit(exp)}
+                                                    title={isAmharic ? 'አስተካክል' : 'Edit expense'}
+                                                    className="mezgeb-icon-btn edit"
+                                                >
+                                                    <Edit2 size={15} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteExpense(exp._id)}
+                                                    title={isAmharic ? 'ሰርዝ' : 'Delete expense'}
+                                                    className="mezgeb-icon-btn delete"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+
+                    {filteredExpenses.length === 0 && (
+                        <div className="mezgeb-empty">
+                            <div className="mezgeb-empty-icon">
+                                <Receipt size={28} />
+                            </div>
+                            <h4>
+                                {loading
+                                    ? isAmharic
+                                        ? 'መረጃዎችን በመጫን ላይ...'
+                                        : 'Loading expense ledger...'
+                                    : isAmharic
+                                        ? 'ምንም የወጪ መዛግብት አልተገኙም'
+                                        : 'No overhead expenses found'}
+                            </h4>
+                            <p>
+                                {searchTerm || selectedCategory !== 'all'
+                                    ? isAmharic
+                                        ? 'የፍለጋ ማጣሪያዎን ይቀይሩ ወይም አዲስ ወጪ ይመዝግቡ።'
+                                        : 'Try clearing your search or category filter, or record a new expense.'
+                                    : isAmharic
+                                        ? 'የሱቅዎን የዕለት ወጪዎች መመዝገብ ይጀምሩ።'
+                                        : 'Start tracking your daily operational overheads & store profit.'}
+                            </p>
+                            {!loading && (
+                                <button
+                                    type="button"
+                                    className="mezgeb-primary-btn"
+                                    onClick={() => {
+                                        setEditingExpense(null);
+                                        resetForm();
+                                        setAddModalOpen(true);
+                                    }}
+                                >
+                                    <Plus size={16} />
+                                    <span>{isAmharic ? 'አዲስ ወጪ መዝግብ' : 'Record First Expense'}</span>
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* ADD / EDIT EXPENSE MODAL */}
             {addModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(3, 7, 18, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 200,
-                    padding: '1rem'
-                }}>
-                    <div style={{
-                        background: 'var(--admin-card-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        border: '1px solid var(--admin-border, #eee)',
-                        padding: '2rem',
-                        borderRadius: '20px',
-                        maxWidth: '520px',
-                        width: '100%',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                        maxHeight: '90vh',
-                        overflowY: 'auto'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', margin: 0 }}>
+                <div
+                    className="mezgeb-modal-backdrop"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setAddModalOpen(false);
+                    }}
+                >
+                    <div className="mezgeb-modal">
+                        <div className="mezgeb-modal-header">
+                            <h2 className="mezgeb-modal-title">
+                                <Receipt size={20} color="#06b6d4" />
                                 {editingExpense
-                                    ? (isAmharic ? 'የወጪ መዝገብ አስተካክል' : 'Edit Expense Record')
-                                    : (isAmharic ? '+ አዲስ የሱቅ ወጪ መዝግብ' : '+ Record New Store Overhead')}
+                                    ? isAmharic
+                                        ? 'የወጪ መዝገብ አስተካክል'
+                                        : 'Edit Expense Record'
+                                    : isAmharic
+                                        ? 'አዲስ የሱቅ ወጪ መዝግብ'
+                                        : 'Record New Store Overhead'}
                             </h2>
                             <button
+                                type="button"
                                 onClick={() => setAddModalOpen(false)}
-                                style={{ background: 'none', border: 'none', color: 'var(--admin-subtext, #868e96)', cursor: 'pointer' }}
+                                className="mezgeb-modal-close"
                             >
-                                <X size={20} />
+                                <X size={18} />
                             </button>
                         </div>
 
                         <form onSubmit={handleSaveExpense} style={{ display: 'grid', gap: '1rem' }}>
-                            {/* Amount & Quick Ethiopian Date Preview */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                <label className="mezgeb-field-label">
                                     {isAmharic ? 'የወጪ መጠን በብር (ETB) *' : 'Expense Amount in ETB *'}
                                 </label>
                                 <input
@@ -793,22 +791,13 @@ const ExpenseManagement = () => {
                                     placeholder="0.00"
                                     value={expenseForm.amount}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.8rem',
-                                        borderRadius: '12px',
-                                        border: '1px solid var(--admin-border, #ced4da)',
-                                        background: 'var(--admin-input-bg, white)',
-                                        color: 'var(--admin-text, #1a1b1e)',
-                                        fontSize: '1.1rem',
-                                        fontWeight: '700'
-                                    }}
+                                    className="mezgeb-input"
+                                    style={{ fontSize: '1.15rem', fontWeight: 800 }}
                                 />
                             </div>
 
-                            {/* Reason */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                <label className="mezgeb-field-label">
                                     {isAmharic ? 'የወጪው ምክንያት / ለምን ወጣ? *' : 'Reason / What was this expense for? *'}
                                 </label>
                                 <input
@@ -817,29 +806,21 @@ const ExpenseManagement = () => {
                                     placeholder={isAmharic ? 'ለምሳሌ፡ የሱቅ ኪራይ ወይም 200 ፌስታል ማሸጊያ' : 'e.g. Shop Rent or 200 Delivery Bags'}
                                     value={expenseForm.reason}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, reason: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--admin-border, #ced4da)',
-                                        background: 'var(--admin-input-bg, white)',
-                                        color: 'var(--admin-text, #1a1b1e)'
-                                    }}
+                                    className="mezgeb-input"
                                 />
                             </div>
 
-                            {/* Category & Payment Method */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                    <label className="mezgeb-field-label">
                                         {isAmharic ? 'የወጪ ምድብ *' : 'Category *'}
                                     </label>
                                     <select
                                         value={expenseForm.categoryName}
                                         onChange={(e) => setExpenseForm({ ...expenseForm, categoryName: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
+                                        className="mezgeb-input"
                                     >
-                                        {categories.map(c => (
+                                        {categories.map((c) => (
                                             <option key={c._id} value={c.name}>
                                                 {isAmharic ? c.nameAmharic : c.name}
                                             </option>
@@ -847,13 +828,13 @@ const ExpenseManagement = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                    <label className="mezgeb-field-label">
                                         {isAmharic ? 'የክፍያ ዘዴ *' : 'Payment Method *'}
                                     </label>
                                     <select
                                         value={expenseForm.paymentMethod}
                                         onChange={(e) => setExpenseForm({ ...expenseForm, paymentMethod: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
+                                        className="mezgeb-input"
                                     >
                                         <option value="Cash">{isAmharic ? 'በእጅ ገንዘብ (Cash)' : 'Cash'}</option>
                                         <option value="Telebirr">Telebirr</option>
@@ -864,44 +845,57 @@ const ExpenseManagement = () => {
                                 </div>
                             </div>
 
-                            {/* Date Picker with Ethiopian Calendar Preview */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                <label className="mezgeb-field-label">
                                     {isAmharic ? 'የወጣበት ቀን (Date)' : 'Expense Date'}
                                 </label>
                                 <input
                                     type="date"
                                     value={expenseForm.date}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
+                                    className="mezgeb-input"
                                 />
-                                <div style={{ fontSize: '0.8rem', color: '#06b6d4', marginTop: '4px', fontWeight: '600' }}>
-                                    🇪🇹 {isAmharic ? 'የኢትዮጵያ ቀን አቆጣጠር:' : 'Ethiopian Calendar:'} {toEthiopianDate(expenseForm.date, true)}
+                                <div className="mezgeb-date-eth" style={{ marginTop: '6px' }}>
+                                    <Calendar size={12} />
+                                    <span>
+                                        {isAmharic ? 'የኢትዮጵያ ቀን አቆጣጠር:' : 'Ethiopian Calendar:'}{' '}
+                                        {toEthiopianDate(expenseForm.date, true)}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Receipt Image URL / Attachment */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
-                                    {isAmharic ? 'የደረሰኝ ፎቶ ማስፈንጠሪያ (Receipt URL / Cloud Image)' : 'Receipt Image URL'}
+                                <label className="mezgeb-field-label">
+                                    {isAmharic ? 'የደረሰኝ ፎቶ ማስፈንጠሪያ (Receipt URL)' : 'Receipt Image URL (Optional)'}
                                 </label>
                                 <input
                                     type="url"
                                     placeholder="https://.../receipt.jpg"
                                     value={expenseForm.receiptUrl}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, receiptUrl: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
+                                    className="mezgeb-input"
                                 />
                             </div>
 
-                            {/* Capital Auto Sync Checkbox */}
-                            <div style={{
-                                background: 'var(--admin-inner-bg, #f8f9fa)',
-                                padding: '1rem',
-                                borderRadius: '12px',
-                                border: '1px solid var(--admin-border, #dee2e6)'
-                            }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem', color: 'var(--admin-text, #1a1b1e)' }}>
+                            <div
+                                style={{
+                                    background: 'var(--admin-inner-bg, #f8fafc)',
+                                    padding: '0.95rem 1rem',
+                                    borderRadius: '14px',
+                                    border: '1px solid var(--admin-border, #e2e8f0)',
+                                }}
+                            >
+                                <label
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.6rem',
+                                        cursor: 'pointer',
+                                        fontWeight: 700,
+                                        fontSize: '0.88rem',
+                                        color: 'var(--admin-text, #0f172a)',
+                                    }}
+                                >
                                     <input
                                         type="checkbox"
                                         checked={expenseForm.syncCapital}
@@ -909,16 +903,16 @@ const ExpenseManagement = () => {
                                     />
                                     {isAmharic ? 'ከካፒታል ግምጃ ቤት ጋር አስተሳስር (Sync Capital)' : 'Sync to Store Capital Treasury as Outflow'}
                                 </label>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--admin-subtext, #868e96)', marginTop: '0.3rem' }}>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--admin-subtext, #64748b)', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <Sparkles size={13} color="#06b6d4" />
                                     {isAmharic
-                                        ? '✨ በካፒታል መዝገብ ላይ እንደ ወጪ (OUTFLOW) በራስ-ሰር ይመዘገባል'
-                                        : '✨ Automatically creates an OUTFLOW entry in Capital Treasury'}
+                                        ? 'በካፒታል መዝገብ ላይ እንደ ወጪ (OUTFLOW) በራስ-ሰር ይመዘገባል'
+                                        : 'Automatically creates an OUTFLOW entry in Capital Treasury'}
                                 </div>
                             </div>
 
-                            {/* Notes */}
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                <label className="mezgeb-field-label">
                                     {isAmharic ? 'ተጨማሪ ማስታወሻ (አማራጭ)' : 'Additional Notes (Optional)'}
                                 </label>
                                 <input
@@ -926,23 +920,29 @@ const ExpenseManagement = () => {
                                     placeholder={isAmharic ? 'ማስታወሻ...' : 'Any details...'}
                                     value={expenseForm.notes}
                                     onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)' }}
+                                    className="mezgeb-input"
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.35rem' }}>
                                 <button
                                     type="button"
                                     onClick={() => setAddModalOpen(false)}
-                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: '1px solid var(--admin-border, #ced4da)', background: 'var(--admin-input-bg, white)', color: 'var(--admin-text, #1a1b1e)', fontWeight: '600', cursor: 'pointer' }}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.78rem',
+                                        borderRadius: '12px',
+                                        border: '1px solid var(--admin-border, #cbd5e1)',
+                                        background: 'var(--admin-inner-bg, #f8fafc)',
+                                        color: 'var(--admin-text, #0f172a)',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                    }}
                                 >
                                     {isAmharic ? 'ይቅር' : 'Cancel'}
                                 </button>
-                                <button
-                                    type="submit"
-                                    style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)', color: 'white', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 14px rgba(6, 182, 212, 0.35)' }}
-                                >
-                                    {editingExpense ? (isAmharic ? 'አስተካክል' : 'Update') : (isAmharic ? 'መዝግብ' : 'Save Expense')}
+                                <button type="submit" className="mezgeb-primary-btn" style={{ flex: 1, justifyContent: 'center' }}>
+                                    {editingExpense ? (isAmharic ? 'አስተካክል' : 'Update Expense') : isAmharic ? 'መዝግብ' : 'Save Expense'}
                                 </button>
                             </div>
                         </form>
@@ -952,107 +952,72 @@ const ExpenseManagement = () => {
 
             {/* PARTNER CONNECTION MODAL */}
             {partnerModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(3, 7, 18, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 200,
-                    padding: '1rem'
-                }}>
-                    <div style={{
-                        background: 'var(--admin-card-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        border: '1px solid var(--admin-border, #eee)',
-                        padding: '2rem',
-                        borderRadius: '20px',
-                        maxWidth: '480px',
-                        width: '100%',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0, color: 'var(--admin-text, #1a1b1e)' }}>
-                                {isAmharic ? 'የንግድ አጋር ማገናኛ (Partner Connections)' : 'Shop Partner Connections'}
+                <div
+                    className="mezgeb-modal-backdrop"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setPartnerModalOpen(false);
+                    }}
+                >
+                    <div className="mezgeb-modal" style={{ maxWidth: '470px' }}>
+                        <div className="mezgeb-modal-header">
+                            <h2 className="mezgeb-modal-title">
+                                <Users size={20} color="#06b6d4" />
+                                {isAmharic ? 'የንግድ አጋር ማገናኛ' : 'Shop Partner Connections'}
                             </h2>
-                            <button onClick={() => setPartnerModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--admin-subtext, #868e96)', cursor: 'pointer' }}>
-                                <X size={20} />
+                            <button
+                                type="button"
+                                onClick={() => setPartnerModalOpen(false)}
+                                className="mezgeb-modal-close"
+                            >
+                                <X size={18} />
                             </button>
                         </div>
 
-                        {/* Current Shop Code */}
-                        <div style={{
-                            background: 'var(--admin-inner-bg, #f8f9fa)',
-                            padding: '1.2rem',
-                            borderRadius: '14px',
-                            border: '1px solid var(--admin-border, #dee2e6)',
-                            textAlign: 'center',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--admin-subtext, #868e96)', marginBottom: '0.4rem' }}>
-                                {isAmharic ? 'ለአጋርዎ የሚሰጡት የሱቅ መለያ ኮድ (Your Shop Code)' : 'Share this code with your business partner'}
+                        <div
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(14, 116, 144, 0.92))',
+                                color: '#ffffff',
+                                padding: '1.35rem',
+                                borderRadius: '16px',
+                                textAlign: 'center',
+                                marginBottom: '1.4rem',
+                            }}
+                        >
+                            <div style={{ fontSize: '0.82rem', color: 'rgba(226, 232, 240, 0.85)', marginBottom: '0.45rem' }}>
+                                {isAmharic ? 'ለአጋርዎ የሚሰጡት የሱቅ መለያ ኮድ' : 'Share this code with your business partner'}
                             </div>
-                            <div style={{ fontSize: '1.6rem', fontWeight: '800', letterSpacing: '2px', color: '#06b6d4' }}>
+                            <div
+                                className="mezgeb-code-text"
+                                style={{ fontSize: '1.75rem', letterSpacing: '3px', color: '#67e8f9', marginBottom: '0.75rem' }}
+                            >
                                 {activeGroup?.connectionId || 'CONN-4821'}
                             </div>
                             <button
+                                type="button"
                                 onClick={() => copyCode(activeGroup?.connectionId)}
-                                style={{
-                                    marginTop: '0.6rem',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    padding: '6px 14px',
-                                    borderRadius: '10px',
-                                    background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
-                                    color: 'white',
-                                    border: 'none',
-                                    fontWeight: '700',
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer'
-                                }}
+                                className={`mezgeb-glass-btn ${copied ? 'copied' : ''}`}
+                                style={{ margin: '0 auto' }}
                             >
-                                {copied ? <Check size={16} /> : <Copy size={16} />}
-                                <span>{copied ? (isAmharic ? 'ተቀድቷል!' : 'Copied!') : (isAmharic ? 'ኮዱን ቅዳ' : 'Copy Code')}</span>
+                                {copied ? <Check size={15} /> : <Copy size={15} />}
+                                <span>{copied ? (isAmharic ? 'ተቀድቷል!' : 'Copied!') : isAmharic ? 'ኮዱን ቅዳ' : 'Copy Code'}</span>
                             </button>
                         </div>
 
-                        {/* Join Another Partner Shop */}
                         <form onSubmit={handleJoinGroup}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
-                                {isAmharic ? 'ከሌላ አጋር ሱቅ ጋር ተገናኝ (Connect to Partner)' : 'Connect to another Partner Shop'}
+                            <label className="mezgeb-field-label">
+                                {isAmharic ? 'ከሌላ አጋር ሱቅ ጋር ተገናኝ' : 'Connect to another Partner Shop'}
                             </label>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.6rem' }}>
                                 <input
                                     type="text"
                                     required
                                     placeholder="e.g. CONN-1234"
                                     value={joinConnectionId}
                                     onChange={(e) => setJoinConnectionId(e.target.value.toUpperCase())}
-                                    style={{
-                                        flex: 1,
-                                        padding: '0.75rem',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--admin-border, #ced4da)',
-                                        background: 'var(--admin-input-bg, white)',
-                                        color: 'var(--admin-text, #1a1b1e)',
-                                        fontWeight: '700'
-                                    }}
+                                    className="mezgeb-input"
+                                    style={{ fontWeight: 700, letterSpacing: '1px' }}
                                 />
-                                <button
-                                    type="submit"
-                                    style={{
-                                        padding: '0.75rem 1.2rem',
-                                        borderRadius: '10px',
-                                        border: 'none',
-                                        background: '#10b981',
-                                        color: 'white',
-                                        fontWeight: '700',
-                                        cursor: 'pointer'
-                                    }}
-                                >
+                                <button type="submit" className="mezgeb-primary-btn">
                                     {isAmharic ? 'ተገናኝ' : 'Join'}
                                 </button>
                             </div>
@@ -1063,39 +1028,30 @@ const ExpenseManagement = () => {
 
             {/* EDIT BUDGET MODAL */}
             {budgetModalOpen && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(3, 7, 18, 0.75)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 200,
-                    padding: '1rem'
-                }}>
-                    <div style={{
-                        background: 'var(--admin-card-bg, white)',
-                        color: 'var(--admin-text, #1a1b1e)',
-                        border: '1px solid var(--admin-border, #eee)',
-                        padding: '2rem',
-                        borderRadius: '20px',
-                        maxWidth: '420px',
-                        width: '100%',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0, color: 'var(--admin-text, #1a1b1e)' }}>
+                <div
+                    className="mezgeb-modal-backdrop"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setBudgetModalOpen(false);
+                    }}
+                >
+                    <div className="mezgeb-modal" style={{ maxWidth: '420px' }}>
+                        <div className="mezgeb-modal-header">
+                            <h2 className="mezgeb-modal-title">
+                                <Wallet size={20} color="#06b6d4" />
                                 {isAmharic ? 'የወር በጀት ገደብ ቀይር' : 'Edit Monthly Budget Limit'}
                             </h2>
-                            <button onClick={() => setBudgetModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--admin-subtext, #868e96)', cursor: 'pointer' }}>
-                                <X size={20} />
+                            <button
+                                type="button"
+                                onClick={() => setBudgetModalOpen(false)}
+                                className="mezgeb-modal-close"
+                            >
+                                <X size={18} />
                             </button>
                         </div>
 
                         <form onSubmit={handleUpdateBudget} style={{ display: 'grid', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: 'var(--admin-subtext, #495057)' }}>
+                                <label className="mezgeb-field-label">
                                     {isAmharic ? 'ወርሃዊ ከፍተኛ የወጪ ገደብ (በብር)' : 'Monthly Maximum Overhead Limit (ETB)'}
                                 </label>
                                 <input
@@ -1104,31 +1060,12 @@ const ExpenseManagement = () => {
                                     required
                                     value={budgetLimitInput}
                                     onChange={(e) => setBudgetLimitInput(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--admin-border, #ced4da)',
-                                        background: 'var(--admin-input-bg, white)',
-                                        color: 'var(--admin-text, #1a1b1e)',
-                                        fontSize: '1.1rem',
-                                        fontWeight: '700'
-                                    }}
+                                    className="mezgeb-input"
+                                    style={{ fontSize: '1.15rem', fontWeight: 800 }}
                                 />
                             </div>
 
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: '0.8rem',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
-                                    color: 'white',
-                                    fontWeight: '700',
-                                    cursor: 'pointer'
-                                }}
-                            >
+                            <button type="submit" className="mezgeb-primary-btn" style={{ justifyContent: 'center' }}>
                                 {isAmharic ? 'በጀቱን አረጋግጥ' : 'Save Budget Limit'}
                             </button>
                         </form>
@@ -1138,42 +1075,24 @@ const ExpenseManagement = () => {
 
             {/* RECEIPT IMAGE PREVIEW MODAL */}
             {receiptPreviewUrl && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(3, 7, 18, 0.85)',
-                    backdropFilter: 'blur(10px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 220,
-                    padding: '1.5rem'
-                }}>
-                    <div style={{
-                        position: 'relative',
-                        maxWidth: '650px',
-                        width: '100%',
-                        background: 'var(--admin-card-bg, white)',
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                        boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
-                    }}>
-                        <div style={{
-                            padding: '1rem 1.4rem',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            borderBottom: '1px solid var(--admin-border, #eee)'
-                        }}>
-                            <span style={{ fontWeight: '700', color: 'var(--admin-text, #1a1b1e)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div
+                    className="mezgeb-modal-backdrop"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setReceiptPreviewUrl(null);
+                    }}
+                >
+                    <div className="mezgeb-modal" style={{ maxWidth: '640px', padding: 0, overflow: 'hidden' }}>
+                        <div className="mezgeb-modal-header" style={{ padding: '1.1rem 1.4rem', margin: 0 }}>
+                            <span className="mezgeb-modal-title" style={{ fontSize: '1.05rem' }}>
                                 <ImageIcon size={18} color="#06b6d4" />
                                 {isAmharic ? 'የደረሰኝ ፎቶ (Receipt Voucher)' : 'Receipt Voucher Preview'}
                             </span>
                             <button
+                                type="button"
                                 onClick={() => setReceiptPreviewUrl(null)}
-                                style={{ background: 'none', border: 'none', color: 'var(--admin-subtext, #868e96)', cursor: 'pointer' }}
+                                className="mezgeb-modal-close"
                             >
-                                <X size={20} />
+                                <X size={18} />
                             </button>
                         </div>
                         <div style={{ padding: '1.5rem', textAlign: 'center', background: '#090e17' }}>
@@ -1183,8 +1102,8 @@ const ExpenseManagement = () => {
                                 style={{
                                     maxWidth: '100%',
                                     maxHeight: '60vh',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                                    borderRadius: '14px',
+                                    boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
                                 }}
                                 onError={(e) => {
                                     e.target.onerror = null;
